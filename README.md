@@ -1,7 +1,52 @@
 # Hush
 
-Hush is a private chat app for mobile. Messages stay on the device and never leave the local network.
+Hush is a private AI chat for iPhone. It runs fully on the device with Apple Foundation Models. There is no account, no cloud and no tracking. It works in airplane mode.
 
-Conversations run entirely on the phone. There is no account, no cloud server, and no company in the middle. You open the app, connect with the people nearby, and talk. When the session ends, the chat stays where it was created: on the devices that took part in it.
+## Requirements
 
-Hush is built for moments when a normal messenger is the wrong tool, a meeting, a trip, a shared space and the only requirement is that the conversation remains yours.
+- Xcode 26 or later
+- iOS 26 or later
+- An iPhone with Apple Intelligence turned on, to get real replies
+
+Without Apple Intelligence, Hush shows a short message that explains how to turn it on.
+
+## Run
+
+1. Open `Hush.xcodeproj`.
+2. Select your team in Signing & Capabilities.
+3. Run the `Hush` scheme.
+
+Run the tests with `Cmd+U` or:
+
+```sh
+xcodebuild test -project Hush.xcodeproj -scheme Hush -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+## Structure
+
+| Folder | Content |
+|---|---|
+| `Hush/App` | Root view, tab bar, lock flow, settings keys |
+| `Hush/Theme` | Dark and light palettes, type styles, motion |
+| `Hush/Field` | The live ASCII background (`FieldEngine`, `AsciiField`) |
+| `Hush/Components` | Wordmark, app mark, buttons, chips |
+| `Hush/Chat` | Chat screen, composer, message boxes, streaming text, Markdown |
+| `Hush/Engine` | `ReplyEngine`, the on-device reply stream |
+| `Hush/Data` | SwiftData models |
+| `Hush/Screens` | Onboarding, lock, Chats, Voice, Privacy |
+| `HushTests` | Unit tests |
+| `scripts` | `make-icon.swift` makes the app icon PNGs |
+
+## Debug launch options
+
+Debug builds read these launch arguments:
+
+- `-HushTab chats|voice|privacy` opens a tab.
+- `-HushPrompt "text"` sends a message on launch.
+- `-HushSimulate YES` streams a sample reply, for the simulator.
+
+## App icon
+
+```sh
+swift scripts/make-icon.swift Hush/Assets.xcassets/AppIcon.appiconset
+```

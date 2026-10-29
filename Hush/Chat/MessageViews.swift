@@ -208,6 +208,7 @@ private struct BlockChrome: ViewModifier {
                     .font(.system(.body, design: .monospaced))
                     .foregroundStyle(palette.accent)
                 content
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .numbered(let number):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -215,6 +216,7 @@ private struct BlockChrome: ViewModifier {
                     .font(HushFont.mono)
                     .foregroundStyle(palette.text3)
                 content
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .code:
             content

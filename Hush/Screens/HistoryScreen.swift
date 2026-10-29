@@ -103,7 +103,9 @@ struct HistoryScreen: View {
                         .font(HushFont.footnote)
                         .foregroundStyle(palette.text3)
                         .textCase(nil)
+                        .padding(.leading, 4)
                 }
+                .listSectionSeparator(.hidden)
             }
         }
         .listStyle(.plain)

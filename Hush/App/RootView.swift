@@ -72,7 +72,12 @@ private struct AppFlow: View {
         .animation(Motion.gentle, value: onboarded)
         .animation(Motion.gentle, value: locked)
         .animation(.easeInOut(duration: 0.2), value: scenePhase)
-        .onAppear { controller.attach(modelContext) }
+        .onAppear {
+            controller.attach(modelContext)
+            #if DEBUG
+            DebugLaunch.apply(controller: controller, tab: &tab)
+            #endif
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background, lockEnabled {
                 controller.stop()

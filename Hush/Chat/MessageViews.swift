@@ -167,31 +167,34 @@ struct MarkdownBlockView: View {
         case .code(let language):
             CodeBlock(code: block.text, language: language)
         case .heading:
-            Text(styled(block.text))
+            styled(block.text)
                 .font(HushFont.title)
                 .foregroundStyle(palette.text)
         case .bullet, .numbered, .paragraph:
-            Text(styled(block.text))
+            styled(block.text)
                 .font(HushFont.body)
                 .foregroundStyle(palette.text)
                 .modifier(BlockChrome(kind: block.kind))
         }
     }
 
-    private func styled(_ text: String) -> AttributedString {
-        var string = AttributedString.inlineMarkdown(text)
-        for run in string.runs {
-            guard let intent = run.inlinePresentationIntent else { continue }
-            if intent.contains(.stronglyEmphasized) {
-                string[run.range].inlinePresentationIntent = intent.subtracting(.stronglyEmphasized)
-                string[run.range].font = .system(.body, weight: .medium)
-            }
+    private func styled(_ text: String) -> Text {
+        let string = AttributedString.inlineMarkdown(text)
+        return string.runs.reduce(Text("")) { partial, run in
+            let intent = run.inlinePresentationIntent ?? []
+            var piece = Text(AttributedString(string[run.range].characters))
             if intent.contains(.code) {
-                string[run.range].font = .system(.callout, design: .monospaced)
-                string[run.range].backgroundColor = palette.raised
+                piece = piece.font(.system(.callout, design: .monospaced)).foregroundStyle(palette.accentText)
+            } else {
+                if intent.contains(.stronglyEmphasized) {
+                    piece = piece.fontWeight(.medium)
+                }
+                if intent.contains(.emphasized) {
+                    piece = piece.italic()
+                }
             }
+            return Text("\(partial)\(piece)")
         }
-        return string
     }
 }
 

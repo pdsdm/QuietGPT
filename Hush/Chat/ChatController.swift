@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OSLog
 import SwiftData
 
 @MainActor
@@ -16,6 +17,8 @@ final class ChatController {
     private(set) var streamingText = ""
     private(set) var completedReplies = 0
     var draft = ""
+
+    private static let logger = Logger(subsystem: "com.pdsdm.hush", category: "chat")
 
     private let engine: ReplyEngine
     private var context: ModelContext?
@@ -76,10 +79,17 @@ final class ChatController {
             } catch is CancellationError {
                 self?.finishReply(in: conversation)
             } catch {
-                self?.finishReply(in: conversation, fallback: "Something went wrong while I was thinking. Please try again.")
+                Self.logger.error("Reply failed: \(String(describing: error), privacy: .public)")
+                self?.finishReply(in: conversation, fallback: ReplyEngine.message(for: error))
             }
         }
     }
+
+    #if DEBUG
+    func simulateReplies(with text: String) {
+        engine.simulatedReply = text
+    }
+    #endif
 
     func stop() {
         task?.cancel()

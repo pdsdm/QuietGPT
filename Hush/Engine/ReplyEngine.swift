@@ -24,6 +24,23 @@ final class ReplyEngine {
 
     private var sessions: [UUID: LanguageModelSession] = [:]
 
+    #if DEBUG
+    var simulatedReply: String?
+    #endif
+
+    static func message(for error: Error) -> String {
+        switch error as? LanguageModelSession.GenerationError {
+        case .guardrailViolation, .refusal:
+            "I would rather not answer that one. Try asking in another way."
+        case .unsupportedLanguageOrLocale:
+            "I can't answer in this language yet."
+        case .rateLimited, .concurrentRequests:
+            "I need a moment. Please try again."
+        default:
+            "I can't think on this iPhone right now. Check that Apple Intelligence is on and ready in Settings, then try again."
+        }
+    }
+
     var isAvailable: Bool {
         SystemLanguageModel.default.availability == .available
     }
@@ -38,6 +55,11 @@ final class ReplyEngine {
     }
 
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn]) -> AsyncThrowingStream<String, Error> {
+        #if DEBUG
+        if let simulatedReply {
+            return Self.simulatedStream(simulatedReply)
+        }
+        #endif
         guard isAvailable else {
             return Self.simulatedStream(Self.unavailableReply)
         }

@@ -6,6 +6,7 @@ struct ChatScreen: View {
 
     @Environment(\.palette) private var palette
     @State private var greeted = false
+    @State private var monitorShown = false
 
     private static let ideas: [(title: String, hint: String, prompt: String)] = [
         ("Help me write a message", "write", "Help me write a short, kind message to a friend I have not talked to in a while."),
@@ -37,6 +38,12 @@ struct ChatScreen: View {
         }
         .animation(Motion.spring, value: controller.hasConversation)
         .animation(Motion.gentle, value: controller.isResponding)
+        .animation(Motion.spring, value: monitorShown)
+        #if DEBUG
+        .onAppear {
+            if DebugLaunch.opensMonitor { monitorShown = true }
+        }
+        #endif
         .toolbarVisibility(controller.hasConversation ? .hidden : .visible, for: .tabBar)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: controller.completedReplies)
     }
@@ -188,6 +195,12 @@ struct ChatScreen: View {
 
     private var footer: some View {
         VStack(spacing: 8) {
+            if monitorShown {
+                MonitorPanel(controller: controller) {
+                    monitorShown = false
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: AnyTransition(.blurReplace)))
+            }
             if controller.isResponding {
                 Text("thinking on this iPhone · 0 B sent")
                     .font(HushFont.monoSmall)
@@ -200,7 +213,8 @@ struct ChatScreen: View {
                 isResponding: controller.isResponding,
                 canSend: controller.canSend,
                 onSend: { controller.send() },
-                onStop: controller.stop
+                onStop: controller.stop,
+                onSecretHold: { monitorShown.toggle() }
             )
         }
         .padding(.horizontal, 12)

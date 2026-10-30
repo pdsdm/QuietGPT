@@ -7,10 +7,13 @@ struct Composer: View {
     let canSend: Bool
     let onSend: () -> Void
     let onStop: () -> Void
+    var onSecretHold: () -> Void = {}
 
     @Environment(\.palette) private var palette
     @FocusState private var focused: Bool
     @State private var sends = 0
+    @State private var secretHolds = 0
+    @State private var skipsNextSend = false
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -40,6 +43,13 @@ struct Composer: View {
             .padding(4)
             .animation(Motion.spring, value: isResponding)
             .animation(Motion.spring, value: canSend)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 10).onEnded { _ in
+                    skipsNextSend = true
+                    secretHolds += 1
+                    onSecretHold()
+                }
+            )
         }
         .background(palette.raised, in: .rect(cornerRadius: 26, style: .continuous))
         .overlay {
@@ -48,6 +58,7 @@ struct Composer: View {
         }
         .animation(Motion.spring, value: focused)
         .sensoryFeedback(.impact(weight: .light), trigger: sends)
+        .sensoryFeedback(.success, trigger: secretHolds)
     }
 
     private var buttonBackground: Color {
@@ -61,6 +72,10 @@ struct Composer: View {
     }
 
     private func send() {
+        if skipsNextSend {
+            skipsNextSend = false
+            return
+        }
         guard canSend else { return }
         sends += 1
         onSend()

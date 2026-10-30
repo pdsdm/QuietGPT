@@ -16,6 +16,10 @@ enum DebugLaunch {
     ```
     """
 
+    static var opensMonitor: Bool {
+        UserDefaults.standard.bool(forKey: "HushMonitor")
+    }
+
     static func apply(controller: ChatController, tab: inout AppTab) {
         let defaults = UserDefaults.standard
         switch defaults.string(forKey: "HushTab") {

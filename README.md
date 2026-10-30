@@ -44,6 +44,7 @@ Debug builds read these launch arguments:
 - `-HushTab chats|voice|privacy` opens a tab.
 - `-HushPrompt "text"` sends a message on launch.
 - `-HushSimulate YES` streams a sample reply, for the simulator.
+- `-HushMonitor YES` opens the monitor panel.
 
 ## App icon
 
@@ -52,6 +53,8 @@ swift scripts/make-icon.swift Hush/Assets.xcassets/AppIcon.appiconset
 ```
 
 ## Reply speed and power
+
+Hold the send button for 10 seconds to open the monitor panel above the input box. It shows Neural Engine reply speed, CPU, interface frames, memory, network and thermal state.
 
 Each reply logs its speed in the `chat` category:
 

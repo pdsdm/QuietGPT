@@ -50,3 +50,18 @@ Debug builds read these launch arguments:
 ```sh
 swift scripts/make-icon.swift Hush/Assets.xcassets/AppIcon.appiconset
 ```
+
+## Reply speed and power
+
+Each reply logs its speed in the `chat` category:
+
+```sh
+log stream --predicate 'subsystem == "com.pdsdm.hush"' --level info
+```
+
+`scripts/power-monitor.c` shows CPU, GPU and Neural Engine power on an Apple Silicon Mac, without `sudo`:
+
+```sh
+clang -O2 scripts/power-monitor.c -o power-monitor -framework CoreFoundation -lIOReport
+./power-monitor 30
+```

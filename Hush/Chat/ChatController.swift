@@ -69,12 +69,16 @@ final class ChatController {
 
         let stream = engine.reply(to: prompt, in: conversation.id, history: history)
         task = Task { [weak self] in
+            var metrics = ReplyMetrics()
             do {
                 for try await text in stream {
                     guard let self else { return }
+                    metrics.received(text)
                     if self.phase == .thinking { self.phase = .streaming }
                     self.streamingText = text
                 }
+                metrics.finish()
+                Self.logger.notice("Reply metrics: \(metrics.summary, privacy: .public)")
                 self?.finishReply(in: conversation)
             } catch is CancellationError {
                 self?.finishReply(in: conversation)

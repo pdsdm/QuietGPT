@@ -1,0 +1,199 @@
+import SwiftUI
+import UIKit
+
+struct RewriteCard: View {
+    let loadText: () async -> String
+    let onClose: () -> Void
+
+    @State private var original = ""
+    @State private var tone = RewriteTone.kinder
+    @State private var result = ""
+    @State private var failure: String?
+    @State private var isWriting = false
+    @State private var copied = false
+    @State private var task: Task<Void, Never>?
+
+    private let rewriter = Rewriter()
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onClose)
+
+            card
+                .padding(8)
+                .transition(.move(edge: .bottom))
+        }
+        .task {
+            rewriter.prepare()
+            original = await loadText().trimmingCharacters(in: .whitespacesAndNewlines)
+            run()
+        }
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Capsule()
+                .fill(Ink.line)
+                .frame(width: 36, height: 5)
+                .frame(maxWidth: .infinity)
+
+            HStack(spacing: 10) {
+                Text("hush")
+                    .font(.system(size: 20))
+                    .tracking(-0.3)
+                    .foregroundStyle(Ink.text)
+                HStack(spacing: 6) {
+                    Circle().fill(Ink.local).frame(width: 5, height: 5)
+                    Text("on this iPhone")
+                }
+                .font(.system(size: 12))
+                .foregroundStyle(Ink.text2)
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Ink.text2)
+                        .frame(width: 32, height: 32)
+                        .background(Ink.elevated, in: .circle)
+                }
+                .accessibilityLabel("Close")
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("your text")
+                    .font(.system(size: 12, design: .monospaced))
+                    .foregroundStyle(Ink.text3)
+                Text(original.isEmpty ? " " : original)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Ink.text2)
+                    .lineLimit(3)
+            }
+
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(RewriteTone.allCases) { option in
+                        Button {
+                            tone = option
+                            run()
+                        } label: {
+                            Text(option.title)
+                                .font(.system(size: 15))
+                                .padding(.horizontal, 14)
+                                .frame(height: 36)
+                                .foregroundStyle(option == tone ? Ink.background : Ink.text)
+                                .background(option == tone ? Ink.text : Ink.raised, in: .capsule)
+                                .overlay {
+                                    Capsule().strokeBorder(option == tone ? .clear : Ink.line, lineWidth: 1)
+                                }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(tone.title.lowercased())
+                    .font(.system(size: 12, design: .monospaced))
+                    .foregroundStyle(Ink.text3)
+                ScrollView {
+                    Text(failure ?? (result.isEmpty ? "writing…" : result))
+                        .font(.system(size: 18))
+                        .foregroundStyle(failure == nil && !result.isEmpty ? Ink.text : Ink.text3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentTransition(.opacity)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, minHeight: 120, maxHeight: 200, alignment: .topLeading)
+            .background(Ink.surface, in: UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 6, bottomTrailingRadius: 22, topTrailingRadius: 22))
+            .overlay {
+                UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 6, bottomTrailingRadius: 22, topTrailingRadius: 22)
+                    .strokeBorder(Ink.line, lineWidth: 1)
+            }
+
+            Button(action: copy) {
+                Text(copied ? "Copied · paste it in your chat" : "Copy")
+                    .font(.system(size: 17))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .foregroundStyle(Ink.background)
+                    .background(Ink.text, in: .capsule)
+            }
+            .buttonStyle(.plain)
+            .disabled(result.isEmpty || isWriting)
+            .opacity(result.isEmpty || isWriting ? 0.4 : 1)
+
+            Text("rewritten on this iPhone · 0 B sent")
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(Ink.text3)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 20)
+        .background(Ink.background, in: .rect(cornerRadius: 34, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .strokeBorder(Ink.line, lineWidth: 1)
+        }
+        .animation(.snappy, value: tone)
+        .animation(.snappy, value: copied)
+        .sensoryFeedback(.success, trigger: copied) { _, new in new }
+    }
+
+    private func run() {
+        task?.cancel()
+        result = ""
+        failure = nil
+        copied = false
+        guard !original.isEmpty else {
+            failure = "Select some text, then share it to Hush."
+            return
+        }
+        guard rewriter.isAvailable else {
+            failure = "Hush needs Apple Intelligence. Turn it on in Settings."
+            return
+        }
+        isWriting = true
+        let stream = rewriter.rewrite(original, tone: tone)
+        task = Task {
+            do {
+                for try await text in stream {
+                    result = text
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                failure = Rewriter.message(for: error)
+            }
+            if !Task.isCancelled {
+                isWriting = false
+            }
+        }
+    }
+
+    private func copy() {
+        UIPasteboard.general.string = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        copied = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.9))
+            onClose()
+        }
+    }
+}
+
+private enum Ink {
+    static let background = Color(red: 0, green: 0, blue: 0)
+    static let surface = Color(red: 14 / 255, green: 14 / 255, blue: 16 / 255)
+    static let raised = Color(red: 22 / 255, green: 22 / 255, blue: 24 / 255)
+    static let elevated = Color(red: 31 / 255, green: 31 / 255, blue: 34 / 255)
+    static let line = Color(red: 42 / 255, green: 42 / 255, blue: 46 / 255)
+    static let text = Color(red: 244 / 255, green: 244 / 255, blue: 241 / 255)
+    static let text2 = Color(red: 161 / 255, green: 161 / 255, blue: 166 / 255)
+    static let text3 = Color(red: 124 / 255, green: 124 / 255, blue: 130 / 255)
+    static let local = Color(red: 127 / 255, green: 216 / 255, blue: 174 / 255)
+}

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA0000000000000000000048 /* HushShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000041 /* HushShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AA0000000000000000000026 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -14,11 +18,33 @@
 			remoteGlobalIDString = AA0000000000000000000006;
 			remoteInfo = Hush;
 		};
+		AA000000000000000000004B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000009 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000040;
+			remoteInfo = HushShare;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		AA0000000000000000000047 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA0000000000000000000048 /* HushShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		AA0000000000000000000021 /* HushTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000001 /* Hush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hush.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000021 /* HushTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000041 /* HushShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HushShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +56,16 @@
 		AA0000000000000000000022 /* HushTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = HushTests;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000042 /* HushShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HushShare;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000043 /* Rewrite */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Rewrite;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -49,6 +85,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000045 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -57,6 +100,8 @@
 			children = (
 				AA0000000000000000000002 /* Hush */,
 				AA0000000000000000000022 /* HushTests */,
+				AA0000000000000000000042 /* HushShare */,
+				AA0000000000000000000043 /* Rewrite */,
 				AA0000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,6 +111,7 @@
 			children = (
 				AA0000000000000000000001 /* Hush.app */,
 				AA0000000000000000000021 /* HushTests.xctest */,
+				AA0000000000000000000041 /* HushShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -80,10 +126,12 @@
 				AA0000000000000000000007 /* Sources */,
 				AA0000000000000000000003 /* Frameworks */,
 				AA0000000000000000000008 /* Resources */,
+				AA0000000000000000000047 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AA0000000000000000000049 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000002 /* Hush */,
@@ -118,6 +166,29 @@
 			productReference = AA0000000000000000000021 /* HushTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AA0000000000000000000040 /* HushShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA000000000000000000004C /* Build configuration list for PBXNativeTarget "HushShare" */;
+			buildPhases = (
+				AA0000000000000000000044 /* Sources */,
+				AA0000000000000000000045 /* Frameworks */,
+				AA0000000000000000000046 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA0000000000000000000042 /* HushShare */,
+				AA0000000000000000000043 /* Rewrite */,
+			);
+			name = HushShare;
+			packageProductDependencies = (
+			);
+			productName = HushShare;
+			productReference = AA0000000000000000000041 /* HushShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -134,6 +205,9 @@
 					AA0000000000000000000020 = {
 						CreatedOnToolsVersion = 26.0;
 						TestTargetID = AA0000000000000000000006;
+					};
+					AA0000000000000000000040 = {
+						CreatedOnToolsVersion = 26.0;
 					};
 				};
 			};
@@ -153,6 +227,7 @@
 			targets = (
 				AA0000000000000000000006 /* Hush */,
 				AA0000000000000000000020 /* HushTests */,
+				AA0000000000000000000040 /* HushShare */,
 			);
 		};
 /* End PBXProject section */
@@ -166,6 +241,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AA0000000000000000000025 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000046 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -189,6 +271,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000044 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -196,6 +285,11 @@
 			isa = PBXTargetDependency;
 			target = AA0000000000000000000006 /* Hush */;
 			targetProxy = AA0000000000000000000026 /* PBXContainerItemProxy */;
+		};
+		AA0000000000000000000049 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000040 /* HushShare */;
+			targetProxy = AA000000000000000000004B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -369,6 +463,62 @@
 			};
 			name = Release;
 		};
+		AA000000000000000000004D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UM23X2KY3U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/HushShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hush;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA000000000000000000004E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UM23X2KY3U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/HushShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hush;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -395,6 +545,15 @@
 			buildConfigurations = (
 				AA0000000000000000000031 /* Debug */,
 				AA0000000000000000000032 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA000000000000000000004C /* Build configuration list for PBXNativeTarget "HushShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA000000000000000000004D /* Debug */,
+				AA000000000000000000004E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

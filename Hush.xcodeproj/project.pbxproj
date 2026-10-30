@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA0000000000000000000048 /* HushShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000041 /* HushShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA0000000000000000000058 /* HushKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000051 /* HushKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +26,13 @@
 			remoteGlobalIDString = AA0000000000000000000040;
 			remoteInfo = HushShare;
 		};
+		AA000000000000000000005B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000009 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000050;
+			remoteInfo = HushKeyboard;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +43,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				AA0000000000000000000048 /* HushShare.appex in Embed Foundation Extensions */,
+				AA0000000000000000000058 /* HushKeyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -45,6 +54,7 @@
 		AA0000000000000000000001 /* Hush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000021 /* HushTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000041 /* HushShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HushShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000051 /* HushKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HushKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -66,6 +76,11 @@
 		AA0000000000000000000043 /* Rewrite */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Rewrite;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000052 /* HushKeyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HushKeyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -92,6 +107,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000055 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -101,6 +123,7 @@
 				AA0000000000000000000002 /* Hush */,
 				AA0000000000000000000022 /* HushTests */,
 				AA0000000000000000000042 /* HushShare */,
+				AA0000000000000000000052 /* HushKeyboard */,
 				AA0000000000000000000043 /* Rewrite */,
 				AA0000000000000000000005 /* Products */,
 			);
@@ -112,6 +135,7 @@
 				AA0000000000000000000001 /* Hush.app */,
 				AA0000000000000000000021 /* HushTests.xctest */,
 				AA0000000000000000000041 /* HushShare.appex */,
+				AA0000000000000000000051 /* HushKeyboard.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -132,6 +156,7 @@
 			);
 			dependencies = (
 				AA0000000000000000000049 /* PBXTargetDependency */,
+				AA0000000000000000000059 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000002 /* Hush */,
@@ -189,6 +214,29 @@
 			productReference = AA0000000000000000000041 /* HushShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		AA0000000000000000000050 /* HushKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA000000000000000000005C /* Build configuration list for PBXNativeTarget "HushKeyboard" */;
+			buildPhases = (
+				AA0000000000000000000054 /* Sources */,
+				AA0000000000000000000055 /* Frameworks */,
+				AA0000000000000000000056 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA0000000000000000000043 /* Rewrite */,
+				AA0000000000000000000052 /* HushKeyboard */,
+			);
+			name = HushKeyboard;
+			packageProductDependencies = (
+			);
+			productName = HushKeyboard;
+			productReference = AA0000000000000000000051 /* HushKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -207,6 +255,9 @@
 						TestTargetID = AA0000000000000000000006;
 					};
 					AA0000000000000000000040 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA0000000000000000000050 = {
 						CreatedOnToolsVersion = 26.0;
 					};
 				};
@@ -228,6 +279,7 @@
 				AA0000000000000000000006 /* Hush */,
 				AA0000000000000000000020 /* HushTests */,
 				AA0000000000000000000040 /* HushShare */,
+				AA0000000000000000000050 /* HushKeyboard */,
 			);
 		};
 /* End PBXProject section */
@@ -248,6 +300,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AA0000000000000000000046 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000056 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -278,6 +337,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000054 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -290,6 +356,11 @@
 			isa = PBXTargetDependency;
 			target = AA0000000000000000000040 /* HushShare */;
 			targetProxy = AA000000000000000000004B /* PBXContainerItemProxy */;
+		};
+		AA0000000000000000000059 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000050 /* HushKeyboard */;
+			targetProxy = AA000000000000000000005B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -519,6 +590,62 @@
 			};
 			name = Release;
 		};
+		AA000000000000000000005D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UM23X2KY3U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hush;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA000000000000000000005E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UM23X2KY3U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hush;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -554,6 +681,15 @@
 			buildConfigurations = (
 				AA000000000000000000004D /* Debug */,
 				AA000000000000000000004E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA000000000000000000005C /* Build configuration list for PBXNativeTarget "HushKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA000000000000000000005D /* Debug */,
+				AA000000000000000000005E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

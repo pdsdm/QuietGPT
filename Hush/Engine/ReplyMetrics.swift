@@ -34,8 +34,12 @@ struct ReplyMetrics {
     }
 
     var tokensPerSecond: Double? {
-        guard let firstText, let end else { return nil }
-        let seconds = firstText.duration(to: end).seconds
+        end.flatMap(rate(until:))
+    }
+
+    func rate(until instant: ContinuousClock.Instant) -> Double? {
+        guard let firstText else { return nil }
+        let seconds = firstText.duration(to: instant).seconds
         guard seconds > 0 else { return nil }
         return Double(estimatedTokens) / seconds
     }

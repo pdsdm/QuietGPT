@@ -16,6 +16,8 @@ final class ChatController {
     private(set) var phase: Phase = .idle
     private(set) var streamingText = ""
     private(set) var completedReplies = 0
+    private(set) var liveMetrics: ReplyMetrics?
+    private(set) var lastMetrics: ReplyMetrics?
     var draft = ""
 
     private static let logger = Logger(subsystem: "com.pdsdm.hush", category: "chat")
@@ -66,19 +68,17 @@ final class ChatController {
         draft = ""
         streamingText = ""
         phase = .thinking
+        liveMetrics = ReplyMetrics()
 
         let stream = engine.reply(to: prompt, in: conversation.id, history: history)
         task = Task { [weak self] in
-            var metrics = ReplyMetrics()
             do {
                 for try await text in stream {
                     guard let self else { return }
-                    metrics.received(text)
+                    self.liveMetrics?.received(text)
                     if self.phase == .thinking { self.phase = .streaming }
                     self.streamingText = text
                 }
-                metrics.finish()
-                Self.logger.notice("Reply metrics: \(metrics.summary, privacy: .public)")
                 self?.finishReply(in: conversation)
             } catch is CancellationError {
                 self?.finishReply(in: conversation)
@@ -144,6 +144,12 @@ final class ChatController {
         if !final.isEmpty {
             append(Message(role: .assistant, text: final), to: conversation)
         }
+        if var metrics = liveMetrics {
+            metrics.finish()
+            Self.logger.notice("Reply metrics: \(metrics.summary, privacy: .public)")
+            lastMetrics = metrics
+        }
+        liveMetrics = nil
         streamingText = ""
         phase = .idle
         task = nil

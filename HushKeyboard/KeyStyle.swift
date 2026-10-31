@@ -37,12 +37,20 @@ struct KeyStyle {
     )
 }
 
+extension EdgeInsets {
+    static func key(leading: CGFloat = 0, trailing: CGFloat = 0) -> EdgeInsets {
+        EdgeInsets(top: 5.5, leading: 3 + leading, bottom: 5.5, trailing: 3 + trailing)
+    }
+}
+
 struct KeyFace: View {
+    static let radius: CGFloat = 8.5
+
     let color: Color
     let shadow: Color
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 5, style: .continuous)
+        RoundedRectangle(cornerRadius: Self.radius, style: .continuous)
             .fill(color)
             .shadow(color: shadow, radius: 0, x: 0, y: 1)
     }

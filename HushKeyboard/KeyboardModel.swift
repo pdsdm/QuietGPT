@@ -26,6 +26,11 @@ final class KeyboardModel {
     var showsGlobe = false
     var returnTitle = "return"
     var returnIsAction = false
+    var isSpanish = false
+    var isTrackpad = false
+
+    var spaceTitle: String { isSpanish ? "espacio" : "space" }
+    var goTitle: String { isSpanish ? "ir" : "go" }
 
     var tones: [RewriteTone] {
         guard let pinned else { return RewriteTone.allCases }
@@ -42,6 +47,8 @@ struct KeyboardActions {
     var shift: () -> Void
     var show: (KeyboardModel.Layer) -> Void
     var nextKeyboard: () -> Void
+    var trackpad: (Bool) -> Void
+    var moveCursor: (Int) -> Void
     var rewrite: (RewriteTone) -> Void
     var pin: (RewriteTone) -> Void
     var ask: () -> Void

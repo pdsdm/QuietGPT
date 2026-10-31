@@ -15,6 +15,7 @@ final class KeyboardViewController: UIInputViewController {
     private var task: Task<Void, Never>?
     private var hintReset: Task<Void, Never>?
     private var last: (original: String, written: String)?
+    private var draft: (original: String, shown: String)?
     private var lastSpace: ContinuousClock.Instant?
     private var lastShiftTap: ContinuousClock.Instant?
 
@@ -44,6 +45,11 @@ final class KeyboardViewController: UIInputViewController {
             height
         ])
         keyboard.didMove(toParent: self)
+
+        let language = Locale.preferredLanguages.first ?? "en"
+        model.isSpanish = language.hasPrefix("es") || language.hasPrefix("ca")
+        primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
+        updateReturnKey()
 
         model.pinned = UserDefaults.standard.string(forKey: Self.pinnedKey).flatMap(RewriteTone.init(rawValue:))
         rewriter.prepare()
@@ -77,6 +83,8 @@ final class KeyboardViewController: UIInputViewController {
             shift: { [weak self] in self?.tapShift() },
             show: { [weak self] in self?.show($0) },
             nextKeyboard: { [weak self] in self?.advanceToNextInputMode() },
+            trackpad: { [weak self] in self?.model.isTrackpad = $0 },
+            moveCursor: { [weak self] in self?.moveCursor($0) },
             rewrite: { [weak self] in self?.rewrite(as: $0) },
             pin: { [weak self] in self?.pin($0) },
             ask: { [weak self] in self?.toggleAsk() },
@@ -97,7 +105,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func insert(_ text: String) {
-        click()
+        stopWriting()
         let value = model.layer == .letters && model.shift != .off ? text.uppercased() : text
         if model.isAsking {
             model.instruction += value
@@ -112,7 +120,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func deleteBackward() {
-        click()
+        stopWriting()
         if model.isAsking {
             if !model.instruction.isEmpty {
                 model.instruction.removeLast()
@@ -125,6 +133,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func deleteWord() {
+        stopWriting()
         if model.isAsking {
             let trimmed = model.instruction.replacing(/\s+$/, with: "")
             model.instruction = String(trimmed.dropLast(trimmed.reversed().prefix { !$0.isWhitespace }.count))
@@ -141,7 +150,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func space() {
-        click()
+        stopWriting()
         if model.isAsking {
             model.instruction += " "
             return
@@ -162,7 +171,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func newline() {
-        click()
+        stopWriting()
         if model.isAsking {
             submitAsk()
             return
@@ -172,8 +181,13 @@ final class KeyboardViewController: UIInputViewController {
         updateShift()
     }
 
+    private func moveCursor(_ steps: Int) {
+        guard !model.isWriting, !model.isAsking else { return }
+        proxy.adjustTextPosition(byCharacterOffset: steps)
+        updateShift()
+    }
+
     private func tapShift() {
-        click()
         switch model.layer {
         case .letters:
             let now = ContinuousClock.now
@@ -192,7 +206,6 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func show(_ layer: KeyboardModel.Layer) {
-        click()
         model.layer = layer
         if layer == .letters {
             updateShift()
@@ -232,20 +245,20 @@ final class KeyboardViewController: UIInputViewController {
 
     private func updateReturnKey() {
         switch proxy.returnKeyType ?? .default {
-        case .go: setReturn("go", action: true)
-        case .send: setReturn("send", action: true)
-        case .search, .google, .yahoo: setReturn("search", action: true)
-        case .done: setReturn("done", action: true)
-        case .join: setReturn("join", action: true)
-        case .route: setReturn("route", action: true)
-        case .next: setReturn("next", action: false)
-        case .continue: setReturn("continue", action: false)
-        default: setReturn("return", action: false)
+        case .go: setReturn("go", "ir", action: true)
+        case .send: setReturn("send", "enviar", action: true)
+        case .search, .google, .yahoo: setReturn("search", "buscar", action: true)
+        case .done: setReturn("done", "OK", action: true)
+        case .join: setReturn("join", "unirse", action: true)
+        case .route: setReturn("route", "ruta", action: true)
+        case .next: setReturn("next", "siguiente", action: false)
+        case .continue: setReturn("continue", "continuar", action: false)
+        default: setReturn("return", "intro", action: false)
         }
     }
 
-    private func setReturn(_ title: String, action: Bool) {
-        model.returnTitle = title
+    private func setReturn(_ english: String, _ spanish: String, action: Bool) {
+        model.returnTitle = model.isSpanish ? spanish : english
         model.returnIsAction = action
     }
 
@@ -258,6 +271,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func submitAsk() {
+        click()
         let instruction = model.instruction.trimmingCharacters(in: .whitespacesAndNewlines)
         model.isAsking = false
         model.instruction = ""
@@ -277,6 +291,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func run(request: String, tone: RewriteTone?) {
+        guard !model.isWriting else { return }
         let (text, isSelection) = currentText()
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             show(hint: "write a message first")
@@ -289,34 +304,95 @@ final class KeyboardViewController: UIInputViewController {
 
         task?.cancel()
         hintReset?.cancel()
+        forgetUndo()
         model.tone = tone
         model.isWriting = true
         model.hint = "writing on this iPhone…"
         let stream = rewriter.rewrite(text, request: request)
         task = Task {
-            var result = ""
             do {
                 for try await snapshot in stream {
-                    result = snapshot
+                    guard !Task.isCancelled else { return }
+                    let next = String(snapshot.drop { $0.isWhitespace })
+                    guard !next.isEmpty else { continue }
+                    if draft == nil {
+                        clear(text, isSelection: isSelection)
+                        draft = (text, "")
+                    }
+                    write(next)
                 }
             } catch is CancellationError {
                 return
             } catch {
+                guard !Task.isCancelled else { return }
                 Self.logger.error("Rewrite failed: \(String(describing: error), privacy: .public)")
+                restore()
                 model.isWriting = false
                 model.tone = nil
                 show(hint: Rewriter.message(for: error))
                 return
             }
+            guard !Task.isCancelled else { return }
 
-            let written = result.trimmingCharacters(in: .whitespacesAndNewlines)
-            replace(text, isSelection: isSelection, with: written)
+            let written = (draft?.shown ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !written.isEmpty else {
+                restore()
+                model.isWriting = false
+                model.tone = nil
+                show(hint: "nothing came back, try again")
+                return
+            }
+            write(written)
+            draft = nil
             last = (text, written)
             model.isWriting = false
             model.canUndo = true
             show(hint: "rewritten on this iPhone")
             Self.logger.notice("Rewrite done, \(written.count, privacy: .public) characters")
         }
+    }
+
+    private func clear(_ text: String, isSelection: Bool) {
+        guard !isSelection else { return }
+        let after = proxy.documentContextAfterInput ?? ""
+        if !after.isEmpty {
+            proxy.adjustTextPosition(byCharacterOffset: after.count)
+        }
+        for _ in 0..<text.count {
+            proxy.deleteBackward()
+        }
+    }
+
+    private func write(_ next: String) {
+        guard let draft else { return }
+        let common = zip(draft.shown, next).prefix { $0 == $1 }.count
+        for _ in 0..<(draft.shown.count - common) {
+            proxy.deleteBackward()
+        }
+        let rest = String(next.dropFirst(common))
+        if !rest.isEmpty {
+            proxy.insertText(rest)
+        }
+        self.draft?.shown = next
+    }
+
+    private func restore() {
+        guard let draft else { return }
+        for _ in 0..<draft.shown.count {
+            proxy.deleteBackward()
+        }
+        proxy.insertText(draft.original)
+        self.draft = nil
+    }
+
+    private func stopWriting() {
+        guard model.isWriting else { return }
+        task?.cancel()
+        task = nil
+        restore()
+        model.isWriting = false
+        model.tone = nil
+        show(hint: "stopped, your text is back")
     }
 
     private func undo() {

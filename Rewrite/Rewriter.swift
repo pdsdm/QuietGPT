@@ -4,6 +4,7 @@ import FoundationModels
 enum RewriteTone: String, CaseIterable, Identifiable {
     case kinder
     case shorter
+    case longer
     case formal
     case english
     case spanish
@@ -14,6 +15,7 @@ enum RewriteTone: String, CaseIterable, Identifiable {
         switch self {
         case .kinder: "Kinder"
         case .shorter: "Shorter"
+        case .longer: "Longer"
         case .formal: "Formal"
         case .english: "English"
         case .spanish: "Spanish"
@@ -24,6 +26,7 @@ enum RewriteTone: String, CaseIterable, Identifiable {
         switch self {
         case .kinder: "Make this message kinder and warmer. Keep the same meaning."
         case .shorter: "Make this message shorter. Keep the same meaning."
+        case .longer: "Make this message a little longer and more complete. Keep the same meaning."
         case .formal: "Make this message polite and formal."
         case .english: "Translate this message into natural English."
         case .spanish: "Translate this message into natural Spanish."
@@ -51,8 +54,12 @@ struct Rewriter {
     }
 
     func rewrite(_ text: String, tone: RewriteTone) -> AsyncThrowingStream<String, Error> {
+        rewrite(text, request: tone.request)
+    }
+
+    func rewrite(_ text: String, request: String) -> AsyncThrowingStream<String, Error> {
         let session = LanguageModelSession(model: model, instructions: Self.instructions)
-        let prompt = "\(tone.request)\n\nMessage:\n\(text)"
+        let prompt = "\(request)\n\nMessage:\n\(text)"
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {

@@ -6,6 +6,7 @@ final class KeyboardModel {
         case letters
         case numbers
         case symbols
+        case emoji
     }
 
     enum Shift {

@@ -3,8 +3,10 @@ import UIKit
 
 struct KeyboardView: View {
     static let barHeight: CGFloat = 88
-    static let rowHeight: CGFloat = 54
-    static let height: CGFloat = barHeight + rowHeight * 4 + 2
+    static let rowHeight: CGFloat = 56
+    static let topPadding: CGFloat = 2.5
+    static let bottomPadding: CGFloat = 0
+    static let height: CGFloat = barHeight + topPadding + rowHeight * 4 + bottomPadding
 
     let model: KeyboardModel
     let actions: KeyboardActions
@@ -15,11 +17,11 @@ struct KeyboardView: View {
     private var style: KeyStyle { .current(scheme) }
 
     private static let variants: [String: [String]] = [
-        "a": ["á", "à", "ä", "â", "ã", "å", "æ", "ª"],
-        "e": ["é", "è", "ë", "ê", "ē", "€"],
-        "i": ["í", "ì", "ï", "î"],
-        "o": ["ó", "ò", "ö", "ô", "õ", "ø", "œ", "º"],
-        "u": ["ú", "ü", "ù", "û"],
+        "a": ["à", "á", "â", "ä", "æ", "ã", "å", "ā", "ª"],
+        "e": ["è", "é", "ê", "ë", "ē", "ė", "ę"],
+        "i": ["î", "ï", "í", "ī", "į", "ì"],
+        "o": ["ô", "ö", "ò", "ó", "œ", "ø", "ō", "õ", "º"],
+        "u": ["û", "ü", "ù", "ú", "ū"],
         "n": ["ñ", "ń"],
         "c": ["ç", "ć", "č"],
         "s": ["ß", "ś", "š"],
@@ -31,49 +33,62 @@ struct KeyboardView: View {
         ".": ["…"],
         "-": ["–", "—", "•"],
         "'": ["’", "‘", "`"],
-        "\"": ["“", "”", "«", "»", "„"],
-        "€": ["$", "£", "¥", "₩"],
+        "\"": ["“", "”", "„", "«", "»"],
+        "$": ["€", "£", "¥", "₩", "₽"],
+        "€": ["$", "£", "¥", "₩", "₽"],
         "0": ["°"],
         "&": ["§"],
         "%": ["‰"]
     ]
+
+    private static let emojis = Array(
+        "😀😃😄😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳🙂‍↕️😏😒🙂‍↔️😞😔😟😕🙁☹️😣😖😫😩🥺😢😭😮‍💨😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🫣🤗🫡🤔🫢🤭🤫🤥😶😐😑😬🫨🙄😯😦😧😮😲🥱😴🤤😪😵🤐🥴🤢🤮🤧😷🤒🤕🤑🤠😈👿👹👺🤡💩👻💀👽🤖🎃😺😸😹😻😼😽🙀😿😾👋🤚🖐✋🖖👌🤌🤏✌️🤞🫰🤟🤘🤙👈👉👆👇☝️👍👎✊👊🤛🤜👏🙌🫶👐🤲🤝🙏💪❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💝🔥✨🎉🎂🎁⭐️🌟💫☀️🌙⚡️🌈☕️🍕🍔🍟🍣🍷🍺🥂⚽️🏀🎾🚗✈️🏖🏠💼📱💻📷🎵🎶✅❌⚠️💯❓❗️👀💬"
+    ).map(String.init)
 
     var body: some View {
         VStack(spacing: 0) {
             HushBar(model: model, actions: actions)
                 .frame(height: Self.barHeight)
             GeometryReader { geometry in
-                let unit = geometry.size.width / 10
+                let margin: CGFloat = 1
+                let unit = (geometry.size.width - margin * 2) / 10
+                let bounds = margin...(geometry.size.width - margin)
                 VStack(spacing: 0) {
                     switch model.layer {
                     case .letters:
-                        row { characters("qwertyuiop", unit: unit, edges: true) }
+                        row { characters("qwertyuiop", unit: unit, bounds: bounds, edges: true) }
                         if model.isSpanish {
-                            row { characters("asdfghjklñ", unit: unit, edges: true) }
+                            row { characters("asdfghjklñ", unit: unit, bounds: bounds, edges: true) }
                         } else {
-                            row { characters("asdfghjkl", unit: unit, outer: unit / 2) }
+                            row { characters("asdfghjkl", unit: unit, bounds: bounds, outer: unit / 2) }
                         }
                         row {
                             shiftKey(unit: unit)
-                            characters("zxcvbnm", unit: unit)
+                            characters("zxcvbnm", unit: unit, bounds: bounds)
                             deleteKey(unit: unit)
                         }
                     case .numbers:
-                        row { characters("1234567890", unit: unit, edges: true) }
-                        row { characters(["-", "/", ":", ";", "(", ")", "€", "&", "@", "\""], unit: unit, edges: true) }
-                        punctuationRow(switchTitle: "#+=", unit: unit)
+                        row { characters("1234567890", unit: unit, bounds: bounds, edges: true) }
+                        row { characters(["-", "/", ":", ";", "(", ")", model.isSpanish ? "€" : "$", "&", "@", "\""], unit: unit, bounds: bounds, edges: true) }
+                        punctuationRow(switchTitle: "#+=", unit: unit, bounds: bounds)
                     case .symbols:
-                        row { characters(["[", "]", "{", "}", "#", "%", "^", "*", "+", "="], unit: unit, edges: true) }
-                        row { characters(["_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"], unit: unit, edges: true) }
-                        punctuationRow(switchTitle: "123", unit: unit)
+                        row { characters(["[", "]", "{", "}", "#", "%", "^", "*", "+", "="], unit: unit, bounds: bounds, edges: true) }
+                        row { characters(["_", "\\", "|", "~", "<", ">", model.isSpanish ? "$" : "€", "£", "¥", "•"], unit: unit, bounds: bounds, edges: true) }
+                        punctuationRow(switchTitle: "123", unit: unit, bounds: bounds)
+                    case .emoji:
+                        emojiGrid
+                            .frame(height: Self.rowHeight * 3)
                     }
                     bottomRow(unit: unit)
                 }
+                .padding(.horizontal, margin)
+                .coordinateSpace(.named(CharacterKey.space))
             }
-            .frame(height: Self.rowHeight * 4)
+            .padding(.top, Self.topPadding)
+            .frame(height: Self.topPadding + Self.rowHeight * 4)
             .animation(.easeOut(duration: 0.15), value: model.isTrackpad)
         }
-        .padding(.bottom, 2)
+        .padding(.bottom, Self.bottomPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 
@@ -84,11 +99,11 @@ struct KeyboardView: View {
         .frame(height: Self.rowHeight)
     }
 
-    private func characters(_ text: String, unit: CGFloat, outer: CGFloat = 0, edges: Bool = false) -> some View {
-        characters(text.map(String.init), unit: unit, outer: outer, edges: edges)
+    private func characters(_ text: String, unit: CGFloat, bounds: ClosedRange<CGFloat>, outer: CGFloat = 0, edges: Bool = false) -> some View {
+        characters(text.map(String.init), unit: unit, bounds: bounds, outer: outer, edges: edges)
     }
 
-    private func characters(_ keys: [String], unit: CGFloat, width: CGFloat = 1, outer: CGFloat = 0, edges: Bool = false) -> some View {
+    private func characters(_ keys: [String], unit: CGFloat, bounds: ClosedRange<CGFloat>, width: CGFloat = 1, outer: CGFloat = 0, edges: Bool = false) -> some View {
         ForEach(Array(keys.enumerated()), id: \.offset) { index, key in
             let first = index == 0
             let last = index == keys.count - 1
@@ -99,6 +114,7 @@ struct KeyboardView: View {
                 opensLeft: index >= keys.count / 2,
                 edge: edges && first ? .leading : edges && last ? .trailing : .none,
                 insets: .key(leading: first ? outer : 0, trailing: last ? outer : 0),
+                bounds: bounds,
                 isBlank: model.isTrackpad,
                 onInsert: actions.insert
             )
@@ -106,31 +122,43 @@ struct KeyboardView: View {
         }
     }
 
-    private func punctuationRow(switchTitle: String, unit: CGFloat) -> some View {
+    private func punctuationRow(switchTitle: String, unit: CGFloat, bounds: ClosedRange<CGFloat>) -> some View {
         row {
-            FunctionKey(insets: .key(trailing: unit / 4), onPress: actions.shift) {
-                label(switchTitle)
+            FunctionKey(insets: .key(trailing: unit * 0.2), isBlank: model.isTrackpad, onPress: actions.shift) { _ in
+                Text(switchTitle).font(.system(size: 14))
             }
             .frame(width: unit * 1.5)
-            characters([".", ",", "?", "!", "'"], unit: unit, width: 1.4)
+            characters([".", ",", "?", "!", "'"], unit: unit, bounds: bounds, width: 1.4)
             deleteKey(unit: unit)
         }
     }
 
-    private func label(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 16))
-            .opacity(model.isTrackpad ? 0 : 1)
+    private var emojiGrid: some View {
+        ScrollView(.horizontal) {
+            LazyHGrid(rows: Array(repeating: GridItem(.fixed(42), spacing: 0), count: 4), spacing: 0) {
+                ForEach(Array(Self.emojis.enumerated()), id: \.offset) { _, emoji in
+                    Text(emoji)
+                        .font(.system(size: 32))
+                        .frame(width: 44, height: 42)
+                        .contentShape(.rect)
+                        .onTapGesture {
+                            UIDevice.current.playInputClick()
+                            actions.insert(emoji)
+                        }
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        .scrollIndicators(.hidden)
     }
 
-    private func icon(_ name: String) -> some View {
+    private func icon(_ name: String, size: CGFloat = 19) -> some View {
         Image(systemName: name)
-            .font(.system(size: 18))
-            .opacity(model.isTrackpad ? 0 : 1)
+            .font(.system(size: size, weight: .regular))
     }
 
     private func shiftKey(unit: CGFloat) -> some View {
-        FunctionKey(isLight: model.shift != .off, insets: .key(trailing: unit / 4), onPress: actions.shift) {
+        FunctionKey(insets: .key(trailing: unit * 0.2), isBlank: model.isTrackpad, onPress: actions.shift) { _ in
             icon(shiftSymbol)
         }
         .frame(width: unit * 1.5)
@@ -146,8 +174,8 @@ struct KeyboardView: View {
     }
 
     private func deleteKey(unit: CGFloat) -> some View {
-        FunctionKey(insets: .key(leading: unit / 4), onPress: startDelete, onRelease: stopDelete) {
-            icon("delete.left")
+        FunctionKey(insets: .key(leading: unit * 0.2), isBlank: model.isTrackpad, onPress: startDelete, onRelease: stopDelete) { pressed in
+            icon(pressed ? "delete.left.fill" : "delete.left")
         }
         .frame(width: unit * 1.5)
         .accessibilityLabel("Delete")
@@ -155,28 +183,47 @@ struct KeyboardView: View {
 
     private func bottomRow(unit: CGFloat) -> some View {
         row {
-            FunctionKey(onRelease: { actions.show(model.layer == .letters ? .numbers : .letters) }) {
-                label(model.layer == .letters ? "123" : "ABC")
+            FunctionKey(isBlank: model.isTrackpad, onRelease: { actions.show(model.layer == .letters ? .numbers : .letters) }) { _ in
+                Text(model.layer == .letters ? "123" : "ABC").font(.system(size: 18.5))
             }
-            .frame(width: unit * (model.showsGlobe ? 1.25 : 2.5))
+            .frame(width: unit * 1.25)
             if model.showsGlobe {
-                FunctionKey(onRelease: actions.nextKeyboard) {
+                FunctionKey(isBlank: model.isTrackpad, onRelease: actions.nextKeyboard) { _ in
                     icon("globe")
                 }
                 .frame(width: unit * 1.25)
                 .accessibilityLabel("Next keyboard")
+            } else {
+                FunctionKey(isBlank: model.isTrackpad, onRelease: { actions.show(model.layer == .emoji ? .letters : .emoji) }) { _ in
+                    icon(model.layer == .emoji ? "keyboard" : "face.smiling", size: 19)
+                }
+                .frame(width: unit * 1.25)
+                .accessibilityLabel("Emoji")
             }
             SpaceKey(
+                tag: model.isSpanish ? "ES" : "EN",
                 title: model.spaceTitle,
                 onSpace: actions.space,
                 onTrackpad: actions.trackpad,
                 onMove: actions.moveCursor
             )
             .frame(width: unit * 5)
-            FunctionKey(isAction: model.returnIsAction || model.isAsking, onRelease: actions.newline) {
-                label(model.isAsking ? model.goTitle : model.returnTitle)
+            if model.layer == .emoji {
+                deleteKey(unit: unit)
+                    .frame(width: unit * 2.5)
+            } else {
+                FunctionKey(isAction: model.returnIsAction || model.isAsking, isBlank: model.isTrackpad, onRelease: actions.newline) { _ in
+                    if model.isAsking {
+                        Text(model.goTitle).font(.system(size: 17))
+                    } else if model.returnIsAction {
+                        Text(model.returnTitle).font(.system(size: 17))
+                    } else {
+                        icon("return.left")
+                    }
+                }
+                .frame(width: unit * 2.5)
+                .accessibilityLabel(model.isAsking ? model.goTitle : model.returnTitle)
             }
-            .frame(width: unit * 2.5)
         }
     }
 
@@ -254,9 +301,6 @@ struct HushBar: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(style.shadow.opacity(0.35)).frame(height: 1)
-        }
         .animation(.snappy, value: model.isAsking)
         .animation(.snappy, value: model.hint)
         .animation(.snappy, value: model.canUndo)
@@ -300,7 +344,6 @@ struct HushBar: View {
                     .frame(height: 32)
                     .foregroundStyle(selected ? style.onSelected : style.text)
                     .background(selected ? style.selected : style.key, in: .capsule)
-                    .shadow(color: selected ? .clear : style.shadow, radius: 0, x: 0, y: 1)
                     .opacity(model.isWriting && !selected ? 0.5 : 1)
                     .scaleEffect(pressedTone == tone ? 0.94 : 1)
                     .animation(.snappy(duration: 0.2), value: pressedTone)
@@ -346,7 +389,7 @@ struct HushBar: View {
                     .padding(.horizontal, 10)
                     .frame(height: 24)
                     .foregroundStyle(Color.white)
-                    .background(Color.accentColor, in: .capsule)
+                    .background(KeyStyle.blue, in: .capsule)
             }
             .buttonStyle(.plain)
             .disabled(model.instruction.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -354,7 +397,6 @@ struct HushBar: View {
         .padding(.horizontal, 12)
         .frame(height: 32)
         .background(style.key, in: .capsule)
-        .shadow(color: style.shadow, radius: 0, x: 0, y: 1)
     }
 
     private func roundButton(symbol: String, active: Bool, action: @escaping () -> Void) -> some View {
@@ -364,7 +406,6 @@ struct HushBar: View {
                 .frame(width: 32, height: 32)
                 .foregroundStyle(active ? Color.white : style.text)
                 .background(active ? style.accent : style.key, in: .circle)
-                .shadow(color: active ? .clear : style.shadow, radius: 0, x: 0, y: 1)
                 .contentTransition(.symbolEffect(.replace))
         }
         .buttonStyle(.plain)

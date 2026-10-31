@@ -202,6 +202,8 @@ final class KeyboardViewController: UIInputViewController {
             model.layer = .symbols
         case .symbols:
             model.layer = .numbers
+        case .emoji:
+            break
         }
     }
 

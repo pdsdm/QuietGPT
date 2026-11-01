@@ -27,6 +27,9 @@ struct Composer: View {
                 .padding(.leading, 18)
                 .submitLabel(.send)
                 .onSubmit(send)
+                #if DEBUG
+                .onAppear { focused = DebugLaunch.focusesComposer }
+                #endif
 
             Button(action: isResponding ? onStop : send) {
                 Image(systemName: isResponding ? "stop.fill" : "arrow.up")

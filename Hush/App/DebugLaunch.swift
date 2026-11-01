@@ -20,6 +20,10 @@ enum DebugLaunch {
         UserDefaults.standard.bool(forKey: "HushMonitor")
     }
 
+    static var focusesComposer: Bool {
+        UserDefaults.standard.bool(forKey: "HushFocus")
+    }
+
     static func apply(controller: ChatController, tab: inout AppTab) {
         let defaults = UserDefaults.standard
         switch defaults.string(forKey: "HushTab") {

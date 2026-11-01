@@ -29,7 +29,7 @@ struct KeyStyle {
         tag: Color(red: 175 / 255, green: 176 / 255, blue: 175 / 255),
         selected: Color(red: 0, green: 0, blue: 0),
         onSelected: Color(red: 1, green: 1, blue: 1),
-        accent: Color(red: 91 / 255, green: 84 / 255, blue: 232 / 255)
+        accent: Color(red: 31 / 255, green: 122 / 255, blue: 224 / 255)
     )
 
     static let dark = KeyStyle(
@@ -42,7 +42,7 @@ struct KeyStyle {
         tag: Color(red: 142 / 255, green: 142 / 255, blue: 147 / 255),
         selected: Color(red: 1, green: 1, blue: 1),
         onSelected: Color(red: 0, green: 0, blue: 0),
-        accent: Color(red: 169 / 255, green: 164 / 255, blue: 255 / 255)
+        accent: Color(red: 124 / 255, green: 196 / 255, blue: 255 / 255)
     )
 }
 

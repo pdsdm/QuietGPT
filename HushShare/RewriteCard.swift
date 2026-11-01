@@ -6,7 +6,8 @@ struct RewriteCard: View {
     let onClose: () -> Void
 
     @State private var original = ""
-    @State private var tone = RewriteTone.kinder
+    @State private var styles = StyleStore.enabledStyles
+    @State private var tone = StyleStore.enabledStyles.first ?? RewriteStyle.builtIn[0]
     @State private var result = ""
     @State private var failure: String?
     @State private var isWriting = false
@@ -73,7 +74,7 @@ struct RewriteCard: View {
 
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
-                    ForEach(RewriteTone.allCases) { option in
+                    ForEach(styles) { option in
                         Button {
                             tone = option
                             run()
@@ -159,7 +160,7 @@ struct RewriteCard: View {
             return
         }
         isWriting = true
-        let stream = rewriter.rewrite(original, tone: tone)
+        let stream = rewriter.rewrite(original, style: tone)
         task = Task {
             do {
                 for try await text in stream {

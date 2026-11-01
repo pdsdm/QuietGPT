@@ -8,10 +8,13 @@ final class KeyboardInputView: UIInputView, UIInputViewAudioFeedback {
 
 final class KeyboardViewController: UIInputViewController {
     private static let logger = Logger(subsystem: "com.pdsdm.hush", category: "keyboard")
-    private static let pinnedKey = "pinnedTone"
 
     private let model = KeyboardModel()
     private let rewriter = Rewriter()
+    private let keys = KeysView()
+    private var bar: UIHostingController<HushBar>?
+    private var emoji: UIHostingController<EmojiGrid>?
+    private var options = KeyboardOptions()
     private var task: Task<Void, Never>?
     private var hintReset: Task<Void, Never>?
     private var last: (original: String, written: String)?
@@ -29,39 +32,62 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let keyboard = UIHostingController(rootView: KeyboardView(model: model, actions: actions))
-        keyboard.view.backgroundColor = .clear
-        keyboard.sizingOptions = []
-        addChild(keyboard)
-        keyboard.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(keyboard.view)
-        let height = view.heightAnchor.constraint(equalToConstant: KeyboardView.height)
+        let bar = UIHostingController(rootView: HushBar(model: model, actions: barActions))
+        bar.view.backgroundColor = .clear
+        bar.sizingOptions = []
+        addChild(bar)
+        view.addSubview(bar.view)
+        bar.didMove(toParent: self)
+        self.bar = bar
+
+        let emoji = UIHostingController(rootView: EmojiGrid { [weak self] in self?.insert($0) })
+        emoji.view.backgroundColor = .clear
+        emoji.sizingOptions = []
+        emoji.view.isHidden = true
+        addChild(emoji)
+        view.addSubview(emoji.view)
+        emoji.didMove(toParent: self)
+        self.emoji = emoji
+
+        keys.actions = keyActions
+        keys.topLimit = -HushBar.height
+        view.addSubview(keys)
+
+        let height = view.heightAnchor.constraint(equalToConstant: HushBar.height + KeyLayout.height + KeyLayout.bottomPadding)
         height.priority = .defaultHigh + 1
-        NSLayoutConstraint.activate([
-            keyboard.view.topAnchor.constraint(equalTo: view.topAnchor),
-            keyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            keyboard.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            keyboard.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            height
-        ])
-        keyboard.didMove(toParent: self)
+        height.isActive = true
 
         let language = Locale.preferredLanguages.first ?? "en"
         model.isSpanish = language.hasPrefix("es") || language.hasPrefix("ca")
         primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
-        updateReturnKey()
 
-        model.pinned = UserDefaults.standard.string(forKey: Self.pinnedKey).flatMap(RewriteTone.init(rawValue:))
+        loadSettings()
+        updateReturnKey()
+        observe()
         rewriter.prepare()
         Self.logger.notice("Keyboard loaded, rewriter available: \(self.rewriter.isAvailable, privacy: .public)")
-        if !rewriter.isAvailable {
-            model.hint = "Apple Intelligence is off"
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        loadSettings()
         refresh()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        for recognizer in view.window?.gestureRecognizers ?? [] {
+            recognizer.delaysTouchesBegan = false
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let width = view.bounds.width
+        let top = view.bounds.height - KeyLayout.height - KeyLayout.bottomPadding
+        bar?.view.frame = CGRect(x: 0, y: top - HushBar.height, width: width, height: HushBar.height)
+        emoji?.view.frame = CGRect(x: 0, y: top + KeyLayout.topPadding, width: width, height: KeyLayout.rowHeight * 3)
+        keys.frame = CGRect(x: 0, y: top, width: width, height: KeyLayout.height)
     }
 
     override func viewWillLayoutSubviews() {
@@ -73,7 +99,23 @@ final class KeyboardViewController: UIInputViewController {
         refresh()
     }
 
-    private var actions: KeyboardActions {
+    private func observe() {
+        withObservationTracking {
+            keys.state = model.keys
+            emoji?.view.isHidden = model.layer != .emoji
+        } onChange: { [weak self] in
+            let controller = self
+            Task { @MainActor in controller?.observe() }
+        }
+    }
+
+    private func loadSettings() {
+        options = StyleStore.options
+        model.styles = StyleStore.enabledStyles
+        model.showsAsk = options.showsAsk
+    }
+
+    private var keyActions: KeyboardActions {
         KeyboardActions(
             insert: { [weak self] in self?.insert($0) },
             deleteBackward: { [weak self] in self?.deleteBackward() },
@@ -83,12 +125,16 @@ final class KeyboardViewController: UIInputViewController {
             shift: { [weak self] in self?.tapShift() },
             show: { [weak self] in self?.show($0) },
             nextKeyboard: { [weak self] in self?.advanceToNextInputMode() },
-            trackpad: { [weak self] in self?.model.isTrackpad = $0 },
-            moveCursor: { [weak self] in self?.moveCursor($0) },
+            moveCursor: { [weak self] in self?.moveCursor($0) }
+        )
+    }
+
+    private var barActions: BarActions {
+        BarActions(
             rewrite: { [weak self] in self?.rewrite(as: $0) },
-            pin: { [weak self] in self?.pin($0) },
             ask: { [weak self] in self?.toggleAsk() },
             submitAsk: { [weak self] in self?.submitAsk() },
+            stop: { [weak self] in self?.stopWriting() },
             undo: { [weak self] in self?.undo() }
         )
     }
@@ -98,10 +144,6 @@ final class KeyboardViewController: UIInputViewController {
     private func refresh() {
         updateShift()
         updateReturnKey()
-    }
-
-    private func click() {
-        UIDevice.current.playInputClick()
     }
 
     private func insert(_ text: String) {
@@ -156,7 +198,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
         let before = proxy.documentContextBeforeInput ?? ""
-        if let lastSpace, lastSpace.duration(to: .now) < .milliseconds(450),
+        if options.periodShortcut, let lastSpace, lastSpace.duration(to: .now) < .milliseconds(450),
            before.hasSuffix(" "), let previous = before.dropLast().last, previous.isLetter || previous.isNumber {
             proxy.deleteBackward()
             proxy.insertText(". ")
@@ -223,6 +265,7 @@ final class KeyboardViewController: UIInputViewController {
         if model.isAsking {
             return model.instruction.isEmpty
         }
+        guard options.autoCapitalize else { return false }
         let before = proxy.documentContextBeforeInput ?? ""
         switch proxy.autocapitalizationType ?? .sentences {
         case .none:
@@ -248,24 +291,25 @@ final class KeyboardViewController: UIInputViewController {
     private func updateReturnKey() {
         switch proxy.returnKeyType ?? .default {
         case .go: setReturn("go", "ir", action: true)
-        case .send: setReturn("send", "enviar", action: true)
+        case .send: setReturn("send", "enviar", symbol: "arrow.up", action: true)
         case .search, .google, .yahoo: setReturn("search", "buscar", action: true)
         case .done: setReturn("done", "OK", action: true)
         case .join: setReturn("join", "unirse", action: true)
         case .route: setReturn("route", "ruta", action: true)
         case .next: setReturn("next", "siguiente", action: false)
         case .continue: setReturn("continue", "continuar", action: false)
-        default: setReturn("return", "intro", action: false)
+        default: setReturn("return", "intro", symbol: "return.left", action: false)
         }
     }
 
-    private func setReturn(_ english: String, _ spanish: String, action: Bool) {
+    private func setReturn(_ english: String, _ spanish: String, symbol: String? = nil, action: Bool) {
         model.returnTitle = model.isSpanish ? spanish : english
+        model.returnSymbol = symbol
         model.returnIsAction = action
     }
 
     private func toggleAsk() {
-        click()
+        stopWriting()
         model.isAsking.toggle()
         model.instruction = ""
         model.layer = .letters
@@ -273,30 +317,24 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func submitAsk() {
-        click()
+        UIDevice.current.playInputClick()
         let instruction = model.instruction.trimmingCharacters(in: .whitespacesAndNewlines)
         model.isAsking = false
         model.instruction = ""
         updateShift()
         guard !instruction.isEmpty else { return }
-        run(request: instruction, tone: nil)
+        run(request: instruction, style: nil)
     }
 
-    private func pin(_ tone: RewriteTone) {
-        model.pinned = model.pinned == tone ? nil : tone
-        UserDefaults.standard.set(model.pinned?.rawValue, forKey: Self.pinnedKey)
-        show(hint: model.pinned == nil ? "unpinned" : "\(tone.title.lowercased()) pinned first")
+    private func rewrite(as style: RewriteStyle) {
+        run(request: style.prompt, style: style)
     }
 
-    private func rewrite(as tone: RewriteTone) {
-        run(request: tone.request, tone: tone)
-    }
-
-    private func run(request: String, tone: RewriteTone?) {
+    private func run(request: String, style: RewriteStyle?) {
         guard !model.isWriting else { return }
         let (text, isSelection) = currentText()
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            show(hint: "write a message first")
+            show(hint: model.isSpanish ? "Escribe un mensaje primero" : "Write a message first")
             return
         }
         guard rewriter.isAvailable else {
@@ -306,10 +344,10 @@ final class KeyboardViewController: UIInputViewController {
 
         task?.cancel()
         hintReset?.cancel()
+        model.hint = nil
         forgetUndo()
-        model.tone = tone
+        model.active = style?.id
         model.isWriting = true
-        model.hint = "writing on this iPhone…"
         let stream = rewriter.rewrite(text, request: request)
         task = Task {
             do {
@@ -329,8 +367,7 @@ final class KeyboardViewController: UIInputViewController {
                 guard !Task.isCancelled else { return }
                 Self.logger.error("Rewrite failed: \(String(describing: error), privacy: .public)")
                 restore()
-                model.isWriting = false
-                model.tone = nil
+                finishWriting()
                 show(hint: Rewriter.message(for: error))
                 return
             }
@@ -339,19 +376,22 @@ final class KeyboardViewController: UIInputViewController {
             let written = (draft?.shown ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !written.isEmpty else {
                 restore()
-                model.isWriting = false
-                model.tone = nil
-                show(hint: "nothing came back, try again")
+                finishWriting()
+                show(hint: "Nothing came back, try again")
                 return
             }
             write(written)
             draft = nil
             last = (text, written)
-            model.isWriting = false
+            finishWriting()
             model.canUndo = true
-            show(hint: "rewritten on this iPhone")
             Self.logger.notice("Rewrite done, \(written.count, privacy: .public) characters")
         }
+    }
+
+    private func finishWriting() {
+        model.isWriting = false
+        model.active = nil
     }
 
     private func clear(_ text: String, isSelection: Bool) {
@@ -392,33 +432,29 @@ final class KeyboardViewController: UIInputViewController {
         task?.cancel()
         task = nil
         restore()
-        model.isWriting = false
-        model.tone = nil
-        show(hint: "stopped, your text is back")
+        finishWriting()
+        show(hint: model.isSpanish ? "Parado, tu texto ha vuelto" : "Stopped, your text is back")
     }
 
     private func undo() {
-        click()
         guard let last else { return }
         replace(last.written, isSelection: false, with: last.original)
         forgetUndo()
-        show(hint: "back to your text")
     }
 
     private func forgetUndo() {
-        guard last != nil || model.tone != nil else { return }
+        guard last != nil || model.canUndo else { return }
         last = nil
         model.canUndo = false
-        model.tone = nil
     }
 
     private func show(hint: String) {
         hintReset?.cancel()
         model.hint = hint
         hintReset = Task {
-            try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled, !model.isWriting else { return }
-            model.hint = rewriter.isAvailable ? "pick a tone or ask" : "Apple Intelligence is off"
+            try? await Task.sleep(for: .seconds(2.5))
+            guard !Task.isCancelled else { return }
+            model.hint = nil
         }
     }
 

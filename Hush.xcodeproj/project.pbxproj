@@ -541,6 +541,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -569,6 +570,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -597,6 +599,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -625,6 +628,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (

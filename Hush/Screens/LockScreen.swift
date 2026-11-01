@@ -18,10 +18,9 @@ struct LockScreen: View {
             VStack(spacing: 0) {
                 Spacer()
                 VStack(spacing: 22) {
-                    Image(systemName: "faceid")
-                        .font(.system(size: 56, weight: .ultraLight))
-                        .foregroundStyle(palette.text)
-                        .symbolEffect(.pulse, isActive: authenticating)
+                    AppMark(size: 88)
+                        .opacity(authenticating ? 0.6 : 1)
+                        .animation(.easeInOut(duration: 0.4), value: authenticating)
                         .keyframeAnimator(initialValue: 0.0, trigger: failed) { content, offset in
                             content.offset(x: offset)
                         } keyframes: { _ in

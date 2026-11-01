@@ -1,7 +1,17 @@
 # Hush
 
-![iOS 26+](https://img.shields.io/badge/iOS-26%2B-black)
+![iOS 26+](https://img.shields.io/badge/iOS-26%2B-black?logo=apple)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
+![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)
+![SwiftUI](https://img.shields.io/badge/SwiftUI-UI-0D96F6?logo=swift&logoColor=white)
+![SwiftData](https://img.shields.io/badge/SwiftData-storage-5E5CE6?logo=swift&logoColor=white)
+![Xcode 26+](https://img.shields.io/badge/Xcode-26%2B-147EFB?logo=xcode&logoColor=white)
+![Apple Foundation Models](https://img.shields.io/badge/Apple-Foundation%20Models-000000?logo=apple&logoColor=white)
+![Platform](https://img.shields.io/badge/platform-iPhone-lightgrey?logo=apple)
+![On device](https://img.shields.io/badge/runs-on%20device-2ea44f)
+![Works offline](https://img.shields.io/badge/works-offline-2ea44f)
+![No tracking](https://img.shields.io/badge/tracking-none-2ea44f)
+![Last commit](https://img.shields.io/github/last-commit/pdsdm/Hush?logo=github)
 
 Hush is a private AI chat for iPhone. It runs fully on the device with Apple Foundation Models. There is no account, no cloud and no tracking. It works in airplane mode.
 

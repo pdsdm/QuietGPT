@@ -28,6 +28,7 @@ enum DebugLaunch {
         let defaults = UserDefaults.standard
         switch defaults.string(forKey: "HushTab") {
         case "chats": tab = .chats
+        case "keyboard": tab = .keyboard
         case "voice": tab = .voice
         case "privacy": tab = .privacy
         default: break

@@ -4,6 +4,7 @@ import SwiftUI
 enum AppTab: Hashable {
     case chat
     case chats
+    case keyboard
     case voice
     case privacy
 }
@@ -112,6 +113,9 @@ private struct MainTabs: View {
                         tab = .chat
                     }
                 )
+            }
+            Tab("Keyboard", systemImage: "keyboard", value: AppTab.keyboard) {
+                KeyboardScreen()
             }
             Tab("Voice", systemImage: "waveform", value: AppTab.voice) {
                 VoiceScreen()

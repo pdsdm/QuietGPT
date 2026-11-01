@@ -160,6 +160,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000002 /* Hush */,
+				AA0000000000000000000043 /* Rewrite */,
 			);
 			name = Hush;
 			packageProductDependencies = (
@@ -537,11 +538,11 @@
 		AA000000000000000000004D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -566,11 +567,11 @@
 		AA000000000000000000004E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -595,11 +596,11 @@
 		AA000000000000000000005D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -624,11 +625,11 @@
 		AA000000000000000000005E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
 				LD_RUNPATH_SEARCH_PATHS = (

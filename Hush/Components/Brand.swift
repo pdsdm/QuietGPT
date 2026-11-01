@@ -37,52 +37,45 @@ struct AppMark: View {
 
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var shown = false
+
+    private var visible: Bool { shown || !animated || reduceMotion }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 12, paused: !animated || reduceMotion)) { context in
-            Canvas { canvas, canvasSize in
-                let rows = size >= 160 ? 18 : size >= 90 ? 14 : size >= 50 ? 10 : 7
-                let tick = animated ? context.date.timeIntervalSinceReferenceDate * 12.5 : 0
-                let lines = Self.rings(rows: rows, tick: tick)
-                let fontSize = canvasSize.width / (CGFloat(rows * 2) * 0.6)
-                let lineHeight = canvasSize.height / CGFloat(rows)
-                let font = Font.system(size: fontSize, design: .monospaced)
-                for (index, line) in lines.enumerated() {
-                    let text = canvas.resolve(Text(line).font(font).foregroundStyle(palette.text3.opacity(0.8)))
-                    canvas.draw(text, at: CGPoint(x: canvasSize.width / 2, y: (CGFloat(index) + 0.5) * lineHeight), anchor: .center)
-                }
-            }
-        }
-        .frame(width: size, height: size)
-        .background(palette.background)
-        .overlay {
+        let unit = size / 100
+        ZStack {
+            palette.background
+            LipLine()
+                .trim(from: 0, to: visible ? 1 : 0)
+                .stroke(palette.accent, style: StrokeStyle(lineWidth: 6 * unit, lineCap: .round))
             Capsule()
                 .fill(palette.text)
-                .frame(width: max(3, size * 0.075), height: size * 0.34)
+                .frame(width: 7.5 * unit, height: 52 * unit)
+                .position(x: 50 * unit, y: 48 * unit)
+                .offset(y: visible ? 0 : 14 * unit)
+                .opacity(visible ? 1 : 0)
         }
+        .frame(width: size, height: size)
         .clipShape(.rect(cornerRadius: size * 0.225, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
                 .strokeBorder(palette.line, lineWidth: 1)
         }
         .accessibilityHidden(true)
-    }
-
-    private static func rings(rows: Int, tick: Double) -> [String] {
-        let columns = rows * 2
-        let ramp: [Character] = Array(" .·:")
-        let innerRadius = 0.3
-        return (0..<rows).map { y in
-            String((0..<columns).map { x in
-                let nx = (Double(x) + 0.5) / Double(columns) * 2 - 1
-                let ny = (Double(y) + 0.5) / Double(rows) * 2 - 1
-                let distance = (nx * nx + ny * ny).squareRoot()
-                guard distance >= innerRadius else { return " " }
-                let ring = 0.5 + 0.5 * cos((distance - innerRadius) * .pi * 7 + tick * 0.2)
-                let fade = max(0, 1 - (distance - innerRadius) / 0.85)
-                return ramp[min(3, Int(ring * fade * 3.99))]
-            })
+        .onAppear {
+            guard animated, !reduceMotion else { return }
+            withAnimation(.easeOut(duration: 0.7).delay(0.2)) { shown = true }
         }
+    }
+}
+
+struct LipLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        let unit = rect.width / 100
+        var path = Path()
+        path.move(to: CGPoint(x: 27 * unit, y: 57 * unit))
+        path.addQuadCurve(to: CGPoint(x: 73 * unit, y: 57 * unit), control: CGPoint(x: 50 * unit, y: 69 * unit))
+        return path
     }
 }
 

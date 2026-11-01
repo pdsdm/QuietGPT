@@ -28,9 +28,9 @@ Hush is a private AI chat for iPhone. It runs fully on the device with Apple Fou
 - **Chats.** SwiftData keeps your chats on the iPhone. You can search them.
 - **Face ID lock.** Hush locks when it goes to the background.
 - **Privacy screen.** It shows the bytes that your chats send. The value is always `0 B`.
-- **Hush keyboard.** A system keyboard with a tone bar. It rewrites your text in any app.
+- **Hush keyboard.** A keyboard that looks and types like the iOS keyboard. Its bar rewrites your text in any app.
 - **Share extension.** Share text from any app to Hush and get a rewrite.
-- **Tones.** Kinder, Shorter, Longer, Formal, English, Spanish, or your own instruction.
+- **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish, or your own instruction. Edit, add and order them in the Keyboard tab, and change the base instructions.
 - **Monitor panel.** Reply speed, CPU, frames, memory, network and thermal state.
 - **Dark and light themes** with a live ASCII background.
 
@@ -71,7 +71,7 @@ Go to Settings > General > Keyboard > Keyboards > Add New Keyboard and select Hu
 | `Hush/Monitor` | Monitor panel, system sampler, frame meter |
 | `Hush/Data` | SwiftData models |
 | `Hush/Screens` | Onboarding, lock, Chats, Voice, Privacy |
-| `Rewrite` | `Rewriter` and tones, shared by the keyboard and the share extension |
+| `Rewrite` | `Rewriter`, styles and keyboard colors, shared by the app, the keyboard and the share extension |
 | `HushKeyboard` | The Hush keyboard extension |
 | `HushShare` | The share extension with the rewrite card |
 | `Config` | Info.plist files for the extensions |

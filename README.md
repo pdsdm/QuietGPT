@@ -62,20 +62,28 @@ Go to Settings > General > Keyboard > Keyboards > Add New Keyboard and select Hu
 
 | Folder | Content |
 |---|---|
-| `Hush/App` | Root view, tab bar, lock flow, settings keys, debug launch options |
-| `Hush/Theme` | Dark and light palettes, type styles, motion |
-| `Hush/Field` | The live ASCII background (`FieldEngine`, `AsciiField`) |
-| `Hush/Components` | Wordmark, app mark, buttons, chips |
-| `Hush/Chat` | Chat screen, composer, message boxes, streaming text, Markdown |
-| `Hush/Engine` | `ReplyEngine`, the on-device reply stream, and reply metrics |
-| `Hush/Monitor` | Monitor panel, system sampler, frame meter |
-| `Hush/Data` | SwiftData models |
-| `Hush/Screens` | Onboarding, lock, Chats, Voice, Privacy |
+| `Hush/App` | App entry, root view, tab bar, lock flow, settings keys, debug launch options |
+| `Hush/Features/Chat` | Chat screen, chat controller, composer, streaming text |
+| `Hush/Features/Chat/Messages` | Message boxes, Markdown view, code blocks |
+| `Hush/Features/History` | Chats list |
+| `Hush/Features/Voice` | Voice tab |
+| `Hush/Features/Privacy` | Privacy tab |
+| `Hush/Features/Keyboard` | Keyboard settings |
+| `Hush/Features/Onboarding` | First launch screens |
+| `Hush/Features/Lock` | Lock screen |
+| `Hush/Features/Monitor` | Monitor panel, system sampler, frame meter |
+| `Hush/Core/Reply` | `ReplyEngine`, the on-device reply stream, and reply metrics |
+| `Hush/Core/Persistence` | SwiftData models (`Conversation`, `Message`) |
+| `Hush/Core/Markdown` | Markdown block parser |
+| `Hush/DesignSystem/Theme` | Dark and light palettes, appearance, type styles, motion |
+| `Hush/DesignSystem/Components` | Wordmark, app mark, live dot, button styles, chips |
+| `Hush/DesignSystem/Field` | The live ASCII background (`FieldEngine`, `AsciiField`) |
+| `Hush/Resources` | Asset catalog with the app icon and accent color |
 | `Rewrite` | `Rewriter`, styles and keyboard colors, shared by the app, the keyboard and the share extension |
 | `HushKeyboard` | The Hush keyboard extension |
 | `HushShare` | The share extension with the rewrite card |
-| `Config` | Info.plist files for the extensions |
-| `HushTests` | Unit tests |
+| `Config` | Entitlements for all targets, Info.plist files for the extensions |
+| `HushTests` | Unit tests, in the same folders as `Hush` |
 | `scripts` | App icon generator and power monitor |
 | `docs/screenshots` | Screenshots for this file |
 
@@ -91,7 +99,7 @@ Debug builds read these launch arguments:
 ## App icon
 
 ```sh
-swift scripts/make-icon.swift Hush/Assets.xcassets/AppIcon.appiconset
+swift scripts/make-icon.swift Hush/Resources/Assets.xcassets/AppIcon.appiconset
 ```
 
 ## Reply speed and power

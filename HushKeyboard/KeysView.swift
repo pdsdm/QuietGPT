@@ -69,10 +69,10 @@ final class Balloon: UIView {
     func show(_ spec: KeySpec, limit: CGFloat, width: CGFloat, style: KeyStyle) {
         shownAt = CACurrentMediaTime()
         let face = spec.face
-        let height = min(Self.height, face.minY - Self.gap - limit)
+        let height = min(Self.height, max(face.minY - Self.gap - limit, Self.smallest))
         let wide = face.width + Self.spread * 2
         let x = min(max(face.midX - wide / 2, KeyLayout.margin), width - KeyLayout.margin - wide)
-        frame = CGRect(x: x, y: face.minY - Self.gap - height, width: wide, height: height)
+        frame = CGRect(x: x, y: max(limit, face.minY - Self.gap - height), width: wide, height: height)
         backgroundColor = style.popup
         layer.borderColor = style.outline.cgColor
 
@@ -245,7 +245,7 @@ final class KeysView: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        specs.contains { $0.cell.contains(point) }
+        bounds.contains(point)
     }
 
     private func spec(_ id: String) -> KeySpec? {
@@ -523,7 +523,6 @@ final class KeysView: UIView {
     private func showBalloon(_ press: Press, _ spec: KeySpec) {
         guard !isTracking else { return }
         highlight(spec.id, true)
-        guard spec.face.minY - Balloon.gap - topLimit >= Balloon.smallest else { return }
         let balloon = Balloon()
         balloon.show(spec, limit: topLimit, width: bounds.width, style: style)
         addSubview(balloon)

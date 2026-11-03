@@ -98,8 +98,12 @@ struct QuietGPTPanel: View {
         .contentMargins(.trailing, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
         .scrollBounceBehavior(.basedOnSize)
+        .scrollClipDisabled()
+        .scrollEdgeEffectHidden(true, for: .all)
         .mask {
             LinearGradient(stops: [.init(color: .black, location: 0.82), .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing)
+                .padding(.vertical, -20)
+                .ignoresSafeArea()
         }
         .frame(height: 86)
     }

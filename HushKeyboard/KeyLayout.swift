@@ -160,16 +160,16 @@ enum KeyLayout {
         let toLetters = state.layer != .letters
         bottom.append(Item(spec: KeySpec(id: "switch", kind: .layer(toLetters ? .letters : .numbers), title: toLetters ? "ABC" : "123", fontSize: 18.5, label: toLetters ? "Letters" : "Numbers"), units: 1.25))
         if state.showsGlobe {
-            bottom.append(Item(spec: KeySpec(id: "globe", kind: .globe, symbol: "globe", label: "Next keyboard"), units: 1.25))
+            bottom.append(Item(spec: KeySpec(id: "globe", kind: .globe, symbol: "globe", label: "Next keyboard"), units: 1.0))
         } else {
             let inEmoji = state.layer == .emoji
-            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(inEmoji ? .letters : .emoji), symbol: inEmoji ? "keyboard" : "face.smiling.inverse", symbolSize: 20, label: inEmoji ? "Letters" : "Emoji"), units: 1.25))
+            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(inEmoji ? .letters : .emoji), symbol: inEmoji ? "keyboard" : "face.smiling.inverse", symbolSize: 20, label: inEmoji ? "Letters" : "Emoji"), units: 1.0))
         }
-        bottom.append(Item(spec: KeySpec(id: "hush", kind: .hush, label: "QuietGPT"), units: 1.25))
-        bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 3.75))
+        bottom.append(Item(spec: KeySpec(id: "hush", kind: .hush, label: "QuietGPT"), units: 1.0))
+        bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 4.5))
         if state.layer == .emoji {
             var wide = delete
-            wide.units = 2.5
+            wide.units = 2.25
             wide.lead = 0
             bottom.append(wide)
         } else {
@@ -183,7 +183,7 @@ enum KeyLayout {
                     isAction: state.returnIsAction,
                     label: state.returnTitle
                 ),
-                units: 2.5
+                units: 2.25
             ))
         }
 

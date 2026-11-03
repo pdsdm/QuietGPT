@@ -6,8 +6,9 @@ struct RewriteCard: View {
     let onClose: () -> Void
 
     @State private var original = ""
-    @State private var styles = StyleStore.enabledStyles
-    @State private var tone = StyleStore.enabledStyles.first ?? RewriteStyle.builtIn[0]
+    @State private var styles = StyleStore.allEnabled
+    @State private var tone = StyleStore.enabledStyles.first ?? StyleStore.allEnabled.first ?? RewriteStyle.builtIn[0]
+    @State private var ruleCount = min(StyleStore.rules.count, StyleStore.maxRules)
     @State private var result = ""
     @State private var failure: String?
     @State private var isWriting = false
@@ -33,6 +34,14 @@ struct RewriteCard: View {
         }
     }
 
+    private var status: String {
+        switch ruleCount {
+        case 0: "on this iPhone"
+        case 1: "on this iPhone · 1 rule"
+        default: "on this iPhone · \(ruleCount) rules"
+        }
+    }
+
     private var card: some View {
         VStack(alignment: .leading, spacing: 14) {
             Capsule()
@@ -47,7 +56,7 @@ struct RewriteCard: View {
                     .foregroundStyle(Ink.text)
                 HStack(spacing: 6) {
                     Circle().fill(Ink.local).frame(width: 5, height: 5)
-                    Text("on this iPhone")
+                    Text(status)
                 }
                 .font(BrandFont.font(size: 12))
                 .foregroundStyle(Ink.text2)

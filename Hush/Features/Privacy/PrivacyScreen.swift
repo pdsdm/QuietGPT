@@ -7,7 +7,6 @@ struct PrivacyScreen: View {
     @Environment(\.palette) private var palette
     @Environment(\.modelContext) private var context
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
-    @AppStorage(SettingsKey.appearance) private var appearance = Appearance.light
     @ScaledMetric(relativeTo: .largeTitle) private var counterSize: CGFloat = 72
     @State private var confirmingDelete = false
     @State private var appeared = false
@@ -71,24 +70,6 @@ struct PrivacyScreen: View {
                                 .foregroundStyle(palette.text)
                         }
                         .tint(palette.local)
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: 52)
-
-                        Divider().overlay(palette.line)
-
-                        HStack {
-                            Text("Appearance")
-                                .font(HushFont.callout)
-                                .foregroundStyle(palette.text)
-                            Spacer()
-                            Picker("Appearance", selection: $appearance.animation(Motion.gentle)) {
-                                ForEach(Appearance.allCases) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 180)
-                        }
                         .padding(.horizontal, 16)
                         .frame(minHeight: 52)
                     }

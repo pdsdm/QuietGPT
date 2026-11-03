@@ -12,6 +12,7 @@ enum AppTab: String, Hashable {
 struct RootView: View {
     var body: some View {
         ThemedContent()
+            .background(TouchCatcher())
     }
 }
 

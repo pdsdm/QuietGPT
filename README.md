@@ -13,7 +13,7 @@
 ![No tracking](https://img.shields.io/badge/tracking-none-2ea44f)
 ![Last commit](https://img.shields.io/github/last-commit/pdsdm/QuietGPT?logo=github)
 
-QuietGPT is a private AI chat for iPhone. It runs fully on the device with Apple Foundation Models. There is no account, no cloud and no tracking. It works in airplane mode.
+QuietGPT rewrites your messages with your own rules, in one tap, in any app. It has a keyboard, a share card and a private chat. It runs fully on the device with Apple Foundation Models. There is no account, no cloud and no tracking. It works in airplane mode.
 
 <p align="center">
   <img src="docs/screenshots/onboarding.png" width="200" alt="Onboarding">
@@ -24,13 +24,16 @@ QuietGPT is a private AI chat for iPhone. It runs fully on the device with Apple
 
 ## Features
 
+- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard. Its panel rewrites your text in any app.
+- **My rules.** Up to 10 short rules that QuietGPT follows in each rewrite. Each style can turn them off. Fix and the translations do not use them by default.
+- **People.** Save how you write to one person. People show first in the panel.
+- **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish, or your own instruction. Edit, add and order them in the Keyboard tab, and change the base instructions.
+- **Style packs.** Send your rules and styles as a `.quietgpt` file. Open a file to read it and add it. People are not shared.
+- **Share extension.** Share text from any app to QuietGPT and get a rewrite.
 - **Private chat.** Replies stream on the device. Markdown, lists and code blocks show with their own styles.
 - **Chats.** SwiftData keeps your chats on the iPhone. You can search them.
 - **Face ID lock.** QuietGPT locks when it goes to the background.
 - **Privacy screen.** It shows the bytes that your chats send. The value is always `0 B`.
-- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard. Its bar rewrites your text in any app.
-- **Share extension.** Share text from any app to QuietGPT and get a rewrite.
-- **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish, or your own instruction. Edit, add and order them in the Keyboard tab, and change the base instructions.
 - **Monitor panel.** Reply speed, CPU, frames, memory, network and thermal state.
 - **Dark and light themes** with a live ASCII background.
 

@@ -24,6 +24,14 @@ struct RewriteStyle: Codable, Identifiable, Hashable {
         usesRules = try container.decodeIfPresent(Bool.self, forKey: .usesRules) ?? !Self.withoutRules.contains(id)
     }
 
+    var initials: String {
+        title.split(whereSeparator: \.isWhitespace)
+            .prefix(2)
+            .compactMap(\.first)
+            .map { String($0).uppercased() }
+            .joined()
+    }
+
     private static let withoutRules: Set<UUID> = [
         UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000005")!,
         UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000006")!,
@@ -103,6 +111,7 @@ enum StyleStore {
     private static let instructionsKey = "instructions"
     private static let optionsKey = "keyboardOptions"
     private static let rulesKey = "rules"
+    private static let peopleKey = "people"
 
     static var shared: UserDefaults {
         group.flatMap { UserDefaults(suiteName: $0) } ?? .standard
@@ -114,7 +123,24 @@ enum StyleStore {
     }
 
     static var enabledStyles: [RewriteStyle] {
-        styles.filter { $0.isOn && !$0.title.isEmpty && !$0.prompt.isEmpty }
+        enabled(styles)
+    }
+
+    static var people: [RewriteStyle] {
+        get { decode([RewriteStyle].self, peopleKey) ?? [] }
+        set { encode(newValue, peopleKey) }
+    }
+
+    static var enabledPeople: [RewriteStyle] {
+        enabled(people)
+    }
+
+    static var allEnabled: [RewriteStyle] {
+        enabledPeople + enabledStyles
+    }
+
+    private static func enabled(_ values: [RewriteStyle]) -> [RewriteStyle] {
+        values.filter { $0.isOn && !$0.title.isEmpty && !$0.prompt.isEmpty }
     }
 
     static var instructions: String {
@@ -154,6 +180,7 @@ enum StyleStore {
         shared.removeObject(forKey: instructionsKey)
         shared.removeObject(forKey: optionsKey)
         shared.removeObject(forKey: rulesKey)
+        shared.removeObject(forKey: peopleKey)
     }
 
     private static func decode<Value: Decodable>(_ type: Value.Type, _ key: String) -> Value? {

@@ -6,7 +6,11 @@ struct KeyboardScreen: View {
     @State private var styles = StyleStore.styles
     @State private var options = StyleStore.options
     @State private var instructions = StyleStore.instructions
+    @State private var rules = StyleStore.rules
+    @State private var people = StyleStore.people
     @State private var editing: RewriteStyle?
+    @State private var editingPerson: RewriteStyle?
+    @State private var editingRule: RuleEdit?
     @State private var editsInstructions = false
     @State private var confirmingReset = false
     @State private var editMode = EditMode.inactive
@@ -26,6 +30,34 @@ struct KeyboardScreen: View {
                         .listRowBackground(Color.clear)
                 } footer: {
                     Text("This is the bar above your keys. Tap a style to rewrite what you wrote.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
+
+                RulesSection(rules: $rules) { editingRule = $0 }
+
+                Section {
+                    ForEach($people) { $person in
+                        StyleRow(style: $person) {
+                            editingPerson = person
+                        }
+                        .listRowBackground(palette.surface)
+                    }
+                    .onMove { people.move(fromOffsets: $0, toOffset: $1) }
+                    .onDelete { people.remove(atOffsets: $0) }
+
+                    Button {
+                        editingPerson = RewriteStyle(title: "", prompt: "")
+                    } label: {
+                        Label("Add person", systemImage: "plus")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.accent)
+                    }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("People")
+                } footer: {
+                    Text("Save how you write to one person. They show first in the keyboard.")
                         .font(QuietGPTFont.footnote)
                         .foregroundStyle(palette.text2)
                 }
@@ -66,31 +98,6 @@ struct KeyboardScreen: View {
                         .foregroundStyle(palette.text2)
                 }
 
-                Section {
-                    Button {
-                        editsInstructions = true
-                    } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(instructions)
-                                .font(QuietGPTFont.footnote)
-                                .foregroundStyle(palette.text)
-                                .lineLimit(4)
-                                .multilineTextAlignment(.leading)
-                            Text("Edit")
-                                .font(QuietGPTFont.footnote)
-                                .foregroundStyle(palette.accent)
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .listRowBackground(palette.surface)
-                } header: {
-                    Text("Base instructions")
-                } footer: {
-                    Text("QuietGPT follows these rules for every style.")
-                        .font(QuietGPTFont.footnote)
-                        .foregroundStyle(palette.text2)
-                }
-
                 Section("Typing") {
                     Picker(selection: $options.language) {
                         ForEach(KeyboardLanguage.allCases) { language in
@@ -105,7 +112,32 @@ struct KeyboardScreen: View {
                     .listRowBackground(palette.surface)
                     toggle("Auto capitals", isOn: $options.autoCapitalize)
                     toggle("Double space adds a period", isOn: $options.periodShortcut)
-                    toggle("Show Ask in the bar", isOn: $options.showsAsk)
+                    toggle("Show Ask in the panel", isOn: $options.showsAsk)
+                }
+
+                Section {
+                    Button {
+                        editsInstructions = true
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Base instructions")
+                                .font(QuietGPTFont.callout)
+                                .foregroundStyle(palette.text)
+                            Text(instructions)
+                                .font(QuietGPTFont.footnote)
+                                .foregroundStyle(palette.text2)
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("Advanced")
+                } footer: {
+                    Text("QuietGPT reads these before your rules. Most people do not need to change them.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
                 }
 
                 Section {
@@ -118,7 +150,7 @@ struct KeyboardScreen: View {
                     .foregroundStyle(palette.accent)
                     .listRowBackground(palette.surface)
 
-                    Button("Reset styles and instructions", role: .destructive) {
+                    Button("Reset rules, people and styles", role: .destructive) {
                         confirmingReset = true
                     }
                     .font(QuietGPTFont.callout)
@@ -136,6 +168,32 @@ struct KeyboardScreen: View {
             .toolbar(.hidden, for: .navigationBar)
             .animation(Motion.snappy, value: styles)
             .animation(Motion.snappy, value: options)
+            .animation(Motion.snappy, value: rules)
+            .animation(Motion.snappy, value: people)
+        }
+        .sheet(item: $editingPerson) { person in
+            StyleEditor(style: person, kind: .person, isNew: !people.contains { $0.id == person.id }) { saved in
+                if let index = people.firstIndex(where: { $0.id == saved.id }) {
+                    people[index] = saved
+                } else {
+                    people.append(saved)
+                }
+            } onDelete: {
+                people.removeAll { $0.id == person.id }
+            }
+        }
+        .sheet(item: $editingRule) { edit in
+            RuleEditor(edit: edit) { text in
+                if let index = edit.index, rules.indices.contains(index) {
+                    rules[index] = text
+                } else {
+                    rules.append(text)
+                }
+            } onDelete: {
+                if let index = edit.index, rules.indices.contains(index) {
+                    rules.remove(at: index)
+                }
+            }
         }
         .sheet(item: $editing) { style in
             StyleEditor(style: style, isNew: !styles.contains { $0.id == style.id }) { saved in
@@ -157,10 +215,14 @@ struct KeyboardScreen: View {
                 styles = StyleStore.styles
                 options = StyleStore.options
                 instructions = StyleStore.instructions
+                rules = StyleStore.rules
+                people = StyleStore.people
             }
         } message: {
-            Text("This brings back the default styles and instructions.")
+            Text("This removes your rules and people, and brings back the default styles and instructions.")
         }
+        .onChange(of: rules) { _, value in StyleStore.rules = value }
+        .onChange(of: people) { _, value in StyleStore.people = value }
         .onChange(of: styles) { _, value in StyleStore.styles = value }
         .onChange(of: options) { _, value in StyleStore.options = value }
         .onChange(of: instructions) { _, value in StyleStore.instructions = value }
@@ -266,7 +328,23 @@ private struct BarPreview: View {
 }
 
 private struct StyleEditor: View {
+    enum Kind {
+        case style
+        case person
+
+        var newTitle: String { self == .style ? "New style" : "New person" }
+        var deleteTitle: String { self == .style ? "Delete style" : "Delete person" }
+        var namePlaceholder: String { self == .style ? "For example, Friendly" : "For example, Boss" }
+        var promptHeader: String { self == .style ? "What QuietGPT does" : "How you write to this person" }
+        var promptFooter: String {
+            self == .style
+                ? "Write it as an order. For example: Make this message friendly and relaxed. Keep the same meaning."
+                : "Write it as an order. For example: Write to my boss. Be polite and direct. Do not use emoji."
+        }
+    }
+
     @State var style: RewriteStyle
+    let kind: Kind
     let isNew: Bool
     let onSave: (RewriteStyle) -> Void
     let onDelete: () -> Void
@@ -274,8 +352,9 @@ private struct StyleEditor: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.palette) private var palette
 
-    init(style: RewriteStyle, isNew: Bool, onSave: @escaping (RewriteStyle) -> Void, onDelete: @escaping () -> Void) {
+    init(style: RewriteStyle, kind: Kind = .style, isNew: Bool, onSave: @escaping (RewriteStyle) -> Void, onDelete: @escaping () -> Void) {
         _style = State(initialValue: style)
+        self.kind = kind
         self.isNew = isNew
         self.onSave = onSave
         self.onDelete = onDelete
@@ -290,7 +369,7 @@ private struct StyleEditor: View {
         NavigationStack {
             Form {
                 Section("Name") {
-                    TextField("For example, Friendly", text: $style.title)
+                    TextField(kind.namePlaceholder, text: $style.title)
                         .font(QuietGPTFont.callout)
                         .listRowBackground(palette.surface)
                 }
@@ -300,15 +379,24 @@ private struct StyleEditor: View {
                         .frame(minHeight: 110)
                         .listRowBackground(palette.surface)
                 } header: {
-                    Text("What QuietGPT does")
+                    Text(kind.promptHeader)
                 } footer: {
-                    Text("Write it as an order. For example: Make this message friendly and relaxed. Keep the same meaning.")
+                    Text(kind.promptFooter)
                         .font(QuietGPTFont.footnote)
                 }
-                TryItSection(request: style.prompt)
+                Section {
+                    Toggle(isOn: $style.usesRules) {
+                        Text("Use my rules")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.text)
+                    }
+                    .tint(palette.accent)
+                    .listRowBackground(palette.surface)
+                }
+                TryItSection(request: style.prompt, usesRules: style.usesRules)
                 if !isNew {
                     Section {
-                        Button("Delete style", role: .destructive) {
+                        Button(kind.deleteTitle, role: .destructive) {
                             onDelete()
                             dismiss()
                         }
@@ -318,7 +406,7 @@ private struct StyleEditor: View {
             }
             .scrollContentBackground(.hidden)
             .background(palette.background.ignoresSafeArea())
-            .navigationTitle(isNew ? "New style" : style.title)
+            .navigationTitle(isNew ? kind.newTitle : style.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -386,6 +474,7 @@ private struct InstructionsEditor: View {
 
 private struct TryItSection: View {
     let request: String
+    let usesRules: Bool
 
     @Environment(\.palette) private var palette
     @State private var sample = "hey can u send me the file by tomorrow, thx"
@@ -442,7 +531,7 @@ private struct TryItSection: View {
             return
         }
         isWriting = true
-        let stream = rewriter.rewrite(sample, request: request)
+        let stream = rewriter.rewrite(sample, request: request, usesRules: usesRules)
         task = Task {
             do {
                 for try await text in stream {

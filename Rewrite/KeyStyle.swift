@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct KeyStyle {
+    let background: UIColor
     let key: UIColor
     let pressed: UIColor
     let popup: UIColor
@@ -23,6 +24,7 @@ struct KeyStyle {
     static let radius: CGFloat = 8.5
 
     static let light = KeyStyle(
+        background: UIColor(red: 224 / 255, green: 225 / 255, blue: 226 / 255, alpha: 1),
         key: UIColor(white: 1, alpha: 1),
         pressed: UIColor(red: 232 / 255, green: 232 / 255, blue: 236 / 255, alpha: 1),
         popup: UIColor(white: 1, alpha: 1),
@@ -34,6 +36,7 @@ struct KeyStyle {
     )
 
     static let dark = KeyStyle(
+        background: UIColor(white: 23 / 255, alpha: 1),
         key: UIColor(white: 61 / 255, alpha: 1),
         pressed: UIColor(red: 42 / 255, green: 44 / 255, blue: 42 / 255, alpha: 1),
         popup: UIColor(red: 86 / 255, green: 87 / 255, blue: 86 / 255, alpha: 1),

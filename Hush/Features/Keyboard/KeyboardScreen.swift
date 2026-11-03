@@ -249,7 +249,7 @@ private struct BarPreview: View {
             .padding(.horizontal, 6)
             .padding(.bottom, 8)
         }
-        .background(Color(scheme == .dark ? UIColor(white: 23 / 255, alpha: 1) : UIColor(red: 224 / 255, green: 225 / 255, blue: 226 / 255, alpha: 1)), in: .rect(cornerRadius: 26, style: .continuous))
+        .background(Color(style.background), in: .rect(cornerRadius: 26, style: .continuous))
         .animation(Motion.snappy, value: titles)
     }
 }

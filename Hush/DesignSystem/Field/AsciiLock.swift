@@ -9,6 +9,8 @@ struct AsciiLock: View {
     @State private var engine = LockEngine()
     @State private var start = Date.now
 
+    private let input = FieldInput.shared
+
     private static let fontSize: CGFloat = 9
     private static let cellWidth: CGFloat = fontSize * 0.6
     private static let lineHeight: CGFloat = 9.5
@@ -19,11 +21,14 @@ struct AsciiLock: View {
                 let columns = Int(size.width / Self.cellWidth)
                 let rows = Int(size.height / Self.lineHeight)
                 let offset = startsLocked || reduceMotion ? LockEngine.settled : 0
+                var pose = LockEngine.pose(at: offset + context.date.timeIntervalSince(start))
+                pose.yaw += input.tilt.x * 0.7
+                pose.pitch += input.tilt.y * 0.5
                 let lines = engine.lines(
                     columns: columns,
                     rows: rows,
                     aspect: Double(Self.lineHeight / Self.cellWidth),
-                    pose: LockEngine.pose(at: offset + context.date.timeIntervalSince(start))
+                    pose: pose
                 )
                 let font = Font.system(size: Self.fontSize, weight: .medium, design: .monospaced)
                 for (row, line) in lines.enumerated() {
@@ -34,6 +39,10 @@ struct AsciiLock: View {
         }
         .frame(width: side, height: side)
         .accessibilityHidden(true)
-        .onAppear { start = .now }
+        .onAppear {
+            start = .now
+            input.start()
+        }
+        .onDisappear { input.stop() }
     }
 }

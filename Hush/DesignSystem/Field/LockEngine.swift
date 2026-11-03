@@ -33,6 +33,8 @@ final class LockEngine {
     private static let openSwing = 1.15
     private static let extent = 1.75
     private static let maxSteps = 48
+    static let pace = 1.6
+    static let settled = 1.7 * pace
     private static let ramp: [Character] = Array(" .:-=+*#%@")
     private static let light: Vector = {
         let v = Vector(x: -0.45, y: 0.6, z: -0.66)
@@ -52,7 +54,8 @@ final class LockEngine {
         )
     }
 
-    static func pose(at elapsed: Double) -> Pose {
+    static func pose(at time: Double) -> Pose {
+        let elapsed = time / pace
         func ease(_ t: Double) -> Double { let c = min(1, max(0, t)); return c * c * (3 - 2 * c) }
         let turn = ease(elapsed / 1.7)
         let swing = openSwing * (1 - ease((elapsed - 0.35) / 0.55))

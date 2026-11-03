@@ -38,7 +38,7 @@ struct MonitorPanel: View {
             Text("monitor")
                 .font(HushFont.mono)
                 .foregroundStyle(palette.text)
-            Text("live · 0.5 s")
+            Text("live · \(MonitorStore.interval.seconds.formatted()) s")
                 .font(HushFont.monoSmall)
                 .foregroundStyle(palette.text3)
             Spacer()

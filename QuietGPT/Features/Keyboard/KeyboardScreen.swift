@@ -25,11 +25,11 @@ struct KeyboardScreen: View {
                     .listRowBackground(Color.clear)
 
                 Section {
-                    BarPreview(styles: styles.filter(\.isOn), showsAsk: options.showsAsk)
+                    PanelPreview(people: people.filter(\.isOn), styles: styles.filter(\.isOn), ruleCount: rules.count, showsAsk: options.showsAsk)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                 } footer: {
-                    Text("This is the bar above your keys. Tap a style to rewrite what you wrote.")
+                    Text("This is the panel in your keyboard. Tap a person or a style to rewrite what you wrote.")
                         .font(QuietGPTFont.footnote)
                         .foregroundStyle(palette.text2)
                 }
@@ -270,60 +270,81 @@ private struct StyleRow: View {
     }
 }
 
-private struct BarPreview: View {
+private struct PanelPreview: View {
+    let people: [RewriteStyle]
     let styles: [RewriteStyle]
+    let ruleCount: Int
     let showsAsk: Bool
 
     @Environment(\.colorScheme) private var scheme
 
     private var style: KeyStyle { .current(scheme) }
 
-    private var titles: [String] {
-        Array((styles.map(\.title) + (showsAsk ? ["Ask"] : [])).prefix(3))
+    private var status: String {
+        switch ruleCount {
+        case 0: "on this iPhone"
+        case 1: "on this iPhone · 1 rule"
+        default: "on this iPhone · \(ruleCount) rules"
+        }
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                ForEach(Array(titles.enumerated()), id: \.element) { index, title in
-                    Text(title)
-                        .font(BrandFont.font(size: 16))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                LockMark()
+                    .fill(Color(style.text))
+                    .frame(width: 22, height: 22)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(BrandFont.name)
+                        .font(BrandFont.wordmark(size: 17))
+                        .tracking(-0.4)
                         .foregroundStyle(Color(style.text))
-                        .frame(maxWidth: .infinity)
-                        .overlay(alignment: .trailing) {
-                            if index < titles.count - 1 {
-                                Rectangle()
-                                    .fill(Color(style.separator))
-                                    .frame(width: 1, height: 24)
-                            }
-                        }
-                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    Text(status)
+                        .font(BrandFont.font(size: 11))
+                        .foregroundStyle(Color(style.secondary))
+                        .contentTransition(.opacity)
                 }
-                if titles.isEmpty {
-                    Text("No styles on")
+            }
+            .padding(.horizontal, 12)
+
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(people) { StyleTile(value: $0, style: style, isPerson: true) }
+                    ForEach(styles) { StyleTile(value: $0, style: style) }
+                    if people.isEmpty && styles.isEmpty {
+                        Text("No styles on")
+                            .font(BrandFont.font(size: 15))
+                            .foregroundStyle(Color(style.secondary))
+                            .frame(height: 86)
+                    }
+                }
+            }
+            .contentMargins(.horizontal, 12, for: .scrollContent)
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+
+            if showsAsk {
+                HStack(spacing: 10) {
+                    Image(systemName: "text.bubble")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color(style.text))
+                    Text("Ask for any change…")
                         .font(BrandFont.font(size: 15))
                         .foregroundStyle(Color(style.secondary))
-                        .frame(maxWidth: .infinity)
+                    Spacer(minLength: 0)
                 }
+                .padding(.horizontal, 14)
+                .frame(height: 44)
+                .background(Color(style.key), in: .capsule)
+                .padding(.horizontal, 12)
+                .transition(.opacity)
             }
-            .frame(height: 44)
-            HStack(spacing: 6) {
-                ForEach(Array("qwertyuiop"), id: \.self) { letter in
-                    Text(String(letter).uppercased())
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color(style.text))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 42)
-                        .background(Color(style.key), in: .rect(cornerRadius: KeyStyle.radius, style: .continuous))
-                }
-            }
-            .padding(.horizontal, 6)
-            .padding(.bottom, 8)
         }
+        .padding(.vertical, 12)
         .background(Color(style.background), in: .rect(cornerRadius: Radius.large, style: .continuous))
-        .animation(Motion.snappy, value: titles)
+        .animation(Motion.snappy, value: people)
+        .animation(Motion.snappy, value: styles)
+        .animation(Motion.snappy, value: showsAsk)
     }
 }
 

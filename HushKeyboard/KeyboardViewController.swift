@@ -8,6 +8,9 @@ final class KeyboardInputView: UIInputView, UIInputViewAudioFeedback {
 
 final class KeyboardViewController: UIInputViewController {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "hush", category: "keyboard")
+    private static let doubleSpaceWindow = Duration.milliseconds(450)
+    private static let doubleShiftWindow = Duration.milliseconds(350)
+    private static let hintDuration = Duration.seconds(2.5)
 
     private let model = KeyboardModel()
     private let rewriter = Rewriter()
@@ -198,7 +201,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
         let before = proxy.documentContextBeforeInput ?? ""
-        if options.periodShortcut, let lastSpace, lastSpace.duration(to: .now) < .milliseconds(450),
+        if options.periodShortcut, let lastSpace, lastSpace.duration(to: .now) < Self.doubleSpaceWindow,
            before.hasSuffix(" "), let previous = before.dropLast().last, previous.isLetter || previous.isNumber {
             proxy.deleteBackward()
             proxy.insertText(". ")
@@ -233,7 +236,7 @@ final class KeyboardViewController: UIInputViewController {
         switch model.layer {
         case .letters:
             let now = ContinuousClock.now
-            if let lastShiftTap, lastShiftTap.duration(to: now) < .milliseconds(350) {
+            if let lastShiftTap, lastShiftTap.duration(to: now) < Self.doubleShiftWindow {
                 model.shift = .locked
                 self.lastShiftTap = nil
                 return
@@ -452,7 +455,7 @@ final class KeyboardViewController: UIInputViewController {
         hintReset?.cancel()
         model.hint = hint
         hintReset = Task {
-            try? await Task.sleep(for: .seconds(2.5))
+            try? await Task.sleep(for: Self.hintDuration)
             guard !Task.isCancelled else { return }
             model.hint = nil
         }

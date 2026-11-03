@@ -17,7 +17,7 @@ struct CodeBlock: View {
                     UIPasteboard.general.string = code
                     withAnimation(Motion.snappy) { copied = true }
                     Task {
-                        try? await Task.sleep(for: .seconds(1.4))
+                        try? await Task.sleep(for: Motion.copiedHold)
                         withAnimation(Motion.snappy) { copied = false }
                     }
                 } label: {

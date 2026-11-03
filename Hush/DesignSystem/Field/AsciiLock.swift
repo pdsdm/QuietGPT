@@ -1,8 +1,14 @@
 import SwiftUI
 
+enum LockState: Equatable {
+    case playing
+    case open
+    case locked
+}
+
 struct AsciiLock: View {
     var side: CGFloat = 280
-    var startsLocked = false
+    var state: LockState = .playing
 
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -20,8 +26,8 @@ struct AsciiLock: View {
             Canvas { canvas, size in
                 let columns = Int(size.width / Self.cellWidth)
                 let rows = Int(size.height / Self.lineHeight)
-                let offset = startsLocked || reduceMotion ? LockEngine.settled : 0
-                var pose = LockEngine.pose(at: offset + context.date.timeIntervalSince(start))
+                let elapsed = context.date.timeIntervalSince(start)
+                var pose = pose(at: elapsed)
                 pose.yaw += input.tilt.x * 0.7
                 pose.pitch += input.tilt.y * 0.5
                 let lines = engine.lines(
@@ -44,5 +50,21 @@ struct AsciiLock: View {
             input.start()
         }
         .onDisappear { input.stop() }
+        .onChange(of: state) { start = .now }
+    }
+
+    private func pose(at elapsed: Double) -> LockEngine.Pose {
+        if reduceMotion { return LockEngine.pose(at: state == .open ? 0 : LockEngine.settled) }
+        switch state {
+        case .playing:
+            return LockEngine.pose(at: elapsed)
+        case .open:
+            var pose = LockEngine.pose(at: 0)
+            pose.yaw += 0.18 * sin(elapsed * 1.4)
+            pose.lift += 0.04 * sin(elapsed * 2.2)
+            return pose
+        case .locked:
+            return LockEngine.pose(at: LockEngine.settled + elapsed)
+        }
     }
 }

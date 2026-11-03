@@ -35,6 +35,7 @@ final class LockEngine {
     private static let maxSteps = 48
     static let pace = 1.6
     static let settled = 1.7 * pace
+    static let closed = 1.25 * pace
     private static let ramp: [Character] = Array(" .:-=+*#%@")
     private static let light: Vector = {
         let v = Vector(x: -0.45, y: 0.6, z: -0.66)

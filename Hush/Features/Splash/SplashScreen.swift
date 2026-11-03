@@ -6,7 +6,7 @@ struct SplashScreen: View {
 
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var engine = BurstEngine()
+    @State private var engine = LockEngine()
     @State private var start = Date.now
     @State private var showsName = false
 
@@ -28,7 +28,7 @@ struct SplashScreen: View {
                             columns: columns,
                             rows: rows,
                             aspect: Double(Self.lineHeight / Self.cellWidth),
-                            pose: BurstEngine.pose(at: elapsed)
+                            pose: LockEngine.pose(at: elapsed)
                         )
                         let font = Font.system(size: Self.fontSize, weight: .medium, design: .monospaced)
                         for (row, line) in lines.enumerated() {

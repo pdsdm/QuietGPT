@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct HushBar: View {
-    static let height: CGFloat = 51.33
+    static let height: CGFloat = 43.33
     static let markWidth: CGFloat = 40
 
     private enum Item: Identifiable, Equatable {
@@ -35,6 +35,7 @@ struct HushBar: View {
             let slot = (geometry.size.width - Self.markWidth) / 3
             HStack(spacing: 0) {
                 BarMark(style: style)
+                    .padding(.leading, 6)
                     .frame(width: Self.markWidth)
                 ZStack {
                     if model.isAsking {
@@ -56,7 +57,7 @@ struct HushBar: View {
                     }
                 }
             }
-            .padding(.top, 13)
+            .padding(.top, 5)
         }
         .frame(height: Self.height)
         .animation(.snappy(duration: 0.25), value: model.isAsking)
@@ -123,7 +124,7 @@ struct HushBar: View {
             .minimumScaleFactor(0.75)
             .foregroundStyle(Color(style.text))
             .padding(.horizontal, 6)
-            .frame(width: slot - 4, height: 34)
+            .frame(width: slot - 4, height: 30)
             .background {
                 if active {
                     RoundedRectangle(cornerRadius: KeyStyle.radius, style: .continuous)
@@ -214,7 +215,7 @@ struct HushBar: View {
 
 private struct BarMark: View {
     let style: KeyStyle
-    var size: CGFloat = 30
+    var size: CGFloat = 24
 
     var body: some View {
         let unit = size / 100

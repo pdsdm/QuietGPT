@@ -69,7 +69,7 @@ struct OnboardingScreen: View {
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
             Text("A private mind that lives on your iPhone.")
-                .font(.system(size: 20, weight: .regular))
+                .font(HushFont.lead)
                 .foregroundStyle(palette.text2)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
@@ -80,7 +80,7 @@ struct OnboardingScreen: View {
     private var proof: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Nothing leaves\nthis phone.")
-                .font(.system(size: 34, weight: .regular))
+                .font(HushFont.largeTitle)
                 .tracking(-0.6)
                 .foregroundStyle(palette.text)
             TerminalLines(lines: [

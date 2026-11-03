@@ -8,6 +8,7 @@ struct PrivacyScreen: View {
     @Environment(\.modelContext) private var context
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
     @AppStorage(SettingsKey.appearance) private var appearance = Appearance.dark
+    @ScaledMetric(relativeTo: .largeTitle) private var counterSize: CGFloat = 72
     @State private var confirmingDelete = false
     @State private var appeared = false
 
@@ -129,7 +130,7 @@ struct PrivacyScreen: View {
             .foregroundStyle(palette.local)
 
             ScrambleText(final: "0 B", active: appeared)
-                .font(.system(size: 72, weight: .light, design: .monospaced))
+                .font(.system(size: counterSize, weight: .light, design: .monospaced))
                 .tracking(-3)
                 .foregroundStyle(palette.text)
 

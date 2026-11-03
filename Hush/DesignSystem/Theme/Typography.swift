@@ -3,6 +3,7 @@ import SwiftUI
 enum HushFont {
     static let largeTitle = Font.system(.largeTitle, design: .default, weight: .regular)
     static let title = Font.system(.title2, design: .default, weight: .regular)
+    static let lead = Font.system(.title3, design: .default, weight: .regular)
     static let headline = Font.system(.headline, design: .default, weight: .medium)
     static let body = Font.system(.body, design: .default, weight: .regular)
     static let callout = Font.system(.callout, design: .default, weight: .regular)

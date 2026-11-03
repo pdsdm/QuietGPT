@@ -111,7 +111,7 @@ struct ChatScreen: View {
                     .offset(y: greeted ? 0 : 12)
                     .animation(Motion.gentle.delay(0.12), value: greeted)
             }
-            .font(.system(size: 34, weight: .regular))
+            .font(HushFont.largeTitle)
             .tracking(-0.6)
             .foregroundStyle(palette.text)
             .animation(Motion.gentle, value: greeted)

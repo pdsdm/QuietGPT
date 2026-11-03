@@ -218,16 +218,9 @@ struct BarMark: View {
     var size: CGFloat = 24
 
     var body: some View {
-        let unit = size / 100
-        ZStack {
-            LipLine()
-                .stroke(Color(style.accent), style: StrokeStyle(lineWidth: 6 * unit, lineCap: .round))
-            Capsule()
-                .fill(Color(style.text))
-                .frame(width: 7.5 * unit, height: 52 * unit)
-                .position(x: 50 * unit, y: 48 * unit)
-        }
-        .frame(width: size, height: size)
+        Burst()
+            .stroke(Color(style.text), style: Burst.stroke(size: size))
+            .frame(width: size, height: size)
         .accessibilityHidden(true)
     }
 }

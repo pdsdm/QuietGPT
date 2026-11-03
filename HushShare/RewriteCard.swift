@@ -41,9 +41,9 @@ struct RewriteCard: View {
                 .frame(maxWidth: .infinity)
 
             HStack(spacing: 10) {
-                Text("hush")
-                    .font(.system(size: 20))
-                    .tracking(-0.3)
+                Text(BrandFont.name)
+                    .font(BrandFont.wordmark(size: 19))
+                    .tracking(-0.45)
                     .foregroundStyle(Ink.text)
                 HStack(spacing: 6) {
                     Circle().fill(Ink.local).frame(width: 5, height: 5)

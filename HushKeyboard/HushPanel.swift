@@ -31,9 +31,9 @@ struct HushPanel: View {
         HStack(spacing: 8) {
             BarMark(style: style, size: 26)
             VStack(alignment: .leading, spacing: 0) {
-                Text("hush")
-                    .font(.system(size: 18, weight: .light))
-                    .tracking(-0.3)
+                Text(BrandFont.name)
+                    .font(BrandFont.wordmark(size: 17))
+                    .tracking(-0.4)
                     .foregroundStyle(Color(style.text))
                 Text(status)
                     .font(.system(size: 11))

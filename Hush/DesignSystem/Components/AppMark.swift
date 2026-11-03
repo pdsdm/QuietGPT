@@ -11,18 +11,14 @@ struct AppMark: View {
     private var visible: Bool { shown || !animated || reduceMotion }
 
     var body: some View {
-        let unit = size / 100
+        let mark = size * 0.6
         ZStack {
             palette.background
-            LipLine()
+            Burst()
                 .trim(from: 0, to: visible ? 1 : 0)
-                .stroke(palette.accent, style: StrokeStyle(lineWidth: 6 * unit, lineCap: .round))
-            Capsule()
-                .fill(palette.text)
-                .frame(width: 7.5 * unit, height: 52 * unit)
-                .position(x: 50 * unit, y: 48 * unit)
-                .offset(y: visible ? 0 : 14 * unit)
-                .opacity(visible ? 1 : 0)
+                .stroke(palette.text, style: Burst.stroke(size: mark))
+                .frame(width: mark, height: mark)
+                .rotationEffect(.degrees(visible ? 0 : -45))
         }
         .frame(width: size, height: size)
         .clipShape(.rect(cornerRadius: size * 0.225, style: .continuous))
@@ -33,7 +29,7 @@ struct AppMark: View {
         .accessibilityHidden(true)
         .onAppear {
             guard animated, !reduceMotion else { return }
-            withAnimation(.easeOut(duration: 0.7).delay(0.2)) { shown = true }
+            withAnimation(.easeOut(duration: 0.8).delay(0.2)) { shown = true }
         }
     }
 }

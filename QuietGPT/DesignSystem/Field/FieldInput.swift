@@ -51,15 +51,12 @@ final class FieldInput {
         touchUp = .now
     }
 
-    func touch(at date: Date) -> (point: CGPoint, strength: Double) {
-        guard let touchDown else { return (touchPoint, 0) }
-        let grow = min(1, max(0, date.timeIntervalSince(touchDown) / 0.35))
-        var strength = grow * grow * (3 - 2 * grow)
-        if let touchUp {
-            let fade = min(1, max(0, date.timeIntervalSince(touchUp) / 0.8))
-            strength *= 1 - fade * fade * (3 - 2 * fade)
-        }
-        return (touchPoint, strength)
+    var pressing: Bool {
+        touchDown != nil && touchUp == nil
+    }
+
+    var point: CGPoint {
+        touchPoint
     }
 
     private func update(gravity: CGPoint) {

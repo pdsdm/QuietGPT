@@ -5,7 +5,7 @@ using namespace metal;
 constant float threshold = 0.32;
 constant float2 cellSize = float2(4.8, 8.0);
 
-static float wax(float2 p, device const float *blobs, int count, float2 down, float3 dent, float time, thread float &heat) {
+static float wax(float2 p, device const float *blobs, int count, float2 down, float time, thread float &heat) {
     float field = 0.0;
     float warm = 0.0;
     for (int i = 0; i + 5 < count; i += 6) {
@@ -30,23 +30,14 @@ static float wax(float2 p, device const float *blobs, int count, float2 down, fl
         }
     }
 
-    if (dent.z > 0.001) {
-        float2 d = p - dent.xy;
-        float u = dot(d, d) / (0.16 * 0.16);
-        if (u < 1.0) {
-            float k = 1.0 - u;
-            field -= 1.6 * dent.z * k * k * k;
-        }
-    }
-
     heat = field > 1e-4 ? clamp(warm / field, 0.0, 1.0) : 0.0;
     return field;
 }
 
-static float shade(float2 cell, float2 point, float scale, device const float *blobs, int count, float2 down, float3 dent, float time) {
+static float shade(float2 cell, float2 point, float scale, device const float *blobs, int count, float2 down, float time) {
     float2 p = point / scale;
     float heat;
-    float field = wax(p, blobs, count, down, dent, time, heat);
+    float field = wax(p, blobs, count, down, time, heat);
     if (field < threshold) {
         bool grid = fmod(cell.x, 4.0) < 0.5 && fmod(cell.y, 3.0) < 0.5;
         return grid ? 0.1 : 0.0;
@@ -54,8 +45,8 @@ static float shade(float2 cell, float2 point, float scale, device const float *b
     float e = 0.004;
     float unused;
     float2 gradient = float2(
-        wax(p + float2(e, 0.0), blobs, count, down, dent, time, unused) - wax(p - float2(e, 0.0), blobs, count, down, dent, time, unused),
-        wax(p + float2(0.0, e), blobs, count, down, dent, time, unused) - wax(p - float2(0.0, e), blobs, count, down, dent, time, unused)
+        wax(p + float2(e, 0.0), blobs, count, down, time, unused) - wax(p - float2(e, 0.0), blobs, count, down, time, unused),
+        wax(p + float2(0.0, e), blobs, count, down, time, unused) - wax(p - float2(0.0, e), blobs, count, down, time, unused)
     ) / (2.0 * e);
     float lift = sqrt(field - threshold + 0.015);
     float3 normal = normalize(float3(-gradient * 0.035 / lift, 1.0));
@@ -76,7 +67,6 @@ static float shade(float2 cell, float2 point, float scale, device const float *b
     device const float *blobs,
     int count,
     float2 down,
-    float3 dent,
     float dark,
     texture2d<half> atlas,
     float glyphs
@@ -86,7 +76,7 @@ static float shade(float2 cell, float2 point, float scale, device const float *b
 
     float2 cell = floor(position / cellSize);
     float2 local = (position - cell * cellSize) / cellSize;
-    float value = shade(cell, (cell + 0.5) * cellSize + origin, scale, blobs, count, down, dent, time);
+    float value = shade(cell, (cell + 0.5) * cellSize + origin, scale, blobs, count, down, time);
     int index = clamp(int(value * (glyphs - 0.01)), 0, int(glyphs) - 1);
     if (index == 0) {
         return half4(half3(background), 1.0);

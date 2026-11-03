@@ -14,13 +14,15 @@ final class LavaLamp {
         var pace: Double
     }
 
-    private static let fingerReach = 0.32
+    private static let grabReach = 1.6
 
     private var blobs: [Blob]
     private var extent = SIMD2<Double>(1, 2.1)
     private var down = SIMD2<Double>(0, 1)
     private var pull = 0.8
-    private var dent = SIMD3<Double>(0, 0, 0)
+    private var grabbed: Int?
+    private var grip = SIMD2<Double>(0, 0)
+    private var wasPressing = false
     private var spawns = 0
     private var last: Date?
 
@@ -46,11 +48,7 @@ final class LavaLamp {
         SIMD2(Float(down.x), Float(down.y))
     }
 
-    var finger: SIMD3<Float> {
-        SIMD3(Float(dent.x), Float(dent.y), Float(dent.z))
-    }
-
-    func step(to date: Date, extent newExtent: SIMD2<Double>, gravity: CGPoint, touch: SIMD3<Double>, energy: Double) {
+    func step(to date: Date, extent newExtent: SIMD2<Double>, gravity: CGPoint, finger: SIMD2<Double>, pressing: Bool, energy: Double) {
         guard date != last else { return }
         let dt = min(1.0 / 20, max(0, date.timeIntervalSince(last ?? date)))
         last = date
@@ -64,14 +62,19 @@ final class LavaLamp {
         }
         pull += (magnitude - pull) * (1 - exp(-dt * 3))
 
-        let follow = 1 - exp(-dt * 10)
-        dent.x += (touch.x - dent.x) * follow
-        dent.y += (touch.y - dent.y) * follow
-        dent.z += (touch.z - dent.z) * (1 - exp(-dt * (touch.z > dent.z ? 8 : 2.5)))
+        if pressing, !wasPressing {
+            grabbed = blobs.indices
+                .map { (index: $0, distance: simd_length(blobs[$0].position - finger) / blobs[$0].radius) }
+                .filter { $0.distance < Self.grabReach }
+                .min { $0.distance < $1.distance }?
+                .index
+            if let grabbed { grip = blobs[grabbed].position - finger }
+        }
+        if !pressing { grabbed = nil }
+        wasPressing = pressing
 
         let side = SIMD2(-down.y, down.x)
         let time = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)
-        let finger = SIMD2(touch.x, touch.y)
 
         for index in blobs.indices {
             var blob = blobs[index]
@@ -79,15 +82,6 @@ final class LavaLamp {
             var force = down * 0.05 * blob.pace * energy * (0.3 + 0.7 * pull)
             force += side * 0.025 * sin(time * 0.31 + blob.phase)
             force -= down * 0.03 * sin(time * 0.43 * blob.pace + blob.phase * 1.3)
-
-            if touch.z > 0.01 {
-                let away = blob.position - finger
-                let distance = simd_length(away)
-                if distance < Self.fingerReach + blob.radius, distance > 1e-4 {
-                    let fall = 1 - distance / (Self.fingerReach + blob.radius)
-                    force += away / distance * fall * fall * 4 * touch.z
-                }
-            }
 
             for other in blobs.indices where other != index {
                 let away = blob.position - blobs[other].position
@@ -98,10 +92,19 @@ final class LavaLamp {
                 }
             }
 
+            if index == grabbed {
+                grip *= exp(-dt * 3)
+                let target = finger + grip
+                blob.velocity = (target - blob.position) * min(1, dt * 18) / dt
+                blob.position += blob.velocity * dt
+                blobs[index] = blob
+                continue
+            }
+
             blob.velocity += force * dt
             blob.velocity *= exp(-dt * 1.4)
             let speed = simd_length(blob.velocity)
-            if speed > 0.5 { blob.velocity *= 0.5 / speed }
+            if speed > 1.2 { blob.velocity *= 1.2 / speed }
             blob.position += blob.velocity * dt
 
             let margin = blob.radius * 2

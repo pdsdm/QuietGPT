@@ -31,16 +31,15 @@ struct LiquidField: View {
             let scale = max(1, min(screen.width, screen.height))
             TimelineView(.animation(minimumInterval: frameInterval, paused: reduceMotion)) { context in
                 let time = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)
-                let touch = input.touch(at: context.date)
                 let _ = lamp.step(
                     to: context.date,
                     extent: SIMD2(screen.width / scale, screen.height / scale),
                     gravity: input.gravity,
-                    touch: SIMD3(touch.point.x / scale, touch.point.y / scale, touch.strength),
+                    finger: SIMD2(input.point.x / scale, input.point.y / scale),
+                    pressing: input.pressing,
                     energy: energy
                 )
                 let direction = lamp.direction
-                let finger = lamp.finger
                 Rectangle()
                     .colorEffect(ShaderLibrary.lavaLamp(
                         .float2(Float(frame.minX), Float(frame.minY)),
@@ -48,7 +47,6 @@ struct LiquidField: View {
                         .float(Float(time)),
                         .floatArray(lamp.packed),
                         .float2(direction.x, direction.y),
-                        .float3(finger.x, finger.y, finger.z),
                         .float(colorScheme == .dark ? 1 : 0),
                         .image(AsciiGlyphs.atlas),
                         .float(Float(AsciiGlyphs.ramp.count))

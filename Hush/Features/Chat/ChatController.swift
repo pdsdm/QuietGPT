@@ -124,7 +124,7 @@ final class ChatController {
 
     private func makeConversation(titled prompt: String, in context: ModelContext) -> Conversation {
         let title = prompt.split(whereSeparator: \.isNewline).first.map(String.init) ?? prompt
-        let conversation = Conversation(title: String(title.prefix(42)))
+        let conversation = Conversation(title: String(title.prefix(Conversation.titleLength)))
         context.insert(conversation)
         self.conversation = conversation
         return conversation

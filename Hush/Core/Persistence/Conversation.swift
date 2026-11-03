@@ -3,6 +3,8 @@ import SwiftData
 
 @Model
 final class Conversation {
+    static let titleLength = 42
+
     var id: UUID
     var title: String
     var createdAt: Date

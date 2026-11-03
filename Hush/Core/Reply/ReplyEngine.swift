@@ -22,6 +22,11 @@ final class ReplyEngine {
     Your chats still stay on this device.
     """
 
+    private static let recallTurns = 8
+    private static let retryTurns = 4
+    private static let recallCharacters = 600
+    private static let simulatedWordDelay = Duration.milliseconds(45)
+
     private var sessions: [UUID: LanguageModelSession] = [:]
 
     #if DEBUG
@@ -72,7 +77,7 @@ final class ReplyEngine {
                 } catch LanguageModelSession.GenerationError.exceededContextWindowSize {
                     self.sessions[conversationID] = nil
                     do {
-                        try await self.stream(prompt, conversationID: conversationID, history: Array(history.suffix(4)), into: continuation)
+                        try await self.stream(prompt, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), into: continuation)
                         continuation.finish()
                     } catch {
                         continuation.finish(throwing: error)
@@ -108,10 +113,10 @@ final class ReplyEngine {
     }
 
     private static func instructions(recalling history: [ChatTurn]) -> String {
-        let recent = history.suffix(8)
+        let recent = history.suffix(recallTurns)
         guard !recent.isEmpty else { return instructions }
         let recap = recent
-            .map { "\($0.role == .user ? "User" : "Hush"): \($0.text.prefix(600))" }
+            .map { "\($0.role == .user ? "User" : "Hush"): \($0.text.prefix(recallCharacters))" }
             .joined(separator: "\n")
         return instructions + "\n\nThe conversation so far:\n" + recap
     }
@@ -121,7 +126,7 @@ final class ReplyEngine {
             let task = Task {
                 var output = ""
                 for word in text.split(separator: " ", omittingEmptySubsequences: false) {
-                    try? await Task.sleep(for: .milliseconds(45))
+                    try? await Task.sleep(for: simulatedWordDelay)
                     if Task.isCancelled { break }
                     output += output.isEmpty ? String(word) : " " + word
                     continuation.yield(output)

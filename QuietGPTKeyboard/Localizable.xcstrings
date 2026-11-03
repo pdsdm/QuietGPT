@@ -1,6 +1,28 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld rules": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld reglas"
+          }
+        }
+      }
+    },
+    "1 rule": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 regla"
+          }
+        }
+      }
+    },
     "Ask": {
       "extractionState": "manual",
       "localizations": {

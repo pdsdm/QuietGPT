@@ -18,6 +18,8 @@ final class KeyboardModel {
     var layer = Layer.letters
     var shift = Shift.once
     var styles: [RewriteStyle] = []
+    var people: [RewriteStyle] = []
+    var ruleCount = 0
     var active: RewriteStyle.ID?
     var hint: String?
     var isWriting = false

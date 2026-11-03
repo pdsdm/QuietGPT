@@ -226,22 +226,6 @@ struct BarMark: View {
     }
 }
 
-struct Caret: View {
-    var color: Color
-    var height: CGFloat = 17
-
-    var body: some View {
-        Capsule()
-            .fill(color)
-            .frame(width: 2, height: height)
-            .phaseAnimator([1.0, 0.1]) { content, phase in
-                content.opacity(phase)
-            } animation: { _ in
-                .easeInOut(duration: 0.5)
-            }
-    }
-}
-
 struct BarPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

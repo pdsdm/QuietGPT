@@ -147,6 +147,8 @@ final class KeyboardViewController: UIInputViewController {
         options = StyleStore.options
         applyOptions()
         model.styles = StyleStore.enabledStyles
+        model.people = StyleStore.enabledPeople
+        model.ruleCount = min(StyleStore.rules.count, StyleStore.maxRules)
         model.showsAsk = options.showsAsk
     }
 

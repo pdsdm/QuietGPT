@@ -62,7 +62,7 @@ struct OnboardingScreen: View {
 
     private var intro: some View {
         VStack(spacing: 28) {
-            AppMark(size: 96, animated: true)
+            AsciiLock(side: 220)
                 .scaleEffect(appeared ? 1 : 0.7)
                 .opacity(appeared ? 1 : 0)
             Wordmark(size: 64)

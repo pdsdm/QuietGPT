@@ -7,20 +7,16 @@ struct LockScreen: View {
     @Environment(\.palette) private var palette
     @State private var failed = 0
     @State private var authenticating = false
+    @State private var lockState: LockState = .locked
 
     var body: some View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            LiquidField(mode: .ripple, mask: .none)
-                .ignoresSafeArea()
-
             VStack(spacing: 0) {
                 Spacer()
                 VStack(spacing: 22) {
-                    AsciiLock(side: 180, startsLocked: true)
-                        .opacity(authenticating ? 0.6 : 1)
-                        .animation(.easeInOut(duration: 0.4), value: authenticating)
+                    AsciiLock(side: 200, state: lockState)
                         .keyframeAnimator(initialValue: 0.0, trigger: failed) { content, offset in
                             content.offset(x: offset)
                         } keyframes: { _ in
@@ -71,12 +67,17 @@ struct LockScreen: View {
         }
 
         authenticating = true
+        lockState = .open
         Task {
             let success = (try? await context.evaluatePolicy(policy, localizedReason: "Unlock your chats")) ?? false
-            authenticating = false
             if success {
+                lockState = .playing
+                try? await Task.sleep(for: .seconds(LockEngine.closed + 0.35))
+                authenticating = false
                 onUnlock()
             } else {
+                authenticating = false
+                lockState = .locked
                 failed += 1
             }
         }

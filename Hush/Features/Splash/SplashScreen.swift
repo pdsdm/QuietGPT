@@ -12,7 +12,7 @@ struct SplashScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
             VStack(spacing: 24) {
-                AsciiLock()
+                AsciiLock(side: 340)
                 Wordmark(size: 30)
                     .opacity(showsName ? 1 : 0)
                     .offset(y: showsName ? 0 : 8)

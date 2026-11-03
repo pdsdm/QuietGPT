@@ -16,7 +16,7 @@ struct LockScreen: View {
             VStack(spacing: 0) {
                 Spacer()
                 VStack(spacing: 22) {
-                    AsciiLock(side: 200, state: lockState)
+                    AsciiLock(side: 320, state: lockState)
                         .keyframeAnimator(initialValue: 0.0, trigger: failed) { content, offset in
                             content.offset(x: offset)
                         } keyframes: { _ in

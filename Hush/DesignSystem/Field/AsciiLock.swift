@@ -28,8 +28,8 @@ struct AsciiLock: View {
                 let rows = Int(size.height / Self.lineHeight)
                 let elapsed = context.date.timeIntervalSince(start)
                 var pose = pose(at: elapsed)
-                pose.yaw += input.tilt.x * 0.7
-                pose.pitch += input.tilt.y * 0.5
+                pose.yaw += input.tilt.x * 0.6
+                pose.pitch = min(-0.04, pose.pitch + input.tilt.y * 0.3)
                 let lines = engine.lines(
                     columns: columns,
                     rows: rows,
@@ -60,7 +60,7 @@ struct AsciiLock: View {
             return LockEngine.pose(at: elapsed)
         case .open:
             var pose = LockEngine.pose(at: 0)
-            pose.yaw += 0.18 * sin(elapsed * 1.4)
+            pose.yaw += 0.12 * sin(elapsed * 1.4)
             pose.lift += 0.04 * sin(elapsed * 2.2)
             return pose
         case .locked:

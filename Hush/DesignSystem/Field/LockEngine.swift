@@ -29,9 +29,10 @@ final class LockEngine {
     private static let half = unit * 0.45
     private static let rounding = 0.03
     private static let pivotX = -2 * unit
-    private static let openLift = 0.45
-    private static let openSwing = 1.15
-    private static let extent = 1.75
+    private static let pivotY = 0.5 * unit
+    private static let openLift = 0.24
+    private static let openSwing = 0.24
+    private static let extent = 1.72
     private static let maxSteps = 48
     static let pace = 1.6
     static let settled = 1.7 * pace
@@ -69,10 +70,10 @@ final class LockEngine {
             let bounce = elapsed - 1.17
             lift = 0.05 * max(0, sin(bounce * 14)) * exp(-bounce * 9)
         }
-        let wobble = elapsed > 1.7 ? 0.12 * sin((elapsed - 1.7) * 2.2) : 0
+        let wobble = elapsed > 1.7 ? 0.1 * sin((elapsed - 1.7) * 2.2) : 0
         return Pose(
-            yaw: 0.95 * (1 - turn) + 0.32 * turn + wobble,
-            pitch: 0.38 * (1 - turn) + 0.16 * turn,
+            yaw: 0.35 * (1 - turn) + 0.18 * turn + wobble,
+            pitch: -0.22 * (1 - turn) - 0.14 * turn,
             swing: swing,
             lift: lift
         )
@@ -86,6 +87,7 @@ final class LockEngine {
         let cosYaw = cos(pose.yaw), sinYaw = sin(pose.yaw)
         let cosPitch = cos(pose.pitch), sinPitch = sin(pose.pitch)
         let cosSwing = cos(pose.swing), sinSwing = sin(pose.swing)
+        let centerY = -0.1 + pose.swing * 1.2
 
         func local(_ p: Vector) -> Vector {
             let y = p.y * cosPitch + p.z * sinPitch
@@ -95,7 +97,8 @@ final class LockEngine {
 
         func shackleSpace(_ p: Vector) -> Vector {
             let x = p.x - Self.pivotX
-            return Vector(x: x * cosSwing + p.z * sinSwing + Self.pivotX, y: p.y - pose.lift, z: -x * sinSwing + p.z * cosSwing)
+            let y = p.y - pose.lift - Self.pivotY
+            return Vector(x: x * cosSwing + y * sinSwing + Self.pivotX, y: -x * sinSwing + y * cosSwing + Self.pivotY, z: p.z)
         }
 
         func box(_ p: Vector, _ center: Vector) -> Double {
@@ -134,10 +137,11 @@ final class LockEngine {
         for row in 0..<rows {
             var line: [Character] = []
             line.reserveCapacity(columns)
-            let py = -(Double(row) - Double(rows) / 2 + 0.5) * aspect * scale
+            let py = -(Double(row) - Double(rows) / 2 + 0.5) * aspect * scale + centerY
             for column in 0..<columns {
                 let px = (Double(column) - Double(columns) / 2 + 0.5) * scale
-                guard px * px + py * py < Self.extent * Self.extent else {
+                let dy = py - centerY
+                guard px * px + dy * dy < Self.extent * Self.extent else {
                     line.append(" ")
                     continue
                 }

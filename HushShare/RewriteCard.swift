@@ -49,7 +49,7 @@ struct RewriteCard: View {
                     Circle().fill(Ink.local).frame(width: 5, height: 5)
                     Text("on this iPhone")
                 }
-                .font(.system(size: 12))
+                .font(BrandFont.font(size: 12))
                 .foregroundStyle(Ink.text2)
                 Spacer()
                 Button(action: onClose) {
@@ -67,7 +67,7 @@ struct RewriteCard: View {
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundStyle(Ink.text3)
                 Text(original.isEmpty ? " " : original)
-                    .font(.system(size: 15))
+                    .font(BrandFont.font(size: 15))
                     .foregroundStyle(Ink.text2)
                     .lineLimit(3)
             }
@@ -80,7 +80,7 @@ struct RewriteCard: View {
                             run()
                         } label: {
                             Text(option.title)
-                                .font(.system(size: 15))
+                                .font(BrandFont.font(size: 15))
                                 .padding(.horizontal, 14)
                                 .frame(height: 36)
                                 .foregroundStyle(option == tone ? Ink.background : Ink.text)
@@ -101,7 +101,7 @@ struct RewriteCard: View {
                     .foregroundStyle(Ink.text3)
                 ScrollView {
                     Text(failure ?? (result.isEmpty ? "writing…" : result))
-                        .font(.system(size: 18))
+                        .font(BrandFont.font(size: 18))
                         .foregroundStyle(failure == nil && !result.isEmpty ? Ink.text : Ink.text3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentTransition(.opacity)
@@ -118,7 +118,7 @@ struct RewriteCard: View {
 
             Button(action: copy) {
                 Text(copied ? "Copied · paste it in your chat" : "Copy")
-                    .font(.system(size: 17))
+                    .font(BrandFont.font(size: 17))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
                     .foregroundStyle(Ink.background)

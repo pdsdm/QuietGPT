@@ -36,7 +36,7 @@ struct HushPanel: View {
                     .tracking(-0.4)
                     .foregroundStyle(Color(style.text))
                 Text(status)
-                    .font(.system(size: 11))
+                    .font(BrandFont.font(size: 11))
                     .foregroundStyle(Color(style.secondary))
                     .lineLimit(1)
                     .contentTransition(.opacity)
@@ -96,7 +96,7 @@ struct HushPanel: View {
                     Caret(color: Color(style.accent), height: 15)
                 }
             }
-            .font(.system(size: 15, weight: .medium))
+            .font(BrandFont.font(size: 15, weight: .medium))
             .foregroundStyle(Color(style.text))
             .padding(.horizontal, 6)
             .frame(maxWidth: .infinity)
@@ -122,7 +122,7 @@ struct HushPanel: View {
                         actions.setLanguage(language)
                     } label: {
                         Text(code(language))
-                            .font(.system(size: 13, weight: .medium))
+                            .font(BrandFont.font(size: 13, weight: .medium))
                             .foregroundStyle(Color(selected ? style.text : style.secondary))
                             .frame(minWidth: 38)
                             .frame(height: 26)
@@ -162,7 +162,7 @@ struct HushPanel: View {
             action(!isOn)
         } label: {
             Text(title)
-                .font(.system(size: 13, weight: .medium))
+                .font(BrandFont.font(size: 13, weight: .medium))
                 .foregroundStyle(Color(isOn ? style.accent : style.secondary))
                 .padding(.horizontal, 12)
                 .frame(height: 30)
@@ -186,7 +186,7 @@ struct HushPanel: View {
                 Image(systemName: symbol)
                     .font(.system(size: 12, weight: .semibold))
                 Text(title)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(BrandFont.font(size: 14, weight: .medium))
             }
             .foregroundStyle(filled ? .white : Color(style.text))
             .padding(.horizontal, 12)

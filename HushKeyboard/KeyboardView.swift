@@ -43,7 +43,7 @@ struct HushBar: View {
                             .transition(.opacity.combined(with: .offset(y: 6)))
                     } else if let hint = model.hint {
                         Text(hint)
-                            .font(.system(size: 15))
+                            .font(BrandFont.font(size: 15))
                             .foregroundStyle(Color(style.secondary))
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
@@ -119,7 +119,7 @@ struct HushBar: View {
                     Text(KeyboardText.string("Ask"))
                 }
             }
-            .font(.system(size: 16))
+            .font(BrandFont.font(size: 16))
             .lineLimit(1)
             .minimumScaleFactor(0.75)
             .foregroundStyle(Color(style.text))
@@ -190,7 +190,7 @@ struct HushBar: View {
                     Caret(color: Color(style.accent))
                 }
             }
-            .font(.system(size: 16))
+            .font(BrandFont.font(size: 16))
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -198,7 +198,7 @@ struct HushBar: View {
                 actions.submitAsk()
             } label: {
                 Text(model.goTitle)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(BrandFont.font(size: 15, weight: .medium))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 14)
                     .frame(height: 30)

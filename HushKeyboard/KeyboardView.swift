@@ -3,6 +3,7 @@ import UIKit
 
 struct HushBar: View {
     static let height: CGFloat = 43.33
+    static let markWidth: CGFloat = 40
 
     private enum Item: Identifiable, Equatable {
         case undo
@@ -31,24 +32,28 @@ struct HushBar: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let slot = geometry.size.width / 3
-            ZStack {
-                if model.isAsking {
-                    askRow
-                        .transition(.opacity.combined(with: .offset(y: 6)))
-                } else if let hint = model.hint {
-                    Text(hint)
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color(style.secondary))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .padding(.horizontal, 16)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.opacity.combined(with: .offset(y: 6)))
-                        .id(hint)
-                } else {
-                    suggestions(slot: slot)
-                        .transition(.opacity.combined(with: .offset(y: -6)))
+            let slot = (geometry.size.width - Self.markWidth) / 3
+            HStack(spacing: 0) {
+                BarMark(style: style)
+                    .frame(width: Self.markWidth)
+                ZStack {
+                    if model.isAsking {
+                        askRow
+                            .transition(.opacity.combined(with: .offset(y: 6)))
+                    } else if let hint = model.hint {
+                        Text(hint)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color(style.secondary))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.opacity.combined(with: .offset(y: 6)))
+                            .id(hint)
+                    } else {
+                        suggestions(slot: slot)
+                            .transition(.opacity.combined(with: .offset(y: -6)))
+                    }
                 }
             }
             .padding(.top, 5)
@@ -204,6 +209,25 @@ struct HushBar: View {
         }
         .padding(.horizontal, 8)
         .frame(maxHeight: .infinity)
+    }
+}
+
+private struct BarMark: View {
+    let style: KeyStyle
+    var size: CGFloat = 30
+
+    var body: some View {
+        let unit = size / 100
+        ZStack {
+            LipLine()
+                .stroke(Color(style.accent), style: StrokeStyle(lineWidth: 6 * unit, lineCap: .round))
+            Capsule()
+                .fill(Color(style.text))
+                .frame(width: 7.5 * unit, height: 52 * unit)
+                .position(x: 50 * unit, y: 48 * unit)
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
     }
 }
 

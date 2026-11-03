@@ -20,7 +20,7 @@ final class ChatController {
     private(set) var lastMetrics: ReplyMetrics?
     var draft = ""
 
-    private static let logger = Logger(subsystem: "com.pdsdm.hush", category: "chat")
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "hush", category: "chat")
 
     private let engine: ReplyEngine
     private var context: ModelContext?

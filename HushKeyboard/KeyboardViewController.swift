@@ -7,7 +7,7 @@ final class KeyboardInputView: UIInputView, UIInputViewAudioFeedback {
 }
 
 final class KeyboardViewController: UIInputViewController {
-    private static let logger = Logger(subsystem: "com.pdsdm.hush", category: "keyboard")
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "hush", category: "keyboard")
 
     private let model = KeyboardModel()
     private let rewriter = Rewriter()

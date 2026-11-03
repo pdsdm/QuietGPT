@@ -24,6 +24,7 @@ private struct ThemedContent: View {
         AppFlow()
             .environment(\.palette, palette)
             .tint(palette.accent)
+            .font(HushFont.body)
             .animation(Motion.gentle, value: colorScheme)
     }
 }

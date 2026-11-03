@@ -225,7 +225,7 @@ private struct BarPreview: View {
             HStack(spacing: 0) {
                 ForEach(Array(titles.enumerated()), id: \.element) { index, title in
                     Text(title)
-                        .font(.system(size: 16))
+                        .font(BrandFont.font(size: 16))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                         .foregroundStyle(Color(style.text))
@@ -241,7 +241,7 @@ private struct BarPreview: View {
                 }
                 if titles.isEmpty {
                     Text("No styles on")
-                        .font(.system(size: 15))
+                        .font(BrandFont.font(size: 15))
                         .foregroundStyle(Color(style.secondary))
                         .frame(maxWidth: .infinity)
                 }

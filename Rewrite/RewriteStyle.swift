@@ -70,7 +70,7 @@ struct KeyboardOptions: Codable, Equatable {
 }
 
 enum StyleStore {
-    static let group = Bundle.main.object(forInfoDictionaryKey: "HushAppGroup") as? String
+    static let group = Bundle.main.object(forInfoDictionaryKey: "QuietGPTAppGroup") as? String
 
     static let defaultInstructions = """
     You rewrite a short message that the user is about to send to another person. \

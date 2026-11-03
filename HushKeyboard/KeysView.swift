@@ -41,51 +41,47 @@ final class KeyCap: UIView {
 }
 
 final class Balloon: UIView {
-    static let rise: CGFloat = 69
-    static let bodyHeight: CGFloat = 57
-    static let spread: CGFloat = 11.7
+    static let height: CGFloat = 65
+    static let spread: CGFloat = 12
+    static let gap: CGFloat = 4
     static let minimumTime: CFTimeInterval = 0.1
 
-    private let shape = CAShapeLayer()
     private let label = UILabel()
     private var shownAt: CFTimeInterval = 0
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false
-        layer.addSublayer(shape)
-        shape.shadowColor = UIColor.black.cgColor
-        shape.shadowOpacity = 0.14
-        shape.shadowRadius = 1.5
-        shape.shadowOffset = CGSize(width: 0, height: 1)
+        layer.cornerRadius = 13
+        layer.cornerCurve = .continuous
+        layer.borderWidth = 0.5
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.14
+        layer.shadowRadius = 3
+        layer.shadowOffset = CGSize(width: 0, height: 1)
         label.textAlignment = .center
         addSubview(label)
     }
 
     required init?(coder: NSCoder) { nil }
 
-    func show(_ spec: KeySpec, limit: CGFloat, style: KeyStyle) {
+    func show(_ spec: KeySpec, limit: CGFloat, width: CGFloat, style: KeyStyle) {
         shownAt = CACurrentMediaTime()
         let face = spec.face
-        let wide = Self.spread * 2
-        let left = spec.edge == .leading ? 0 : spec.edge == .trailing ? wide : Self.spread
-        let rise = min(Self.rise, face.minY - limit)
-        let lost = Self.rise - rise
-        let body = max(Self.bodyHeight - lost, 36)
-        frame = CGRect(x: face.minX - left, y: face.minY - rise, width: face.width + wide, height: face.height + rise)
-        let path = Self.path(in: bounds, left: left, right: wide - left, keyHeight: face.height, bodyHeight: body)
-        shape.path = path.cgPath
-        shape.shadowPath = path.cgPath
-        shape.fillColor = style.popup.cgColor
+        let height = min(Self.height, face.minY - Self.gap - limit)
+        let wide = face.width + Self.spread * 2
+        let x = min(max(face.midX - wide / 2, KeyLayout.margin), width - KeyLayout.margin - wide)
+        frame = CGRect(x: x, y: face.minY - Self.gap - height, width: wide, height: height)
+        backgroundColor = style.popup
+        layer.borderColor = style.outline.cgColor
 
         let text = spec.title ?? ""
         let lower = text.lowercased() == text && text.uppercased() != text
         label.text = text
-        label.font = .systemFont(ofSize: (lower ? 24 : 22) * 1.68)
+        label.font = .systemFont(ofSize: max((lower ? 34 : 31) * height / Self.height, 28))
         label.textColor = style.text
         label.sizeToFit()
-        let center = (72 - lost) / 2 + (lower ? -2 : -1.2) * 1.68
-        label.center = CGPoint(x: bounds.midX, y: max(center, label.bounds.height / 2 - 4))
+        label.center = CGPoint(x: bounds.midX, y: bounds.midY + (lower ? -2 : -1))
     }
 
     func dismiss() {
@@ -97,34 +93,6 @@ final class Balloon: UIView {
         DispatchQueue.main.asyncAfter(deadline: .now() + remaining) { [weak self] in
             self?.removeFromSuperview()
         }
-    }
-
-    static func path(in rect: CGRect, left: CGFloat, right: CGFloat, keyHeight: CGFloat, bodyHeight: CGFloat) -> UIBezierPath {
-        let small = KeyStyle.radius
-        let large: CGFloat = 11
-        let x0 = rect.minX + left
-        let x1 = rect.maxX - right
-        let bottom = rect.maxY
-        let neck = bottom - keyHeight + 6
-        let wide = rect.minY + bodyHeight
-        let middle = (neck + wide) / 2
-
-        let path = UIBezierPath()
-        path.move(to: CGPoint(x: x0 + small, y: bottom))
-        path.addLine(to: CGPoint(x: x1 - small, y: bottom))
-        path.addQuadCurve(to: CGPoint(x: x1, y: bottom - small), controlPoint: CGPoint(x: x1, y: bottom))
-        path.addLine(to: CGPoint(x: x1, y: neck))
-        path.addCurve(to: CGPoint(x: rect.maxX, y: wide), controlPoint1: CGPoint(x: x1, y: middle), controlPoint2: CGPoint(x: rect.maxX, y: middle))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + large))
-        path.addQuadCurve(to: CGPoint(x: rect.maxX - large, y: rect.minY), controlPoint: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.minX + large, y: rect.minY))
-        path.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.minY + large), controlPoint: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.minX, y: wide))
-        path.addCurve(to: CGPoint(x: x0, y: neck), controlPoint1: CGPoint(x: rect.minX, y: middle), controlPoint2: CGPoint(x: x0, y: middle))
-        path.addLine(to: CGPoint(x: x0, y: bottom - small))
-        path.addQuadCurve(to: CGPoint(x: x0 + small, y: bottom), controlPoint: CGPoint(x: x0, y: bottom))
-        path.close()
-        return path
     }
 }
 
@@ -354,7 +322,7 @@ final class KeysView: UIView {
         guard let spec = spec(id), let cap = caps[id] else { return }
         let style = style
         if spec.character != nil {
-            cap.label.alpha = on || isTracking ? 0 : 1
+            cap.backgroundColor = on && !isTracking ? style.lit : style.key
             return
         }
         if spec.kind == .space {
@@ -532,7 +500,7 @@ final class KeysView: UIView {
     private func showBalloon(_ press: Press, _ spec: KeySpec) {
         guard !isTracking else { return }
         let balloon = Balloon()
-        balloon.show(spec, limit: topLimit, style: style)
+        balloon.show(spec, limit: topLimit, width: bounds.width, style: style)
         addSubview(balloon)
         press.balloon = balloon
         highlight(spec.id, true)

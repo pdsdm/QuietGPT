@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum FieldMode: Equatable {
     case drift
@@ -21,22 +22,36 @@ struct LiquidField: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let input = FieldInput.shared
+    private let lamp = LavaLamp.shared
 
     var body: some View {
         GeometryReader { geometry in
             let frame = geometry.frame(in: .global)
+            let screen = screenSize(fallback: frame.size)
+            let scale = max(1, min(screen.width, screen.height))
             TimelineView(.animation(minimumInterval: frameInterval, paused: reduceMotion)) { context in
                 let time = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)
                 let touch = input.touch(at: context.date)
+                let _ = lamp.step(
+                    to: context.date,
+                    extent: SIMD2(screen.width / scale, screen.height / scale),
+                    gravity: input.gravity,
+                    touch: SIMD3(touch.point.x / scale, touch.point.y / scale, touch.strength),
+                    energy: energy
+                )
+                let pool = lamp.pool
+                let finger = lamp.finger
                 Rectangle()
-                    .colorEffect(ShaderLibrary.liquidGlass(
-                        .float2(Float(frame.width), Float(frame.height)),
+                    .colorEffect(ShaderLibrary.lavaLamp(
+                        .float2(Float(frame.minX), Float(frame.minY)),
+                        .float(Float(scale)),
                         .float(Float(time)),
-                        .float2(Float(input.tilt.x), Float(input.tilt.y)),
-                        .float3(Float(touch.point.x - frame.minX), Float(touch.point.y - frame.minY), Float(touch.strength)),
+                        .floatArray(lamp.packed),
+                        .float4(pool.x, pool.y, pool.z, pool.w),
+                        .float3(finger.x, finger.y, finger.z),
                         .float(colorScheme == .dark ? 1 : 0),
-                        .float(mode == .think ? 2.6 : 1),
-                        .float(mode == .ripple ? 1 : 0)
+                        .image(AsciiGlyphs.atlas),
+                        .float(Float(AsciiGlyphs.ramp.count))
                     ))
             }
         }
@@ -45,6 +60,19 @@ struct LiquidField: View {
         .accessibilityHidden(true)
         .onAppear { input.start() }
         .onDisappear { input.stop() }
+    }
+
+    private func screenSize(fallback: CGSize) -> CGSize {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        return scene?.screen.bounds.size ?? fallback
+    }
+
+    private var energy: Double {
+        switch mode {
+        case .drift: 1
+        case .ripple: 1.4
+        case .think: 2.6
+        }
     }
 
     private var frameInterval: TimeInterval {
@@ -57,11 +85,11 @@ struct LiquidField: View {
         case .none:
             Rectangle()
         case .fadeDown:
-            LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.35), .init(color: .clear, location: 0.95)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.35), .init(color: .black.opacity(0.35), location: 0.95)], startPoint: .top, endPoint: .bottom)
         case .fadeUp:
-            LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.3), .init(color: .clear, location: 0.9)], startPoint: .bottom, endPoint: .top)
+            LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.3), .init(color: .black.opacity(0.35), location: 0.9)], startPoint: .bottom, endPoint: .top)
         case .vignette:
-            EllipticalGradient(stops: [.init(color: .black, location: 0.3), .init(color: .clear, location: 0.8)])
+            EllipticalGradient(stops: [.init(color: .black, location: 0.3), .init(color: .black.opacity(0.4), location: 0.85)])
         }
     }
 }

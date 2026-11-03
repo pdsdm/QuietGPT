@@ -7,6 +7,7 @@ final class FieldInput {
     static let shared = FieldInput()
 
     private(set) var tilt: CGPoint = .zero
+    @ObservationIgnored private(set) var gravity = CGPoint(x: 0, y: 0.8)
     private var touchPoint: CGPoint = .zero
     private var touchDown: Date?
     private var touchUp: Date?
@@ -62,6 +63,7 @@ final class FieldInput {
     }
 
     private func update(gravity: CGPoint) {
+        self.gravity = CGPoint(x: self.gravity.x + (gravity.x - self.gravity.x) * 0.3, y: self.gravity.y + (-gravity.y - self.gravity.y) * 0.3)
         let base = rest ?? gravity
         let settled = CGPoint(x: base.x + (gravity.x - base.x) * 0.0015, y: base.y + (gravity.y - base.y) * 0.0015)
         rest = settled

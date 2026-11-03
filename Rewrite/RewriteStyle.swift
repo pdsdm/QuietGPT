@@ -31,7 +31,7 @@ struct KeyboardOptions: Codable, Equatable {
 }
 
 enum StyleStore {
-    static let group = "group.com.pdsdm.hush"
+    static let group = Bundle.main.object(forInfoDictionaryKey: "HushAppGroup") as? String
 
     static let defaultInstructions = """
     You rewrite a short message that the user is about to send to another person. \
@@ -45,7 +45,7 @@ enum StyleStore {
     private static let optionsKey = "keyboardOptions"
 
     static var shared: UserDefaults {
-        UserDefaults(suiteName: group) ?? .standard
+        group.flatMap { UserDefaults(suiteName: $0) } ?? .standard
     }
 
     static var styles: [RewriteStyle] {

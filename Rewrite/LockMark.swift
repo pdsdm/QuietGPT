@@ -3,7 +3,7 @@ import SwiftUI
 struct LockMark: Shape {
     static let pattern = [".XXX.", "X...X", "XXXXX", "XX.XX", "XXXXX"]
     static let size = pattern.count
-    static let gap: CGFloat = 0.1
+    static let gap: CGFloat = 0
     static let cells: [(column: Int, row: Int)] = pattern.enumerated().flatMap { row, line in
         line.enumerated().compactMap { column, character in
             character == "X" ? (column: column, row: row) : nil

@@ -27,7 +27,7 @@ final class LockEngine {
     }
 
     private static let unit = 0.4
-    private static let half = unit * 0.45
+    private static let half = unit * 0.5
     private static let rounding = 0.03
     private static let pivotX = -2 * unit
     private static let pivotY = 0.5 * unit
@@ -39,7 +39,7 @@ final class LockEngine {
     static let settled = 1.7 * pace
     static let closed = 1.25 * pace
     private static let ramp = AsciiGlyphs.ramp
-    private static let reachCap = 1.5 * unit - half
+    private static let reachCap = 1.5 * unit - half - rounding
     private static let light: Vector = {
         let v = Vector(x: -0.45, y: 0.6, z: -0.66)
         return v * (1 / v.length)
@@ -55,8 +55,8 @@ final class LockEngine {
         for cell in cells { occupied[cell.row * LockMark.size + cell.column] = true }
         return Group(
             occupied: occupied,
-            low: Vector(x: xs.min()! - half, y: ys.min()! - half, z: -half),
-            high: Vector(x: xs.max()! + half, y: ys.max()! + half, z: half)
+            low: Vector(x: xs.min()! - half - rounding, y: ys.min()! - half - rounding, z: -half - rounding),
+            high: Vector(x: xs.max()! + half + rounding, y: ys.max()! + half + rounding, z: half + rounding)
         )
     }
 
@@ -106,7 +106,7 @@ final class LockEngine {
         }
 
         func box(_ p: Vector, _ cx: Double, _ cy: Double) -> Double {
-            let inner = Self.half - Self.rounding
+            let inner = Self.half
             let qx = abs(p.x - cx) - inner
             let qy = abs(p.y - cy) - inner
             let qz = abs(p.z) - inner

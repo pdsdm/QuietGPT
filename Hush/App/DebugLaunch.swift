@@ -16,27 +16,31 @@ enum DebugLaunch {
     ```
     """
 
+    private enum Key: String {
+        case monitor = "HushMonitor"
+        case focus = "HushFocus"
+        case tab = "HushTab"
+        case simulate = "HushSimulate"
+        case prompt = "HushPrompt"
+    }
+
     static var opensMonitor: Bool {
-        UserDefaults.standard.bool(forKey: "HushMonitor")
+        UserDefaults.standard.bool(forKey: Key.monitor.rawValue)
     }
 
     static var focusesComposer: Bool {
-        UserDefaults.standard.bool(forKey: "HushFocus")
+        UserDefaults.standard.bool(forKey: Key.focus.rawValue)
     }
 
     static func apply(controller: ChatController, tab: inout AppTab) {
         let defaults = UserDefaults.standard
-        switch defaults.string(forKey: "HushTab") {
-        case "chats": tab = .chats
-        case "keyboard": tab = .keyboard
-        case "voice": tab = .voice
-        case "privacy": tab = .privacy
-        default: break
+        if let name = defaults.string(forKey: Key.tab.rawValue), let launchTab = AppTab(rawValue: name) {
+            tab = launchTab
         }
-        if defaults.bool(forKey: "HushSimulate") {
+        if defaults.bool(forKey: Key.simulate.rawValue) {
             controller.simulateReplies(with: sampleReply)
         }
-        if let prompt = defaults.string(forKey: "HushPrompt"), !prompt.isEmpty {
+        if let prompt = defaults.string(forKey: Key.prompt.rawValue), !prompt.isEmpty {
             controller.send(prompt)
         }
     }

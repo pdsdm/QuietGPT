@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-enum AppTab: Hashable {
+enum AppTab: String, Hashable {
     case chat
     case chats
     case keyboard

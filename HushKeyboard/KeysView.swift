@@ -1,3 +1,4 @@
+import OSLog
 import UIKit
 
 final class KeyCap: UIView {
@@ -43,9 +44,11 @@ final class Balloon: UIView {
     static let rise: CGFloat = 69
     static let bodyHeight: CGFloat = 57
     static let spread: CGFloat = 11.7
+    static let minimumTime: CFTimeInterval = 0.1
 
     private let shape = CAShapeLayer()
     private let label = UILabel()
+    private var shownAt: CFTimeInterval = 0
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -62,6 +65,7 @@ final class Balloon: UIView {
     required init?(coder: NSCoder) { nil }
 
     func show(_ spec: KeySpec, limit: CGFloat, style: KeyStyle) {
+        shownAt = CACurrentMediaTime()
         let face = spec.face
         let wide = Self.spread * 2
         let left = spec.edge == .leading ? 0 : spec.edge == .trailing ? wide : Self.spread
@@ -82,6 +86,17 @@ final class Balloon: UIView {
         label.sizeToFit()
         let center = (72 - lost) / 2 + (lower ? -2 : -1.2) * 1.68
         label.center = CGPoint(x: bounds.midX, y: max(center, label.bounds.height / 2 - 4))
+    }
+
+    func dismiss() {
+        let remaining = Self.minimumTime - (CACurrentMediaTime() - shownAt)
+        guard remaining > 0 else {
+            removeFromSuperview()
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + remaining) { [weak self] in
+            self?.removeFromSuperview()
+        }
     }
 
     static func path(in rect: CGRect, left: CGFloat, right: CGFloat, keyHeight: CGFloat, bodyHeight: CGFloat) -> UIBezierPath {
@@ -193,6 +208,8 @@ final class VariantsPanel: UIView {
 }
 
 final class KeysView: UIView {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "hush", category: "keys")
+
     private final class Press {
         var id: String
         let origin: KeyKind
@@ -422,8 +439,12 @@ final class KeysView: UIView {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             guard let press = presses.removeValue(forKey: touch) else { continue }
-            press.committed = true
-            finish(press, cancelled: true)
+            Self.logger.notice("Touch cancelled on \(press.id, privacy: .public)")
+            let keepsKey = press.panel == nil && !press.tracking && spec(press.id)?.character != nil
+            if !keepsKey {
+                press.committed = true
+            }
+            finish(press, cancelled: !keepsKey)
         }
     }
 
@@ -455,7 +476,7 @@ final class KeysView: UIView {
 
     private func finish(_ press: Press, cancelled: Bool = false) {
         press.hold?.invalidate()
-        press.balloon?.removeFromSuperview()
+        press.balloon?.dismiss()
         highlight(press.id, false)
         if press.origin == .delete {
             stopDelete()
@@ -498,7 +519,7 @@ final class KeysView: UIView {
             guard let value = spec(press.id)?.character else { continue }
             press.hold?.invalidate()
             press.committed = true
-            press.balloon?.removeFromSuperview()
+            press.balloon?.dismiss()
             press.balloon = nil
             highlight(press.id, false)
             actions.insert(value)

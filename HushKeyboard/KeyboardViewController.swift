@@ -82,6 +82,7 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidAppear(animated)
         for recognizer in view.window?.gestureRecognizers ?? [] {
             recognizer.delaysTouchesBegan = false
+            recognizer.delaysTouchesEnded = false
         }
     }
 

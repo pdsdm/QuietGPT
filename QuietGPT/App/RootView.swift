@@ -43,11 +43,43 @@ private struct AppFlow: View {
     @State private var locked = true
     @State private var loading = true
     @State private var authenticating = false
+    @State private var openedPack: OpenedPack?
+    @State private var packFailure: String?
+    @State private var packRevision = 0
+
+    private var canShowPack: Bool {
+        onboarded && !loading && !(lockEnabled && locked)
+    }
+
+    private var visiblePack: Binding<OpenedPack?> {
+        Binding(
+            get: { canShowPack ? openedPack : nil },
+            set: { openedPack = $0 }
+        )
+    }
+
+    private var visibleFailure: Binding<Bool> {
+        Binding(
+            get: { canShowPack && packFailure != nil },
+            set: { if !$0 { packFailure = nil } }
+        )
+    }
+
+    private func open(_ url: URL) {
+        guard url.isFileURL else { return }
+        do {
+            openedPack = OpenedPack(pack: try StylePack.read(from: url))
+            packFailure = nil
+        } catch {
+            openedPack = nil
+            packFailure = StylePack.message(for: error)
+        }
+    }
 
     var body: some View {
         ZStack {
             if onboarded {
-                MainTabs(controller: controller, tab: $tab)
+                MainTabs(controller: controller, tab: $tab, packRevision: packRevision)
                     .transition(AnyTransition.opacity.combined(with: .scale(scale: 1.04)))
             } else {
                 OnboardingScreen { useLock in
@@ -81,6 +113,18 @@ private struct AppFlow: View {
         .animation(Motion.gentle, value: onboarded)
         .animation(Motion.gentle, value: locked)
         .animation(.easeInOut(duration: 0.2), value: scenePhase)
+        .onOpenURL(perform: open)
+        .sheet(item: visiblePack) { opened in
+            PackImportScreen(pack: opened.pack) {
+                packRevision += 1
+                tab = .keyboard
+            }
+        }
+        .alert("Style pack", isPresented: visibleFailure) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(packFailure ?? "")
+        }
         .onAppear {
             controller.attach(modelContext)
             #if DEBUG
@@ -100,9 +144,15 @@ private struct AppFlow: View {
     }
 }
 
+private struct OpenedPack: Identifiable {
+    let id = UUID()
+    let pack: StylePack
+}
+
 private struct MainTabs: View {
     var controller: ChatController
     @Binding var tab: AppTab
+    var packRevision: Int
 
     @Environment(\.palette) private var palette
 
@@ -128,6 +178,7 @@ private struct MainTabs: View {
             }
             Tab("Keyboard", systemImage: "keyboard", value: AppTab.keyboard) {
                 KeyboardScreen()
+                    .id(packRevision)
             }
             Tab("Voice", systemImage: "waveform", value: AppTab.voice) {
                 VoiceScreen()

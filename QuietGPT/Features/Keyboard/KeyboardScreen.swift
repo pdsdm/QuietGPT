@@ -12,6 +12,7 @@ struct KeyboardScreen: View {
     @State private var editingPerson: RewriteStyle?
     @State private var editingRule: RuleEdit?
     @State private var editsInstructions = false
+    @State private var sharesPack = false
     @State private var confirmingReset = false
     @State private var editMode = EditMode.inactive
 
@@ -94,6 +95,23 @@ struct KeyboardScreen: View {
                     }
                 } footer: {
                     Text("Turn styles on or off, drag to change the order, or swipe to delete.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
+
+                Section {
+                    Button {
+                        sharesPack = true
+                    } label: {
+                        Label("Share styles", systemImage: "square.and.arrow.up")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.accent)
+                    }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("Share")
+                } footer: {
+                    Text("Send your rules and styles as a file. To add a pack from another person, open the file on this iPhone.")
                         .font(QuietGPTFont.footnote)
                         .foregroundStyle(palette.text2)
                 }
@@ -205,6 +223,9 @@ struct KeyboardScreen: View {
             } onDelete: {
                 styles.removeAll { $0.id == style.id }
             }
+        }
+        .sheet(isPresented: $sharesPack) {
+            PackExportScreen(styles: styles, rules: rules)
         }
         .sheet(isPresented: $editsInstructions) {
             InstructionsEditor(text: instructions) { instructions = $0 }

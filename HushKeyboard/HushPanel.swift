@@ -18,8 +18,8 @@ struct HushPanel: View {
             settings
         }
         .padding(.horizontal, 8)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(.snappy(duration: 0.25), value: model.isWriting)
         .animation(.snappy(duration: 0.25), value: model.canUndo)
@@ -49,7 +49,8 @@ struct HushPanel: View {
             }
             pill("ABC", symbol: "keyboard", action: actions.close)
         }
-        .frame(height: 32)
+        .frame(minHeight: 36)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var status: String {
@@ -71,9 +72,10 @@ struct HushPanel: View {
                 }
             }
         }
+        .contentMargins(.vertical, 2, for: .scrollContent)
         .scrollIndicators(.hidden)
         .scrollBounceBehavior(.basedOnSize)
-        .frame(maxHeight: 44 * 2 + 6)
+        .frame(maxHeight: 44 * 2 + 6 + 4)
     }
 
     private func tile(_ title: String, symbol: String? = nil, active: Bool, action: @escaping () -> Void) -> some View {

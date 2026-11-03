@@ -61,6 +61,7 @@ final class KeyboardViewController: UIInputViewController {
         let panel = UIHostingController(rootView: HushPanel(model: model, actions: barActions))
         panel.view.backgroundColor = .clear
         panel.sizingOptions = []
+        panel.safeAreaRegions = []
         panel.view.isHidden = true
         addChild(panel)
         view.addSubview(panel.view)

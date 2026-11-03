@@ -1,0 +1,5 @@
+DEVELOPMENT_TEAM = UM23X2KY3U
+HUSH_BUNDLE_PREFIX = com.pdsdm.hush
+MARKETING_VERSION = 0.1
+
+#include? "Local.xcconfig"

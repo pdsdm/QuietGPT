@@ -51,6 +51,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA0000000000000000000060 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Base.xcconfig; path = Config/Base.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000001 /* Hush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000021 /* HushTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000041 /* HushShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HushShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +126,7 @@
 				AA0000000000000000000042 /* HushShare */,
 				AA0000000000000000000052 /* HushKeyboard */,
 				AA0000000000000000000043 /* Rewrite */,
+				AA0000000000000000000060 /* Base.xcconfig */,
 				AA0000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -368,6 +370,7 @@
 /* Begin XCBuildConfiguration section */
 		AA0000000000000000000012 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000060 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -401,6 +404,7 @@
 		};
 		AA0000000000000000000013 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000060 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -433,7 +437,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/Hush.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = hush;
@@ -448,8 +451,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -469,7 +471,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/Hush.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = hush;
@@ -484,8 +485,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -504,8 +504,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -523,8 +522,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -541,7 +539,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
@@ -550,8 +547,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.share;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).share";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -570,7 +566,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HushShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/HushShare-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
@@ -579,8 +574,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.share;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).share";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -599,7 +593,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
@@ -608,8 +601,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.keyboard;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -628,7 +620,6 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HushKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UM23X2KY3U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/HushKeyboard-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Hush;
@@ -637,8 +628,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pdsdm.hush.keyboard;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(HUSH_BUNDLE_PREFIX).keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

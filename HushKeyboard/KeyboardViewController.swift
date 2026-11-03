@@ -57,7 +57,7 @@ final class KeyboardViewController: UIInputViewController {
         view.addSubview(keys)
 
         let height = view.heightAnchor.constraint(equalToConstant: HushBar.height + KeyLayout.height + KeyLayout.bottomPadding)
-        height.priority = .defaultHigh + 1
+        height.priority = .required - 1
         height.isActive = true
 
         loadSettings()

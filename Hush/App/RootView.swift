@@ -132,7 +132,7 @@ private struct MainTabs: View {
             Tab("Voice", systemImage: "waveform", value: AppTab.voice) {
                 VoiceScreen()
             }
-            Tab("Privacy", systemImage: "lock.shield", value: AppTab.privacy) {
+            Tab("Privacy", systemImage: "hand.raised", value: AppTab.privacy) {
                 PrivacyScreen(controller: controller)
             }
         }

@@ -63,9 +63,9 @@ final class FieldInput {
 
     private func update(gravity: CGPoint) {
         let base = rest ?? gravity
-        let settled = CGPoint(x: base.x + (gravity.x - base.x) * 0.004, y: base.y + (gravity.y - base.y) * 0.004)
+        let settled = CGPoint(x: base.x + (gravity.x - base.x) * 0.0015, y: base.y + (gravity.y - base.y) * 0.0015)
         rest = settled
-        let target = CGPoint(x: clamp((gravity.x - settled.x) * 2), y: clamp((settled.y - gravity.y) * 2))
+        let target = CGPoint(x: clamp((gravity.x - settled.x) * 2.5), y: clamp((settled.y - gravity.y) * 2.5))
         tilt = CGPoint(x: tilt.x + (target.x - tilt.x) * 0.25, y: tilt.y + (target.y - tilt.y) * 0.25)
     }
 

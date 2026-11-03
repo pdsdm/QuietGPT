@@ -28,22 +28,13 @@ static void addDrop(float2 p, float2 center, float radius, thread float &field, 
     gradient += -6.0 * k * k * d / (reach * reach);
 }
 
-static float shade(float2 p, float2 center, float radius) {
-    float reach = radius * 1.75;
-    float2 d = p - center;
-    float k = max(0.0, 1.0 - dot(d, d) / (reach * reach));
-    return k * k * k;
-}
-
 static float scene(float2 point, float2 cell, float2 size, float time, float2 tilt, float3 touch, float energy, float gather) {
     float scale = min(size.x, size.y);
     float2 p = (point - size * 0.5) / scale;
     float tall = size.y / scale;
 
     float field = 0.0;
-    float shadow = 0.0;
     float2 gradient = float2(0.0);
-    float2 offset = float2(0.02, 0.035) - tilt * 0.03;
 
     for (int i = 0; i < 6; i++) {
         float fi = float(i);
@@ -54,34 +45,31 @@ static float scene(float2 point, float2 cell, float2 size, float time, float2 ti
             0.44 * tall * sin(t * (0.07 + 0.02 * fi) + fi * 1.3)
         );
         center *= mix(1.0, 0.3, gather);
-        center += tilt * 0.16 * depth;
+        center += tilt * (0.12 + 0.3 * depth);
         float radius = (0.1 + 0.045 * sin(fi * 3.7 + t * 0.23)) * (0.85 + 0.3 * depth);
         radius *= 1.0 + 0.12 * gather * sin(time * 1.6 + fi * 1.1);
         addDrop(p, center, radius, field, gradient);
-        shadow += shade(p - offset, center, radius);
     }
 
     if (touch.z > 0.001) {
         float2 center = (touch.xy - size * 0.5) / scale;
         addDrop(p, center, 0.13 * touch.z, field, gradient);
-        shadow += shade(p - offset, center, 0.13 * touch.z);
     }
 
     if (field < threshold) {
-        float2 shifted = cell + floor(tilt * float2(5.0, 3.0));
+        float2 shifted = cell + floor(tilt * float2(9.0, 6.0));
         bool grid = fmod(abs(shifted.x), 3.0) < 0.5 && fmod(abs(shifted.y), 2.0) < 0.5;
-        float halo = smoothstep(threshold * 0.35, threshold, shadow) * 0.3;
-        return max(grid ? 0.12 : 0.0, halo);
+        return grid ? 0.12 : 0.0;
     }
 
     float lift = sqrt(field - threshold + 0.012);
     float3 normal = normalize(float3(-gradient * 0.045 / lift, 1.0));
-    float3 light = normalize(float3(-0.5 + tilt.x * 0.9, -0.7 + tilt.y * 0.9, 0.8));
+    float3 light = normalize(float3(-0.5 + tilt.x * 1.4, -0.7 + tilt.y * 1.4, 0.8));
     float3 halfway = normalize(light + float3(0.0, 0.0, 1.0));
     float diffuse = max(dot(normal, light), 0.0);
     float spec = pow(max(dot(normal, halfway), 0.0), 40.0);
     float fresnel = pow(1.0 - normal.z, 2.0);
-    return clamp(0.12 + 0.5 * diffuse + 0.3 * fresnel + 0.7 * spec, 0.0, 1.0);
+    return clamp(0.2 + 0.45 * diffuse + 0.3 * fresnel + 0.7 * spec, 0.0, 1.0);
 }
 
 [[ stitchable ]] half4 liquidGlass(

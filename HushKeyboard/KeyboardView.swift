@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct HushBar: View {
-    static let height: CGFloat = 43.33
+    static let height: CGFloat = 51.33
     static let markWidth: CGFloat = 40
 
     private enum Item: Identifiable, Equatable {
@@ -56,7 +56,7 @@ struct HushBar: View {
                     }
                 }
             }
-            .padding(.top, 5)
+            .padding(.top, 13)
         }
         .frame(height: Self.height)
         .animation(.snappy(duration: 0.25), value: model.isAsking)

@@ -332,17 +332,13 @@ final class KeysView: UIView {
 
     private static func mark(size: CGFloat, style: KeyStyle) -> UIImage {
         UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { _ in
-            let unit = size / 100
-            let line = UIBezierPath()
-            line.move(to: CGPoint(x: 27 * unit, y: 57 * unit))
-            line.addQuadCurve(to: CGPoint(x: 73 * unit, y: 57 * unit), controlPoint: CGPoint(x: 50 * unit, y: 69 * unit))
-            line.lineWidth = 6 * unit
+            let side = size * 0.66
+            let rect = CGRect(x: (size - side) / 2, y: (size - side) / 2, width: side, height: side)
+            let line = UIBezierPath(cgPath: Burst().path(in: rect).cgPath)
+            line.lineWidth = side * Burst.weight
             line.lineCapStyle = .round
-            style.accent.setStroke()
+            style.text.setStroke()
             line.stroke()
-            let bar = UIBezierPath(roundedRect: CGRect(x: 46.25 * unit, y: 22 * unit, width: 7.5 * unit, height: 52 * unit), cornerRadius: 3.75 * unit)
-            style.text.setFill()
-            bar.fill()
         }
     }
 

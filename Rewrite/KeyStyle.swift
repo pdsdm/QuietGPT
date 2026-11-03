@@ -37,9 +37,9 @@ struct KeyStyle {
 
     static let dark = KeyStyle(
         background: UIColor(white: 23 / 255, alpha: 1),
-        key: UIColor(white: 61 / 255, alpha: 1),
+        key: UIColor(white: 117 / 255, alpha: 1),
         pressed: UIColor(red: 42 / 255, green: 44 / 255, blue: 42 / 255, alpha: 1),
-        popup: UIColor(red: 86 / 255, green: 87 / 255, blue: 86 / 255, alpha: 1),
+        popup: UIColor(white: 117 / 255, alpha: 1),
         text: UIColor(white: 1, alpha: 1),
         secondary: UIColor(red: 235 / 255, green: 235 / 255, blue: 245 / 255, alpha: 0.7),
         tag: UIColor(red: 142 / 255, green: 142 / 255, blue: 147 / 255, alpha: 1),

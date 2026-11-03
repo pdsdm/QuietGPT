@@ -68,7 +68,7 @@ struct MonitorPanel: View {
     private var cpuTile: some View {
         let app = store.latest?.appCPU ?? 0
         let device = store.latest?.deviceCPU ?? 0
-        return MonitorTile(label: "cpu", value: "\(Int(app.rounded()))% hush", detail: "\(Int(device.rounded()))% iphone") {
+        return MonitorTile(label: "cpu", value: "\(Int(app.rounded()))% QuietGPT", detail: "\(Int(device.rounded()))% iphone") {
             Sparkline(
                 series: [
                     .init(values: store.samples.map(\.deviceCPU), color: palette.text3),
@@ -88,7 +88,7 @@ struct MonitorPanel: View {
 
     private var memoryTile: some View {
         let bytes = store.latest?.memoryBytes ?? 0
-        return MonitorTile(label: "memory", value: Self.bytes(bytes), detail: "used by hush") {
+        return MonitorTile(label: "memory", value: Self.bytes(bytes), detail: "used by QuietGPT") {
             Sparkline(series: [.init(values: store.samples.map(\.memoryBytes), color: palette.text2)], floor: 1)
         }
     }
@@ -99,7 +99,7 @@ struct MonitorPanel: View {
         return MonitorTile(
             label: "network",
             value: "↓\(Self.bytes(received))/s ↑\(Self.bytes(sent))/s",
-            detail: "hush sends 0 B"
+            detail: "QuietGPT sends 0 B"
         ) {
             Sparkline(
                 series: [

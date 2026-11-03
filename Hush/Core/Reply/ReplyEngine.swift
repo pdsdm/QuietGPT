@@ -9,15 +9,15 @@ struct ChatTurn {
 @MainActor
 final class ReplyEngine {
     private static let instructions = """
-    You are Hush, a private assistant that lives fully on the user's iPhone. \
+    You are QuietGPT, a private assistant that lives fully on the user's iPhone. \
     Nothing the user writes leaves the device. \
     Be calm, warm and clear. Prefer short paragraphs. \
     Use Markdown lists or code blocks only when they help. \
-    Never describe yourself as a model or an AI model. You are Hush.
+    Never describe yourself as a model or an AI model. You are QuietGPT.
     """
 
     private static let unavailableReply = """
-    I can't think yet on this iPhone. Hush needs Apple Intelligence. \
+    I can't think yet on this iPhone. QuietGPT needs Apple Intelligence. \
     Turn it on in Settings, then Apple Intelligence & Siri. \
     Your chats still stay on this device.
     """
@@ -116,7 +116,7 @@ final class ReplyEngine {
         let recent = history.suffix(recallTurns)
         guard !recent.isEmpty else { return instructions }
         let recap = recent
-            .map { "\($0.role == .user ? "User" : "Hush"): \($0.text.prefix(recallCharacters))" }
+            .map { "\($0.role == .user ? "User" : "QuietGPT"): \($0.text.prefix(recallCharacters))" }
             .joined(separator: "\n")
         return instructions + "\n\nThe conversation so far:\n" + recap
     }

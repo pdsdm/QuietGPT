@@ -35,10 +35,10 @@ struct VoiceScreen: View {
                         .opacity(appeared ? 1 : 0)
 
                     VStack(spacing: 10) {
-                        Text("Talk to Hush out loud.")
+                        Text("Talk to QuietGPT out loud.")
                             .font(HushFont.title)
                             .foregroundStyle(palette.text)
-                        Text("Hush hears you and answers on this iPhone. Your voice never leaves it.")
+                        Text("QuietGPT hears you and answers on this iPhone. Your voice never leaves it.")
                             .font(HushFont.subheadline)
                             .foregroundStyle(palette.text2)
                             .multilineTextAlignment(.center)

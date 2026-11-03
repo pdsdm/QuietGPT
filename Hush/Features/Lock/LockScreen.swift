@@ -32,7 +32,7 @@ struct LockScreen: View {
                             }
                         }
                     VStack(spacing: 6) {
-                        Text("Hush is locked")
+                        Text("QuietGPT is locked")
                             .font(HushFont.title)
                             .foregroundStyle(palette.text)
                         Text("Your chats are encrypted on this iPhone.")

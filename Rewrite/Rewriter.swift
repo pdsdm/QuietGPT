@@ -39,11 +39,11 @@ struct Rewriter {
     static func message(for error: Error) -> String {
         switch error as? LanguageModelSession.GenerationError {
         case .guardrailViolation, .refusal:
-            "Hush can't rewrite this one. Try another style."
+            "QuietGPT can't rewrite this one. Try another style."
         case .unsupportedLanguageOrLocale:
-            "Hush can't rewrite this language yet."
+            "QuietGPT can't rewrite this language yet."
         default:
-            "Hush can't rewrite right now. Check that Apple Intelligence is on in Settings."
+            "QuietGPT can't rewrite right now. Check that Apple Intelligence is on in Settings."
         }
     }
 }

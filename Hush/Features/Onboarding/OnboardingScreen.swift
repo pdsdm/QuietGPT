@@ -103,7 +103,7 @@ struct OnboardingScreen: View {
             Text("Lock your chats")
                 .font(HushFont.title)
                 .foregroundStyle(palette.text)
-            Text("Only your face opens Hush. You can change this later in Privacy.")
+            Text("Only your face opens QuietGPT. You can change this later in Privacy.")
                 .font(HushFont.subheadline)
                 .foregroundStyle(palette.text2)
                 .multilineTextAlignment(.center)

@@ -152,11 +152,11 @@ struct RewriteCard: View {
         failure = nil
         copied = false
         guard !original.isEmpty else {
-            failure = "Select some text, then share it to Hush."
+            failure = "Select some text, then share it to QuietGPT."
             return
         }
         guard rewriter.isAvailable else {
-            failure = "Hush needs Apple Intelligence. Turn it on in Settings."
+            failure = "QuietGPT needs Apple Intelligence. Turn it on in Settings."
             return
         }
         isWriting = true

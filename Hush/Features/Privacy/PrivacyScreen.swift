@@ -13,7 +13,7 @@ struct PrivacyScreen: View {
     @State private var appeared = false
 
     private static let checks: [(title: String, body: String)] = [
-        ("Runs on this iPhone", "Hush answers on the device. No server."),
+        ("Runs on this iPhone", "QuietGPT answers on the device. No server."),
         ("Encrypted storage", "Chats are locked with your passcode."),
         ("No account, no analytics", "No tracking, no crash reports, no ads.")
     ]
@@ -134,7 +134,7 @@ struct PrivacyScreen: View {
                 .tracking(-3)
                 .foregroundStyle(palette.text)
 
-            Text("sent from your chats since you installed Hush.")
+            Text("sent from your chats since you installed QuietGPT.")
                 .font(HushFont.subheadline)
                 .foregroundStyle(palette.text2)
         }

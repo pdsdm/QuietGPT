@@ -123,6 +123,6 @@ struct ThinkingGlyphs: View {
             .font(.system(.body, design: .monospaced))
             .foregroundStyle(palette.accent)
         }
-        .accessibilityLabel("Hush is thinking")
+        .accessibilityLabel("QuietGPT is thinking")
     }
 }

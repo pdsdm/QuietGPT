@@ -145,7 +145,7 @@ struct HushBar: View {
         switch item {
         case .undo: "Undo rewrite"
         case .style(let value): active && model.isWriting ? "Stop \(value.title)" : "Rewrite \(value.title)"
-        case .ask: "Tell Hush how to rewrite"
+        case .ask: "Tell QuietGPT how to rewrite"
         }
     }
 

@@ -86,7 +86,7 @@ struct KeyboardScreen: View {
                 } header: {
                     Text("Base instructions")
                 } footer: {
-                    Text("Hush follows these rules for every style.")
+                    Text("QuietGPT follows these rules for every style.")
                         .font(HushFont.footnote)
                         .foregroundStyle(palette.text2)
                 }
@@ -125,7 +125,7 @@ struct KeyboardScreen: View {
                     .foregroundStyle(palette.danger)
                     .listRowBackground(palette.surface)
                 } footer: {
-                    Text("Settings > General > Keyboard > Keyboards > Add New Keyboard > Hush. Full access is not needed.")
+                    Text("Settings > General > Keyboard > Keyboards > Add New Keyboard > QuietGPT. Full access is not needed.")
                         .font(HushFont.footnote)
                         .foregroundStyle(palette.text2)
                 }
@@ -300,7 +300,7 @@ private struct StyleEditor: View {
                         .frame(minHeight: 110)
                         .listRowBackground(palette.surface)
                 } header: {
-                    Text("What Hush does")
+                    Text("What QuietGPT does")
                 } footer: {
                     Text("Write it as an order. For example: Make this message friendly and relaxed. Keep the same meaning.")
                         .font(HushFont.footnote)
@@ -355,7 +355,7 @@ private struct InstructionsEditor: View {
                         .frame(minHeight: 200)
                         .listRowBackground(palette.surface)
                 } footer: {
-                    Text("Hush reads these rules before each style.")
+                    Text("QuietGPT reads these rules before each style.")
                         .font(HushFont.footnote)
                 }
                 Section {

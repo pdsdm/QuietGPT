@@ -11,14 +11,14 @@ struct AppMark: View {
     private var visible: Bool { shown || !animated || reduceMotion }
 
     var body: some View {
-        let mark = size * 0.6
+        let mark = size * 0.5
         ZStack {
             palette.background
-            Burst()
-                .trim(from: 0, to: visible ? 1 : 0)
-                .stroke(palette.text, style: Burst.stroke(size: mark))
+            LockMark()
+                .fill(palette.text)
                 .frame(width: mark, height: mark)
-                .rotationEffect(.degrees(visible ? 0 : -45))
+                .scaleEffect(visible ? 1 : 0.8)
+                .opacity(visible ? 1 : 0)
         }
         .frame(width: size, height: size)
         .clipShape(.rect(cornerRadius: size * 0.225, style: .continuous))

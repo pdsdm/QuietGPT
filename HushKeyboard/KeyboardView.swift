@@ -218,8 +218,9 @@ struct BarMark: View {
     var size: CGFloat = 24
 
     var body: some View {
-        Burst()
-            .stroke(Color(style.text), style: Burst.stroke(size: size))
+        LockMark()
+            .fill(Color(style.text))
+            .frame(width: size * 0.84, height: size * 0.84)
             .frame(width: size, height: size)
         .accessibilityHidden(true)
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct OnboardingScreen: View {
     var onFinish: (_ useLock: Bool) -> Void
@@ -7,13 +8,13 @@ struct OnboardingScreen: View {
     @State private var page = 0
     @State private var appeared = false
 
-    private static let pageCount = 3
+    private static let pageCount = 4
 
     var body: some View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            LiquidField(mode: page == 1 ? .drift : .ripple, mask: .fadeDown)
+            LiquidField(mode: page == 2 ? .drift : .ripple, mask: .fadeDown)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -23,7 +24,8 @@ struct OnboardingScreen: View {
                 ZStack {
                     switch page {
                     case 0: intro.transition(pageTransition)
-                    case 1: proof.transition(pageTransition)
+                    case 1: rules.transition(pageTransition)
+                    case 2: proof.transition(pageTransition)
                     default: lock.transition(pageTransition)
                     }
                 }
@@ -68,12 +70,50 @@ struct OnboardingScreen: View {
             Wordmark(size: 64)
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
-            Text("A private mind that lives on your iPhone.")
+            Text("Your rules. One tap.")
                 .font(QuietGPTFont.lead)
                 .foregroundStyle(palette.text2)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
                 .opacity(appeared ? 1 : 0)
+        }
+    }
+
+    private var rules: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("You write\nthe rules.")
+                .font(QuietGPTFont.largeTitle)
+                .tracking(-0.6)
+                .foregroundStyle(palette.text)
+
+            VStack(alignment: .leading, spacing: 14) {
+                exampleLine("your rule", "Do not use emoji. Use short sentences.", color: palette.text)
+                exampleLine("you write", "hey!! can u send me the file by tomorrow pls 🙏", color: palette.text2)
+                exampleLine("one tap", "Can you send me the file by tomorrow? Thanks.", color: palette.text)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(palette.surface.opacity(0.9), in: .rect(cornerRadius: Radius.card, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+                    .strokeBorder(palette.line, lineWidth: 1)
+            }
+
+            Text("Your rules work in the QuietGPT keyboard, in any app. To add it, go to Settings > General > Keyboard > Keyboards > Add New Keyboard > QuietGPT.")
+                .font(QuietGPTFont.subheadline)
+                .foregroundStyle(palette.text2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func exampleLine(_ label: String, _ text: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(QuietGPTFont.mono)
+                .foregroundStyle(palette.text3)
+            Text(text)
+                .font(QuietGPTFont.callout)
+                .foregroundStyle(color)
         }
     }
 
@@ -114,7 +154,19 @@ struct OnboardingScreen: View {
     @ViewBuilder
     private var actions: some View {
         VStack(spacing: 8) {
-            if page < Self.pageCount - 1 {
+            if page == 1 {
+                Button("Open Settings") {
+                    page += 1
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .transition(.blurReplace)
+                Button("Later") { page += 1 }
+                    .buttonStyle(QuietButtonStyle())
+                    .transition(.opacity)
+            } else if page < Self.pageCount - 1 {
                 Button(page == 0 ? "Begin" : "Continue") {
                     page += 1
                 }

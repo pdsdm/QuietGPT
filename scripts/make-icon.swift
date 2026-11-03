@@ -21,19 +21,23 @@ func render(_ style: IconStyle, into directory: URL) throws {
     style.background.setFill()
     NSRect(x: 0, y: 0, width: size, height: size).fill()
 
-    let side = size * 0.6
-    let center = NSPoint(x: size / 2, y: size / 2)
-    let burst = NSBezierPath()
-    for ray in 0..<8 {
-        let angle = Double.pi / 2 - Double(ray) * Double.pi / 4
-        let direction = NSPoint(x: cos(angle), y: sin(angle))
-        burst.move(to: NSPoint(x: center.x + direction.x * side * 23 / 120, y: center.y + direction.y * side * 23 / 120))
-        burst.line(to: NSPoint(x: center.x + direction.x * side * 49 / 120, y: center.y + direction.y * side * 49 / 120))
+    let pattern = [".XXX.", "X...X", "XXXXX", "XX.XX", "XXXXX"]
+    let side = size * 0.5
+    let cell = side / CGFloat(pattern.count)
+    let inset = cell * 0.05
+    let left = (size - side) / 2
+    let top = (size + side) / 2
+    style.mark.setFill()
+    for (row, line) in pattern.enumerated() {
+        for (column, character) in line.enumerated() where character == "X" {
+            NSRect(
+                x: left + CGFloat(column) * cell + inset,
+                y: top - CGFloat(row + 1) * cell + inset,
+                width: cell - inset * 2,
+                height: cell - inset * 2
+            ).fill()
+        }
     }
-    burst.lineWidth = side * 10 / 120
-    burst.lineCapStyle = .round
-    style.mark.setStroke()
-    burst.stroke()
 
     NSGraphicsContext.restoreGraphicsState()
 

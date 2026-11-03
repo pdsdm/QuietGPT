@@ -3,8 +3,7 @@ import AppKit
 struct IconStyle {
     let name: String
     let background: NSColor
-    let lips: NSColor
-    let finger: NSColor
+    let mark: NSColor
 }
 
 let size: CGFloat = 1024
@@ -19,36 +18,22 @@ func render(_ style: IconStyle, into directory: URL) throws {
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
 
-    let unit = size / 100
-    func point(_ x: CGFloat, _ y: CGFloat) -> NSPoint {
-        NSPoint(x: x * unit, y: size - y * unit)
-    }
-
     style.background.setFill()
     NSRect(x: 0, y: 0, width: size, height: size).fill()
 
-    let start = point(27, 57)
-    let control = point(50, 69)
-    let end = point(73, 57)
-    let lips = NSBezierPath()
-    lips.move(to: start)
-    lips.curve(
-        to: end,
-        controlPoint1: NSPoint(x: start.x + (control.x - start.x) * 2 / 3, y: start.y + (control.y - start.y) * 2 / 3),
-        controlPoint2: NSPoint(x: end.x + (control.x - end.x) * 2 / 3, y: end.y + (control.y - end.y) * 2 / 3)
-    )
-    lips.lineWidth = 6 * unit
-    lips.lineCapStyle = .round
-    style.lips.setStroke()
-    lips.stroke()
-
-    let fingerWidth = 7.5 * unit
-    let finger = NSBezierPath(
-        roundedRect: NSRect(x: 46.25 * unit, y: size - 74 * unit, width: fingerWidth, height: 52 * unit),
-        xRadius: fingerWidth / 2, yRadius: fingerWidth / 2
-    )
-    style.finger.setFill()
-    finger.fill()
+    let side = size * 0.6
+    let center = NSPoint(x: size / 2, y: size / 2)
+    let burst = NSBezierPath()
+    for ray in 0..<8 {
+        let angle = Double.pi / 2 - Double(ray) * Double.pi / 4
+        let direction = NSPoint(x: cos(angle), y: sin(angle))
+        burst.move(to: NSPoint(x: center.x + direction.x * side * 23 / 120, y: center.y + direction.y * side * 23 / 120))
+        burst.line(to: NSPoint(x: center.x + direction.x * side * 49 / 120, y: center.y + direction.y * side * 49 / 120))
+    }
+    burst.lineWidth = side * 10 / 120
+    burst.lineCapStyle = .round
+    style.mark.setStroke()
+    burst.stroke()
 
     NSGraphicsContext.restoreGraphicsState()
 
@@ -75,9 +60,9 @@ guard arguments.count == 2 else {
 let directory = URL(fileURLWithPath: arguments[1])
 
 let styles = [
-    IconStyle(name: "icon", background: color(0x000000), lips: color(0x7CC4FF), finger: color(0xF4F4F1)),
-    IconStyle(name: "icon-dark", background: color(0x000000), lips: color(0x7CC4FF), finger: color(0xF4F4F1)),
-    IconStyle(name: "icon-tinted", background: color(0x000000), lips: color(0xBDBDBD), finger: color(0xFFFFFF))
+    IconStyle(name: "icon", background: color(0xFFFFFF), mark: color(0x0A0A0A)),
+    IconStyle(name: "icon-dark", background: color(0x000000), mark: color(0xFFFFFF)),
+    IconStyle(name: "icon-tinted", background: color(0x000000), mark: color(0xFFFFFF))
 ]
 
 do {

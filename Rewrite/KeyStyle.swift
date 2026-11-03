@@ -36,7 +36,7 @@ struct KeyStyle {
         secondary: UIColor(red: 60 / 255, green: 60 / 255, blue: 67 / 255, alpha: 0.75),
         tag: UIColor(red: 175 / 255, green: 176 / 255, blue: 175 / 255, alpha: 1),
         separator: UIColor(red: 209 / 255, green: 210 / 255, blue: 212 / 255, alpha: 1),
-        accent: UIColor(red: 31 / 255, green: 122 / 255, blue: 224 / 255, alpha: 1)
+        accent: UIColor(white: 10 / 255, alpha: 1)
     )
 
     static let dark = KeyStyle(
@@ -50,6 +50,6 @@ struct KeyStyle {
         secondary: UIColor(red: 235 / 255, green: 235 / 255, blue: 245 / 255, alpha: 0.7),
         tag: UIColor(red: 142 / 255, green: 142 / 255, blue: 147 / 255, alpha: 1),
         separator: UIColor(red: 43 / 255, green: 43 / 255, blue: 45 / 255, alpha: 1),
-        accent: UIColor(red: 124 / 255, green: 196 / 255, blue: 1, alpha: 1)
+        accent: UIColor(white: 1, alpha: 1)
     )
 }

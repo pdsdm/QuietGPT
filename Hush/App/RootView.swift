@@ -10,7 +10,7 @@ enum AppTab: String, Hashable {
 }
 
 struct RootView: View {
-    @AppStorage(SettingsKey.appearance) private var appearance = Appearance.dark
+    @AppStorage(SettingsKey.appearance) private var appearance = Appearance.light
 
     var body: some View {
         ThemedContent()

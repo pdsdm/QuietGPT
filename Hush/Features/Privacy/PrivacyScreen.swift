@@ -7,7 +7,7 @@ struct PrivacyScreen: View {
     @Environment(\.palette) private var palette
     @Environment(\.modelContext) private var context
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
-    @AppStorage(SettingsKey.appearance) private var appearance = Appearance.dark
+    @AppStorage(SettingsKey.appearance) private var appearance = Appearance.light
     @ScaledMetric(relativeTo: .largeTitle) private var counterSize: CGFloat = 72
     @State private var confirmingDelete = false
     @State private var appeared = false

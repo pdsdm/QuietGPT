@@ -22,17 +22,13 @@ final class FieldEngine {
         let power: Double
     }
 
-    private static let ramp: [Character] = Array("  .·:-=+*#%@")
+    private static let ramp: [Character] = Array(" .·:-~=+*#")
     private static let maxBlooms = 8
     private static let cameraHeight = 3.0
     private static let horizon = 0.32
     private static let spread = 2.2
-    private static let step = 0.06
-    private static let light: (x: Double, y: Double, z: Double) = {
-        let x = -0.5, y = 0.7, z = -0.5
-        let length = (x * x + y * y + z * z).squareRoot()
-        return (x / length, y / length, z / length)
-    }()
+    private static let ridgeGap = 0.16
+    private static let lift = 0.9
 
     private var blooms: [Bloom] = []
     private var lastTime: Double?
@@ -86,53 +82,45 @@ final class FieldEngine {
         let ramp = Self.ramp
         let top = Double(ramp.count - 1)
         let columns = grid.columns
-        let rows = Double(grid.rows)
+        let rowCount = grid.rows
+        let rows = Double(rowCount)
         let centerX = Double(columns) / 2
         let flow = time * (mode == .think ? 0.9 : 0.35)
         let rippleZ = Self.cameraHeight / (0.5 + Self.horizon)
         let flicker = Int(time * 4)
-        let light = Self.light
+        let near = Self.cameraHeight / (1 + Self.horizon) - Self.ridgeGap * 4
+        let far = Self.cameraHeight / Self.horizon + 2
+        let first = Int(((near + flow) / Self.ridgeGap).rounded(.up))
+        let last = Int(((far + flow) / Self.ridgeGap).rounded(.down))
 
-        var lines: [String] = []
-        lines.reserveCapacity(grid.rows)
+        var cells = [[Character]](repeating: [Character](repeating: " ", count: columns), count: rowCount)
+        var skyline = [Double](repeating: rows, count: columns)
 
-        for y in 0..<grid.rows {
-            var line: [Character] = []
-            line.reserveCapacity(columns)
-            let screenY = Double(y) / rows + Self.horizon
-            let depth = Self.cameraHeight / screenY
-            let fog = min(1, max(0, 1.35 - depth * 0.11))
-
-            for x in 0..<columns {
-                let screenX = (Double(x) - centerX) * 0.5 / rows
-                let worldX = screenX * depth * Self.spread
-                let worldZ = depth
-
-                let h = height(worldX, worldZ, time: time, flow: flow, mode: mode, rippleZ: rippleZ)
-                let dx = (height(worldX + Self.step, worldZ, time: time, flow: flow, mode: mode, rippleZ: rippleZ) - h) / Self.step
-                let dz = (height(worldX, worldZ + Self.step, time: time, flow: flow, mode: mode, rippleZ: rippleZ) - h) / Self.step
-                let length = (dx * dx + 1 + dz * dz).squareRoot()
-                let diffuse = max(0, (-dx * light.x + light.y - dz * light.z) / length)
-
-                let gridX = abs((worldX * 0.9).truncatingRemainder(dividingBy: 1))
-                let gridZ = abs(((worldZ + flow) * 0.9).truncatingRemainder(dividingBy: 1))
-                let edgeX = min(gridX, 1 - gridX)
-                let edgeZ = min(gridZ, 1 - gridZ)
-                let lineWeight = max(0, 1 - min(edgeX, edgeZ) / 0.07)
-
-                var value = pow(diffuse, 4) * 0.8 + lineWeight * 0.32 * (0.4 + diffuse * 0.6)
-                value *= fog
-
-                if value < 0.2, hash(x &* 3 &+ flicker, y &* 7 &- flicker) > 0.9975 {
-                    value = 0.8
+        if first <= last {
+            for ridge in first...last {
+                let depth = Double(ridge) * Self.ridgeGap - flow
+                guard depth > 0.5 else { continue }
+                let fog = min(1, max(0, 1.3 - depth * 0.1))
+                for x in 0..<columns {
+                    let worldX = (Double(x) - centerX) * 0.5 / rows * depth * Self.spread
+                    let h = height(worldX, depth, time: time, flow: flow, mode: mode, rippleZ: rippleZ)
+                    let y = ((Self.cameraHeight - h * Self.lift) / depth - Self.horizon) * rows
+                    guard y < skyline[x] else { continue }
+                    skyline[x] = y
+                    let row = Int(y.rounded(.down))
+                    guard row >= 0, row < rowCount else { continue }
+                    let value = fog * (0.35 + 0.65 * min(1, max(0, 0.3 + h)))
+                    cells[row][x] = ramp[1 + Int(min(top - 1, (value * (top - 1)).rounded(.down)))]
                 }
-
-                let index = Int(min(top, max(0, (value * top).rounded(.down))))
-                line.append(ramp[index])
             }
-            lines.append(String(line))
         }
-        return lines
+
+        for y in 0..<rowCount {
+            for x in 0..<columns where cells[y][x] == " " && hash(x &* 3 &+ flicker, y &* 7 &- flicker) > 0.998 {
+                cells[y][x] = "·"
+            }
+        }
+        return cells.map { String($0) }
     }
 
     private func height(_ x: Double, _ z: Double, time: Double, flow: Double, mode: FieldMode, rippleZ: Double) -> Double {

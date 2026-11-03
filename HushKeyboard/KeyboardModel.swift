@@ -30,6 +30,8 @@ final class KeyboardModel {
     var returnIsAction = false
     var isSpanish = false
     var showsAsk = true
+    var showsPanel = false
+    var options = KeyboardOptions()
 
     var goTitle: String { KeyboardText.string("go") }
 
@@ -66,6 +68,7 @@ struct KeyboardActions {
     var show: (KeyboardModel.Layer) -> Void
     var nextKeyboard: () -> Void
     var moveCursor: (Int) -> Void
+    var openPanel: () -> Void
 }
 
 struct BarActions {
@@ -74,4 +77,8 @@ struct BarActions {
     var submitAsk: () -> Void
     var stop: () -> Void
     var undo: () -> Void
+    var close: () -> Void
+    var setLanguage: (KeyboardLanguage) -> Void
+    var setAutoCapitalize: (Bool) -> Void
+    var setPeriodShortcut: (Bool) -> Void
 }

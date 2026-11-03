@@ -213,7 +213,7 @@ struct HushBar: View {
     }
 }
 
-private struct BarMark: View {
+struct BarMark: View {
     let style: KeyStyle
     var size: CGFloat = 24
 

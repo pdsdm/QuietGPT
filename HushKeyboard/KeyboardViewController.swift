@@ -17,6 +17,8 @@ final class KeyboardViewController: UIInputViewController {
     private let keys = KeysView()
     private var bar: UIHostingController<HushBar>?
     private var emoji: UIHostingController<EmojiGrid>?
+    private var panel: UIHostingController<HushPanel>?
+    private var mode = (panel: false, bar: false)
     private var options = KeyboardOptions()
     private var task: Task<Void, Never>?
     private var hintReset: Task<Void, Never>?
@@ -54,8 +56,16 @@ final class KeyboardViewController: UIInputViewController {
         self.emoji = emoji
 
         keys.actions = keyActions
-        keys.topLimit = -HushBar.height
         view.addSubview(keys)
+
+        let panel = UIHostingController(rootView: HushPanel(model: model, actions: barActions))
+        panel.view.backgroundColor = .clear
+        panel.sizingOptions = []
+        panel.view.isHidden = true
+        addChild(panel)
+        view.addSubview(panel.view)
+        panel.didMove(toParent: self)
+        self.panel = panel
 
         loadSettings()
         updateReturnKey()
@@ -87,14 +97,20 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let width = view.bounds.width
-        let space = view.bounds.height - HushBar.height - KeyLayout.topPadding - KeyLayout.bottomPadding
+        let barHeight = mode.bar ? HushBar.height : 0
+        let space = view.bounds.height - barHeight - KeyLayout.topPadding - KeyLayout.bottomPadding
         let rowHeight = space > 0 ? min(KeyLayout.rowHeight, space / 4) : KeyLayout.rowHeight
         let keysHeight = KeyLayout.height(rowHeight: rowHeight)
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
         bar?.view.frame = CGRect(x: 0, y: top - HushBar.height, width: width, height: HushBar.height)
+        bar?.view.isHidden = !mode.bar
         emoji?.view.frame = CGRect(x: 0, y: top + KeyLayout.topPadding, width: width, height: rowHeight * 3)
         keys.rowHeight = rowHeight
+        keys.topLimit = -top
         keys.frame = CGRect(x: 0, y: top, width: width, height: keysHeight)
+        keys.isHidden = mode.panel
+        panel?.view.frame = view.bounds
+        panel?.view.isHidden = !mode.panel
     }
 
     override func viewWillLayoutSubviews() {
@@ -109,20 +125,54 @@ final class KeyboardViewController: UIInputViewController {
     private func observe() {
         withObservationTracking {
             keys.state = model.keys
-            emoji?.view.isHidden = model.layer != .emoji
+            emoji?.view.isHidden = model.layer != .emoji || model.showsPanel
+            apply(panel: model.showsPanel, bar: model.isAsking)
         } onChange: { [weak self] in
             let controller = self
             Task { @MainActor in controller?.observe() }
         }
     }
 
+    private func apply(panel: Bool, bar: Bool) {
+        guard mode != (panel, bar) else { return }
+        mode = (panel, bar)
+        UIView.transition(with: view, duration: 0.2, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+        }
+    }
+
     private func loadSettings() {
         options = StyleStore.options
+        applyOptions()
+        model.styles = StyleStore.enabledStyles
+        model.showsAsk = options.showsAsk
+    }
+
+    private func applyOptions() {
+        model.options = options
         model.isSpanish = options.language.isSpanish
         primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
         KeyboardText.use(spanish: model.isSpanish)
-        model.styles = StyleStore.enabledStyles
-        model.showsAsk = options.showsAsk
+    }
+
+    private func change(_ update: (inout KeyboardOptions) -> Void) {
+        UIDevice.current.playInputClick()
+        update(&options)
+        StyleStore.options = options
+        applyOptions()
+        refresh()
+    }
+
+    private func openPanel() {
+        model.layer = .letters
+        model.showsPanel = true
+    }
+
+    private func closePanel() {
+        UIDevice.current.playInputClick()
+        model.showsPanel = false
+        updateShift()
     }
 
     private var keyActions: KeyboardActions {
@@ -135,7 +185,8 @@ final class KeyboardViewController: UIInputViewController {
             shift: { [weak self] in self?.tapShift() },
             show: { [weak self] in self?.show($0) },
             nextKeyboard: { [weak self] in self?.advanceToNextInputMode() },
-            moveCursor: { [weak self] in self?.moveCursor($0) }
+            moveCursor: { [weak self] in self?.moveCursor($0) },
+            openPanel: { [weak self] in self?.openPanel() }
         )
     }
 
@@ -145,7 +196,11 @@ final class KeyboardViewController: UIInputViewController {
             ask: { [weak self] in self?.toggleAsk() },
             submitAsk: { [weak self] in self?.submitAsk() },
             stop: { [weak self] in self?.stopWriting() },
-            undo: { [weak self] in self?.undo() }
+            undo: { [weak self] in self?.undo() },
+            close: { [weak self] in self?.closePanel() },
+            setLanguage: { [weak self] language in self?.change { $0.language = language } },
+            setAutoCapitalize: { [weak self] isOn in self?.change { $0.autoCapitalize = isOn } },
+            setPeriodShortcut: { [weak self] isOn in self?.change { $0.periodShortcut = isOn } }
         )
     }
 
@@ -321,6 +376,7 @@ final class KeyboardViewController: UIInputViewController {
     private func toggleAsk() {
         stopWriting()
         model.isAsking.toggle()
+        model.showsPanel = !model.isAsking
         model.instruction = ""
         model.layer = .letters
         updateShift()
@@ -330,6 +386,7 @@ final class KeyboardViewController: UIInputViewController {
         UIDevice.current.playInputClick()
         let instruction = model.instruction.trimmingCharacters(in: .whitespacesAndNewlines)
         model.isAsking = false
+        model.showsPanel = true
         model.instruction = ""
         updateShift()
         guard !instruction.isEmpty else { return }

@@ -44,6 +44,7 @@ final class Balloon: UIView {
     static let height: CGFloat = 65
     static let spread: CGFloat = 12
     static let gap: CGFloat = 4
+    static let smallest: CGFloat = 40
     static let minimumTime: CFTimeInterval = 0.1
 
     private let label = UILabel()
@@ -297,7 +298,12 @@ final class KeysView: UIView {
         cap.frame = spec.face
         cap.backgroundColor = spec.isAction ? KeyStyle.blue : style.key
         let foreground = spec.isAction ? UIColor.white : style.text
-        if let symbol = spec.symbol {
+        if spec.kind == .hush {
+            cap.icon.image = Self.mark(size: 30, style: style)
+            cap.icon.overrideUserInterfaceStyle = .unspecified
+            cap.icon.isHidden = false
+            cap.label.isHidden = true
+        } else if let symbol = spec.symbol {
             cap.icon.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: spec.symbolSize, weight: .regular))
             cap.icon.tintColor = foreground
             cap.icon.overrideUserInterfaceStyle = symbol.hasSuffix(".inverse") ? .light : .unspecified
@@ -322,6 +328,22 @@ final class KeysView: UIView {
         cap.accessibilityLabel = spec.label
         cap.onActivate = { [weak self] in self?.activate(spec) }
         cap.setNeedsLayout()
+    }
+
+    private static func mark(size: CGFloat, style: KeyStyle) -> UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { _ in
+            let unit = size / 100
+            let line = UIBezierPath()
+            line.move(to: CGPoint(x: 27 * unit, y: 57 * unit))
+            line.addQuadCurve(to: CGPoint(x: 73 * unit, y: 57 * unit), controlPoint: CGPoint(x: 50 * unit, y: 69 * unit))
+            line.lineWidth = 6 * unit
+            line.lineCapStyle = .round
+            style.accent.setStroke()
+            line.stroke()
+            let bar = UIBezierPath(roundedRect: CGRect(x: 46.25 * unit, y: 22 * unit, width: 7.5 * unit, height: 52 * unit), cornerRadius: 3.75 * unit)
+            style.text.setFill()
+            bar.fill()
+        }
     }
 
     private func highlight(_ id: String, _ on: Bool) {
@@ -359,6 +381,7 @@ final class KeysView: UIView {
         case .globe: actions.nextKeyboard()
         case .space: actions.space()
         case .enter: actions.newline()
+        case .hush: actions.openPanel()
         }
     }
 
@@ -443,7 +466,7 @@ final class KeysView: UIView {
                 guard let self, let press, self.isActive(press) else { return }
                 self.startTracking(press)
             }
-        case .emoji, .globe, .enter:
+        case .emoji, .globe, .enter, .hush:
             highlight(spec.id, true)
         }
     }
@@ -479,6 +502,7 @@ final class KeysView: UIView {
         case .enter: actions.newline()
         case .globe: actions.nextKeyboard()
         case .emoji(let target): actions.show(target)
+        case .hush: actions.openPanel()
         default: break
         }
     }
@@ -505,11 +529,12 @@ final class KeysView: UIView {
 
     private func showBalloon(_ press: Press, _ spec: KeySpec) {
         guard !isTracking else { return }
+        highlight(spec.id, true)
+        guard spec.face.minY - Balloon.gap - topLimit >= Balloon.smallest else { return }
         let balloon = Balloon()
         balloon.show(spec, limit: topLimit, width: bounds.width, style: style)
         addSubview(balloon)
         press.balloon = balloon
-        highlight(spec.id, true)
     }
 
     private func scheduleVariants(_ press: Press, _ spec: KeySpec) {

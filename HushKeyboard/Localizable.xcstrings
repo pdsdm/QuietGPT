@@ -12,6 +12,28 @@
         }
       }
     },
+    "Auto": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parar"
+          }
+        }
+      }
+    },
     "Stopped, your text is back": {
       "extractionState": "manual",
       "localizations": {
@@ -111,6 +133,17 @@
         }
       }
     },
+    "on this iPhone": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en este iPhone"
+          }
+        }
+      }
+    },
     "return": {
       "extractionState": "manual",
       "localizations": {
@@ -118,6 +151,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "intro"
+          }
+        }
+      }
+    },
+    "rewriting…": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "reescribiendo…"
           }
         }
       }

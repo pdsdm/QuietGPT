@@ -37,10 +37,12 @@ private struct AppFlow: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
     @Environment(\.palette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var controller = ChatController()
     @State private var tab: AppTab = .chat
     @State private var locked = true
+    @State private var loading = true
 
     var body: some View {
         ZStack {
@@ -69,6 +71,12 @@ private struct AppFlow: View {
                     .transition(.opacity)
                     .zIndex(3)
             }
+
+            if loading {
+                SplashScreen()
+                    .transition(.opacity)
+                    .zIndex(4)
+            }
         }
         .animation(Motion.gentle, value: onboarded)
         .animation(Motion.gentle, value: locked)
@@ -78,6 +86,10 @@ private struct AppFlow: View {
             #if DEBUG
             DebugLaunch.apply(controller: controller, tab: &tab)
             #endif
+        }
+        .task {
+            try? await Task.sleep(for: reduceMotion ? SplashScreen.shortDuration : SplashScreen.duration)
+            withAnimation(.easeOut(duration: 0.45)) { loading = false }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background, lockEnabled {

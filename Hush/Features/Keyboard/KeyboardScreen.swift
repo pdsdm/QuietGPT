@@ -92,6 +92,17 @@ struct KeyboardScreen: View {
                 }
 
                 Section("Typing") {
+                    Picker(selection: $options.language) {
+                        ForEach(KeyboardLanguage.allCases) { language in
+                            Text(language.title).tag(language)
+                        }
+                    } label: {
+                        Text("Language")
+                            .font(HushFont.callout)
+                            .foregroundStyle(palette.text)
+                    }
+                    .tint(palette.accent)
+                    .listRowBackground(palette.surface)
                     toggle("Auto capitals", isOn: $options.autoCapitalize)
                     toggle("Double space adds a period", isOn: $options.periodShortcut)
                     toggle("Show Ask in the bar", isOn: $options.showsAsk)

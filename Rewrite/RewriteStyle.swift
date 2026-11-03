@@ -24,10 +24,49 @@ struct RewriteStyle: Codable, Identifiable, Hashable {
     ]
 }
 
+enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
+    case automatic
+    case english
+    case spanish
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .automatic: "Automatic"
+        case .english: "English (US)"
+        case .spanish: "Spanish"
+        }
+    }
+
+    var isSpanish: Bool {
+        switch self {
+        case .automatic:
+            let language = Locale.preferredLanguages.first ?? "en"
+            return language.hasPrefix("es") || language.hasPrefix("ca")
+        case .english:
+            return false
+        case .spanish:
+            return true
+        }
+    }
+}
+
 struct KeyboardOptions: Codable, Equatable {
     var autoCapitalize = true
     var periodShortcut = true
     var showsAsk = true
+    var language = KeyboardLanguage.automatic
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        autoCapitalize = try container.decodeIfPresent(Bool.self, forKey: .autoCapitalize) ?? autoCapitalize
+        periodShortcut = try container.decodeIfPresent(Bool.self, forKey: .periodShortcut) ?? periodShortcut
+        showsAsk = try container.decodeIfPresent(Bool.self, forKey: .showsAsk) ?? showsAsk
+        language = (try? container.decodeIfPresent(KeyboardLanguage.self, forKey: .language)) ?? language
+    }
 }
 
 enum StyleStore {

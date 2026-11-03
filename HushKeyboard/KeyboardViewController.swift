@@ -60,11 +60,6 @@ final class KeyboardViewController: UIInputViewController {
         height.priority = .defaultHigh + 1
         height.isActive = true
 
-        let language = Locale.preferredLanguages.first ?? "en"
-        model.isSpanish = language.hasPrefix("es") || language.hasPrefix("ca")
-        primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
-        KeyboardText.use(spanish: model.isSpanish)
-
         loadSettings()
         updateReturnKey()
         observe()
@@ -116,6 +111,9 @@ final class KeyboardViewController: UIInputViewController {
 
     private func loadSettings() {
         options = StyleStore.options
+        model.isSpanish = options.language.isSpanish
+        primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
+        KeyboardText.use(spanish: model.isSpanish)
         model.styles = StyleStore.enabledStyles
         model.showsAsk = options.showsAsk
     }

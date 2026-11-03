@@ -14,7 +14,7 @@ final class FieldEngine {
 
     private struct Bloom {
         let x: Double
-        let y: Double
+        let z: Double
         let born: Double
         let life: Double
         let speed: Double
@@ -22,117 +22,109 @@ final class FieldEngine {
         let power: Double
     }
 
-    private static let ramp: [Character] = Array("   ..·:-=+*#")
-    private static let ticksPerSecond = 12.5
-    private static let maxBlooms = 10
+    private static let ramp: [Character] = Array("  .·:-=+*#%@")
+    private static let maxBlooms = 8
+    private static let cameraHeight = 3.0
+    private static let horizon = 0.32
+    private static let spread = 2.2
+    private static let step = 0.06
+    private static let light: (x: Double, y: Double, z: Double) = {
+        let x = -0.5, y = 0.7, z = -0.5
+        let length = (x * x + y * y + z * z).squareRoot()
+        return (x / length, y / length, z / length)
+    }()
 
     private var blooms: [Bloom] = []
-    private var lastTick: Double?
+    private var lastTime: Double?
     private var grid = Grid(columns: 0, rows: 0)
     private let seed = UInt32.random(in: 0...UInt32.max)
 
     func lines(for grid: Grid, at date: Date, mode: FieldMode) -> [String] {
         guard grid.columns > 0, grid.rows > 0 else { return [] }
-        let tick = date.timeIntervalSinceReferenceDate * Self.ticksPerSecond
+        let time = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 86_400)
 
         if grid != self.grid {
             self.grid = grid
             blooms.removeAll()
-            for _ in 0..<3 {
-                spawn(at: tick - Double.random(in: 0...30), mode: mode)
+            for _ in 0..<2 {
+                spawn(at: time - Double.random(in: 0...3), mode: mode)
             }
         }
-        advance(to: tick, mode: mode)
-        return render(at: tick, mode: mode)
+        advance(to: time, mode: mode)
+        return render(at: time, mode: mode)
     }
 
-    private func advance(to tick: Double, mode: FieldMode) {
-        let elapsed = min(max(tick - (lastTick ?? tick), 0), 10)
-        lastTick = tick
+    private func advance(to time: Double, mode: FieldMode) {
+        let elapsed = min(max(time - (lastTime ?? time), 0), 1)
+        lastTime = time
 
         let rate: Double = switch mode {
-        case .think: 0.28
-        case .ripple: 0.05
-        case .drift: 0.07
+        case .think: 1.6
+        case .ripple: 0.35
+        case .drift: 0.55
         }
-        let chance = 1 - pow(1 - rate, elapsed)
-        if blooms.count < Self.maxBlooms, Double.random(in: 0..<1) < chance {
-            spawn(at: tick, mode: mode)
+        if blooms.count < Self.maxBlooms, Double.random(in: 0..<1) < rate * elapsed {
+            spawn(at: time, mode: mode)
         }
-        blooms.removeAll { tick - $0.born >= $0.life }
+        blooms.removeAll { time - $0.born >= $0.life }
     }
 
-    private func spawn(at tick: Double, mode: FieldMode) {
-        let columns = Double(grid.columns)
-        let rows = Double(grid.rows)
+    private func spawn(at time: Double, mode: FieldMode) {
         let isThink = mode == .think
-        let isBig = Double.random(in: 0..<1) < 0.25
-
         blooms.append(Bloom(
-            x: .random(in: 0...columns),
-            y: isThink ? rows * .random(in: 0.7...1.0) : .random(in: 0...rows),
-            born: tick,
-            life: isThink ? .random(in: 25...55) : .random(in: 40...100),
-            speed: (isThink ? 0.5 : 0.22) + .random(in: 0...(isBig ? 0.5 : 0.3)),
-            width: 1.2 + .random(in: 0...(isBig ? 2.4 : 1.2)),
-            power: .random(in: 0.55...1.0)
+            x: .random(in: -3.5...3.5),
+            z: isThink ? .random(in: 2.2...3.6) : .random(in: 2.4...8),
+            born: time,
+            life: isThink ? .random(in: 2.5...4.5) : .random(in: 4...8),
+            speed: isThink ? .random(in: 1.1...1.8) : .random(in: 0.5...1.1),
+            width: .random(in: 0.25...0.55),
+            power: .random(in: 0.18...0.34)
         ))
     }
 
-    private func render(at tick: Double, mode: FieldMode) -> [String] {
+    private func render(at time: Double, mode: FieldMode) -> [String] {
         let ramp = Self.ramp
         let top = Double(ramp.count - 1)
         let columns = grid.columns
-        let rows = grid.rows
+        let rows = Double(grid.rows)
         let centerX = Double(columns) / 2
-        let centerY = Double(rows) / 2
-        let reach = max(Double(rows), Double(columns) * 0.5)
-        let quiet = max(2, reach * 0.1)
-        let flow = mode == .think ? 0.05 : 0.02
-        let flicker = Int(tick / 3)
+        let flow = time * (mode == .think ? 0.9 : 0.35)
+        let rippleZ = Self.cameraHeight / (0.5 + Self.horizon)
+        let flicker = Int(time * 4)
+        let light = Self.light
 
         var lines: [String] = []
-        lines.reserveCapacity(rows)
+        lines.reserveCapacity(grid.rows)
 
-        for y in 0..<rows {
+        for y in 0..<grid.rows {
             var line: [Character] = []
             line.reserveCapacity(columns)
-            let py = Double(y) * 0.16
+            let screenY = Double(y) / rows + Self.horizon
+            let depth = Self.cameraHeight / screenY
+            let fog = min(1, max(0, 1.35 - depth * 0.11))
 
             for x in 0..<columns {
-                let px = Double(x) * 0.08
-                let warp = fbm(px + tick * 0.008, py - tick * 0.006)
-                let base = fbm(px + warp * 1.8 + tick * flow, py + warp * 1.2 - tick * flow * 0.7)
-                var value = pow(max(0, base - 0.25) / 0.75, 2.2) * 0.75
+                let screenX = (Double(x) - centerX) * 0.5 / rows
+                let worldX = screenX * depth * Self.spread
+                let worldZ = depth
 
-                for bloom in blooms {
-                    let age = tick - bloom.born
-                    guard age >= 0 else { continue }
-                    let dx = (Double(x) - bloom.x) * 0.5
-                    let dy = Double(y) - bloom.y
-                    let distance = (dx * dx + dy * dy).squareRoot()
-                    let radius = age * bloom.speed
-                    let k = (distance - radius) / bloom.width
-                    let fade = 1 - age / bloom.life
-                    var ring = exp(-k * k) * fade * bloom.power
-                    if distance < radius {
-                        ring += 0.12 * fade * exp(-(radius - distance) * 0.25)
-                    }
-                    value = max(value, ring)
-                }
+                let h = height(worldX, worldZ, time: time, flow: flow, mode: mode, rippleZ: rippleZ)
+                let dx = (height(worldX + Self.step, worldZ, time: time, flow: flow, mode: mode, rippleZ: rippleZ) - h) / Self.step
+                let dz = (height(worldX, worldZ + Self.step, time: time, flow: flow, mode: mode, rippleZ: rippleZ) - h) / Self.step
+                let length = (dx * dx + 1 + dz * dz).squareRoot()
+                let diffuse = max(0, (-dx * light.x + light.y - dz * light.z) / length)
 
-                if mode == .ripple {
-                    let dx = (Double(x) - centerX) * 0.5
-                    let dy = Double(y) - centerY
-                    let distance = (dx * dx + dy * dy).squareRoot()
-                    let ring = 0.5 + 0.5 * cos(distance * 0.6 + tick * 0.2)
-                    let inner = min(1, max(0, (distance - quiet) / 6))
-                    let outer = max(0, 1 - distance / (reach * 0.75))
-                    value = max(value * inner, ring * inner * outer * 0.7)
-                }
+                let gridX = abs((worldX * 0.9).truncatingRemainder(dividingBy: 1))
+                let gridZ = abs(((worldZ + flow) * 0.9).truncatingRemainder(dividingBy: 1))
+                let edgeX = min(gridX, 1 - gridX)
+                let edgeZ = min(gridZ, 1 - gridZ)
+                let lineWeight = max(0, 1 - min(edgeX, edgeZ) / 0.07)
 
-                if value < 0.2, hash(x &* 3 &+ flicker, y &* 7 &- flicker) > 0.9965 {
-                    value = 0.85
+                var value = pow(diffuse, 4) * 0.8 + lineWeight * 0.32 * (0.4 + diffuse * 0.6)
+                value *= fog
+
+                if value < 0.2, hash(x &* 3 &+ flicker, y &* 7 &- flicker) > 0.9975 {
+                    value = 0.8
                 }
 
                 let index = Int(min(top, max(0, (value * top).rounded(.down))))
@@ -141,6 +133,29 @@ final class FieldEngine {
             lines.append(String(line))
         }
         return lines
+    }
+
+    private func height(_ x: Double, _ z: Double, time: Double, flow: Double, mode: FieldMode, rippleZ: Double) -> Double {
+        let movingZ = z + flow
+        var h = 0.32 * sin(x * 0.8 + time * 0.4) * cos(movingZ * 0.65 - time * 0.3)
+        h += 0.55 * fbm(x * 0.32 + time * 0.03, movingZ * 0.32)
+
+        for bloom in blooms {
+            let age = lastTime.map { $0 - bloom.born } ?? 0
+            guard age >= 0 else { continue }
+            let bx = x - bloom.x
+            let bz = z - bloom.z
+            let distance = (bx * bx + bz * bz).squareRoot()
+            let k = (distance - age * bloom.speed) / bloom.width
+            guard abs(k) < 3 else { continue }
+            h += exp(-k * k) * (1 - age / bloom.life) * bloom.power
+        }
+
+        if mode == .ripple {
+            let distance = (x * x + (z - rippleZ) * (z - rippleZ)).squareRoot()
+            h += 0.22 * cos(distance * 2.4 - time * 2.2) * exp(-distance * 0.22) * min(1, distance / 0.8)
+        }
+        return h
     }
 
     private func hash(_ x: Int, _ y: Int) -> Double {

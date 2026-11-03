@@ -9,11 +9,11 @@ final class LavaLamp {
         var position: SIMD2<Double>
         var velocity: SIMD2<Double>
         var radius: Double
-        var heat: Double
+        var tone: Double
         var phase: Double
+        var pace: Double
     }
 
-    private static let poolDepth = 0.3
     private static let fingerReach = 0.32
 
     private var blobs: [Blob]
@@ -21,6 +21,7 @@ final class LavaLamp {
     private var down = SIMD2<Double>(0, 1)
     private var pull = 0.8
     private var dent = SIMD3<Double>(0, 0, 0)
+    private var spawns = 0
     private var last: Date?
 
     private(set) var packed: [Float] = []
@@ -30,30 +31,23 @@ final class LavaLamp {
         blobs = radii.enumerated().map { index, radius in
             let fi = Double(index)
             return Blob(
-                position: SIMD2(0.15 + 0.7 * (fi * 0.618).truncatingRemainder(dividingBy: 1), 0.3 + 1.5 * (fi * 0.382).truncatingRemainder(dividingBy: 1)),
+                position: SIMD2(0.15 + 0.7 * (fi * 0.618).truncatingRemainder(dividingBy: 1), 0.1 + 2 * (fi * 0.382).truncatingRemainder(dividingBy: 1)),
                 velocity: .zero,
                 radius: radius,
-                heat: (fi * 0.29).truncatingRemainder(dividingBy: 1),
-                phase: fi * 1.7
+                tone: (fi * 0.29).truncatingRemainder(dividingBy: 1),
+                phase: fi * 1.7,
+                pace: 0.6 + 0.8 * (fi * 0.447).truncatingRemainder(dividingBy: 1)
             )
         }
         pack()
     }
 
-    var pool: SIMD4<Float> {
-        SIMD4(Float(down.x), Float(down.y), Float(bottom), Float(bottom - Self.poolDepth))
+    var direction: SIMD2<Float> {
+        SIMD2(Float(down.x), Float(down.y))
     }
 
     var finger: SIMD3<Float> {
         SIMD3(Float(dent.x), Float(dent.y), Float(dent.z))
-    }
-
-    private var bottom: Double {
-        max(0, down.x * extent.x) + max(0, down.y * extent.y)
-    }
-
-    private var top: Double {
-        min(0, down.x * extent.x) + min(0, down.y * extent.y)
     }
 
     func step(to date: Date, extent newExtent: SIMD2<Double>, gravity: CGPoint, touch: SIMD3<Double>, energy: Double) {
@@ -66,8 +60,7 @@ final class LavaLamp {
         let raw = SIMD2(Double(gravity.x), Double(gravity.y))
         let magnitude = min(1, simd_length(raw))
         if magnitude > 0.08 {
-            let follow = 1 - exp(-dt * 3)
-            down = simd_normalize(down + (raw / magnitude - down) * follow)
+            down = simd_normalize(down + (raw / magnitude - down) * (1 - exp(-dt * 3)))
         }
         pull += (magnitude - pull) * (1 - exp(-dt * 3))
 
@@ -77,20 +70,15 @@ final class LavaLamp {
         dent.z += (touch.z - dent.z) * (1 - exp(-dt * (touch.z > dent.z ? 8 : 2.5)))
 
         let side = SIMD2(-down.y, down.x)
-        let floor = bottom, ceiling = top
-        let span = max(0.001, floor - ceiling)
         let time = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)
         let finger = SIMD2(touch.x, touch.y)
 
         for index in blobs.indices {
             var blob = blobs[index]
-            let height = (floor - simd_dot(blob.position, down)) / span
-            let warming = height < 0.18 ? 0.22 : -0.07 * (0.4 + height)
-            blob.heat = min(1, max(0, blob.heat + warming * energy * dt))
 
-            var force = -down * (blob.heat - 0.42) * 0.55 * (0.35 + 0.65 * pull)
-            force += side * 0.03 * sin(time * 0.31 + blob.phase)
-            force += down * 0.02 * sin(time * 0.23 + blob.phase * 1.3)
+            var force = down * 0.05 * blob.pace * energy * (0.3 + 0.7 * pull)
+            force += side * 0.025 * sin(time * 0.31 + blob.phase)
+            force -= down * 0.03 * sin(time * 0.43 * blob.pace + blob.phase * 1.3)
 
             if touch.z > 0.01 {
                 let away = blob.position - finger
@@ -116,26 +104,36 @@ final class LavaLamp {
             if speed > 0.5 { blob.velocity *= 0.5 / speed }
             blob.position += blob.velocity * dt
 
-            let margin = blob.radius * 0.5
-            for axis in 0..<2 {
-                if blob.position[axis] < margin {
-                    blob.position[axis] = margin
-                    blob.velocity[axis] = abs(blob.velocity[axis]) * 0.3
-                } else if blob.position[axis] > extent[axis] - margin {
-                    blob.position[axis] = extent[axis] - margin
-                    blob.velocity[axis] = -abs(blob.velocity[axis]) * 0.3
-                }
-            }
+            let margin = blob.radius * 2
+            let outside = blob.position.x < -margin || blob.position.y < -margin
+                || blob.position.x > extent.x + margin || blob.position.y > extent.y + margin
+            if outside { respawn(&blob) }
             blobs[index] = blob
         }
         pack()
+    }
+
+    private func respawn(_ blob: inout Blob) {
+        spawns += 1
+        let seed = Double(spawns)
+        let point = SIMD2(
+            extent.x * (0.1 + 0.8 * (seed * 0.618).truncatingRemainder(dividingBy: 1)),
+            extent.y * (0.1 + 0.8 * (seed * 0.382).truncatingRemainder(dividingBy: 1))
+        )
+        var back = Double.greatestFiniteMagnitude
+        for axis in 0..<2 where abs(down[axis]) > 1e-4 {
+            let distance = down[axis] > 0 ? point[axis] / down[axis] : (point[axis] - extent[axis]) / down[axis]
+            back = min(back, distance)
+        }
+        blob.position = point - down * (back + blob.radius * 1.9)
+        blob.velocity = down * 0.04
     }
 
     private func pack() {
         var values: [Float] = []
         values.reserveCapacity(blobs.count * Self.stride)
         for blob in blobs {
-            values += [Float(blob.position.x), Float(blob.position.y), Float(blob.radius), Float(blob.velocity.x), Float(blob.velocity.y), Float(blob.heat)]
+            values += [Float(blob.position.x), Float(blob.position.y), Float(blob.radius), Float(blob.velocity.x), Float(blob.velocity.y), Float(blob.tone)]
         }
         packed = values
     }

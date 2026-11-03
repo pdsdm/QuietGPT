@@ -39,7 +39,7 @@ struct LiquidField: View {
                     touch: SIMD3(touch.point.x / scale, touch.point.y / scale, touch.strength),
                     energy: energy
                 )
-                let pool = lamp.pool
+                let direction = lamp.direction
                 let finger = lamp.finger
                 Rectangle()
                     .colorEffect(ShaderLibrary.lavaLamp(
@@ -47,7 +47,7 @@ struct LiquidField: View {
                         .float(Float(scale)),
                         .float(Float(time)),
                         .floatArray(lamp.packed),
-                        .float4(pool.x, pool.y, pool.z, pool.w),
+                        .float2(direction.x, direction.y),
                         .float3(finger.x, finger.y, finger.z),
                         .float(colorScheme == .dark ? 1 : 0),
                         .image(AsciiGlyphs.atlas),

@@ -63,6 +63,7 @@ final class KeyboardViewController: UIInputViewController {
         let language = Locale.preferredLanguages.first ?? "en"
         model.isSpanish = language.hasPrefix("es") || language.hasPrefix("ca")
         primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
+        KeyboardText.use(spanish: model.isSpanish)
 
         loadSettings()
         updateReturnKey()
@@ -293,20 +294,20 @@ final class KeyboardViewController: UIInputViewController {
 
     private func updateReturnKey() {
         switch proxy.returnKeyType ?? .default {
-        case .go: setReturn("go", "ir", action: true)
-        case .send: setReturn("send", "enviar", symbol: "arrow.up", action: true)
-        case .search, .google, .yahoo: setReturn("search", "buscar", action: true)
-        case .done: setReturn("done", "OK", action: true)
-        case .join: setReturn("join", "unirse", action: true)
-        case .route: setReturn("route", "ruta", action: true)
-        case .next: setReturn("next", "siguiente", action: false)
-        case .continue: setReturn("continue", "continuar", action: false)
-        default: setReturn("return", "intro", symbol: "return.left", action: false)
+        case .go: setReturn("go", action: true)
+        case .send: setReturn("send", symbol: "arrow.up", action: true)
+        case .search, .google, .yahoo: setReturn("search", action: true)
+        case .done: setReturn("done", action: true)
+        case .join: setReturn("join", action: true)
+        case .route: setReturn("route", action: true)
+        case .next: setReturn("next", action: false)
+        case .continue: setReturn("continue", action: false)
+        default: setReturn("return", symbol: "return.left", action: false)
         }
     }
 
-    private func setReturn(_ english: String, _ spanish: String, symbol: String? = nil, action: Bool) {
-        model.returnTitle = model.isSpanish ? spanish : english
+    private func setReturn(_ title: String.LocalizationValue, symbol: String? = nil, action: Bool) {
+        model.returnTitle = KeyboardText.string(title)
         model.returnSymbol = symbol
         model.returnIsAction = action
     }
@@ -337,7 +338,7 @@ final class KeyboardViewController: UIInputViewController {
         guard !model.isWriting else { return }
         let (text, isSelection) = currentText()
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            show(hint: model.isSpanish ? "Escribe un mensaje primero" : "Write a message first")
+            show(hint: KeyboardText.string("Write a message first"))
             return
         }
         guard rewriter.isAvailable else {
@@ -436,7 +437,7 @@ final class KeyboardViewController: UIInputViewController {
         task = nil
         restore()
         finishWriting()
-        show(hint: model.isSpanish ? "Parado, tu texto ha vuelto" : "Stopped, your text is back")
+        show(hint: KeyboardText.string("Stopped, your text is back"))
     }
 
     private func undo() {

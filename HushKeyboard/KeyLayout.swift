@@ -158,7 +158,7 @@ enum KeyLayout {
             let inEmoji = state.layer == .emoji
             bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(inEmoji ? .letters : .emoji), symbol: inEmoji ? "keyboard" : "face.smiling.inverse", symbolSize: 20, label: inEmoji ? "Letters" : "Emoji"), units: 1.25))
         }
-        bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: state.isSpanish ? "espacio" : "space"), units: 5))
+        bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 5))
         if state.layer == .emoji {
             var wide = delete
             wide.units = 2.5

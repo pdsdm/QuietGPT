@@ -100,7 +100,7 @@ struct HushBar: View {
                 case .undo:
                     Image(systemName: "arrow.uturn.backward")
                         .font(.system(size: 13, weight: .medium))
-                    Text(model.isSpanish ? "Deshacer" : "Undo")
+                    Text(KeyboardText.string("Undo"))
                 case .style(let value):
                     Text(value.title)
                     if active && model.isWriting {
@@ -110,7 +110,7 @@ struct HushBar: View {
                 case .ask:
                     Image(systemName: "text.bubble")
                         .font(.system(size: 13, weight: .medium))
-                    Text(model.isSpanish ? "Pedir" : "Ask")
+                    Text(KeyboardText.string("Ask"))
                 }
             }
             .font(.system(size: 16))
@@ -175,7 +175,7 @@ struct HushBar: View {
             HStack(spacing: 1) {
                 if model.instruction.isEmpty {
                     Caret(color: Color(style.accent))
-                    Text(model.isSpanish ? "más cálido y más corto" : "make it warmer and shorter")
+                    Text(KeyboardText.string("make it warmer and shorter"))
                         .foregroundStyle(Color(style.secondary))
                 } else {
                     Text(model.instruction)

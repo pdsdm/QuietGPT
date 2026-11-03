@@ -31,7 +31,7 @@ final class KeyboardModel {
     var isSpanish = false
     var showsAsk = true
 
-    var goTitle: String { isSpanish ? "ir" : "go" }
+    var goTitle: String { KeyboardText.string("go") }
 
     var keys: KeyState {
         KeyState(

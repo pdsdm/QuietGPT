@@ -2,12 +2,14 @@ import LocalAuthentication
 import SwiftUI
 
 struct LockScreen: View {
+    @Binding var authenticating: Bool
     var onUnlock: () -> Void
 
     @Environment(\.palette) private var palette
+    @Environment(\.scenePhase) private var scenePhase
     @State private var failed = 0
-    @State private var authenticating = false
-    @State private var lockState: LockState = .locked
+    @State private var asked = false
+    @State private var lockState: LockState = .open
 
     var body: some View {
         ZStack {
@@ -48,7 +50,14 @@ struct LockScreen: View {
             }
         }
         .sensoryFeedback(.error, trigger: failed)
-        .task { authenticate(biometricsOnly: false) }
+        .onAppear { askOnce() }
+        .onChange(of: scenePhase) { askOnce() }
+    }
+
+    private func askOnce() {
+        guard !asked, scenePhase == .active else { return }
+        asked = true
+        authenticate(biometricsOnly: false)
     }
 
     private func authenticate(biometricsOnly: Bool) {
@@ -77,7 +86,7 @@ struct LockScreen: View {
                 onUnlock()
             } else {
                 authenticating = false
-                lockState = .locked
+                lockState = .open
                 failed += 1
             }
         }

@@ -41,6 +41,7 @@ private struct AppFlow: View {
     @State private var tab: AppTab = .chat
     @State private var locked = true
     @State private var loading = true
+    @State private var authenticating = false
 
     var body: some View {
         ZStack {
@@ -57,14 +58,14 @@ private struct AppFlow: View {
             }
 
             if onboarded && lockEnabled && locked {
-                LockScreen {
+                LockScreen(authenticating: $authenticating) {
                     withAnimation(Motion.gentle) { locked = false }
                 }
                 .transition(AnyTransition.opacity.combined(with: .scale(scale: 0.96)).combined(with: AnyTransition(.blurReplace)))
                 .zIndex(2)
             }
 
-            if scenePhase != .active && onboarded && lockEnabled {
+            if scenePhase != .active && onboarded && lockEnabled && !authenticating {
                 PrivacyCover()
                     .transition(.opacity)
                     .zIndex(3)
@@ -144,6 +145,9 @@ private struct PrivacyCover: View {
     @Environment(\.palette) private var palette
 
     var body: some View {
-        palette.background.ignoresSafeArea()
+        ZStack {
+            palette.background.ignoresSafeArea()
+            AsciiLock(side: 320, state: .open)
+        }
     }
 }

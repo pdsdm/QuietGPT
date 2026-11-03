@@ -12,7 +12,7 @@ struct LockScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            AsciiField(mode: .ripple, mask: .none)
+            LiquidField(mode: .ripple, mask: .none)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {

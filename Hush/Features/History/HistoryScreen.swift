@@ -16,7 +16,7 @@ struct HistoryScreen: View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
-            AsciiField(mode: .drift, mask: .fadeDown)
+            LiquidField(mode: .drift, mask: .fadeDown)
                 .frame(height: 300)
                 .ignoresSafeArea(edges: .top)
 

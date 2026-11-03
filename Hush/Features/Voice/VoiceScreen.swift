@@ -8,7 +8,7 @@ struct VoiceScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            AsciiField(mode: .ripple, mask: .vignette)
+            LiquidField(mode: .ripple, mask: .vignette)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {

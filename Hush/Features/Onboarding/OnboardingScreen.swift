@@ -13,7 +13,7 @@ struct OnboardingScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            AsciiField(mode: page == 1 ? .drift : .ripple, mask: .fadeDown)
+            LiquidField(mode: page == 1 ? .drift : .ripple, mask: .fadeDown)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {

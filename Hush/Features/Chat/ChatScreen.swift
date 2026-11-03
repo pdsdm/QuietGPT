@@ -18,7 +18,7 @@ struct ChatScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            AsciiField(
+            LiquidField(
                 mode: controller.isResponding ? .think : .drift,
                 mask: controller.hasConversation ? .fadeUp : .fadeDown
             )

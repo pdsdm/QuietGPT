@@ -21,7 +21,7 @@ struct PrivacyScreen: View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
-            AsciiField(mode: .ripple, mask: .fadeDown)
+            LiquidField(mode: .ripple, mask: .fadeDown)
                 .frame(height: 360)
                 .ignoresSafeArea(edges: .top)
 

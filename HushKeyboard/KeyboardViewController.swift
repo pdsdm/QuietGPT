@@ -24,6 +24,7 @@ final class KeyboardViewController: UIInputViewController {
     private var draft: (original: String, shown: String)?
     private var lastSpace: ContinuousClock.Instant?
     private var lastShiftTap: ContinuousClock.Instant?
+    private var height: NSLayoutConstraint?
 
     override func loadView() {
         let input = KeyboardInputView(frame: .zero, inputViewStyle: .keyboard)
@@ -56,10 +57,6 @@ final class KeyboardViewController: UIInputViewController {
         keys.topLimit = -HushBar.height
         view.addSubview(keys)
 
-        let height = view.heightAnchor.constraint(equalToConstant: HushBar.height + KeyLayout.height + KeyLayout.bottomPadding)
-        height.priority = .required - 1
-        height.isActive = true
-
         loadSettings()
         updateReturnKey()
         observe()
@@ -69,6 +66,12 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        if height == nil {
+            let height = view.heightAnchor.constraint(equalToConstant: HushBar.height + KeyLayout.height + KeyLayout.bottomPadding)
+            height.priority = .required - 1
+            height.isActive = true
+            self.height = height
+        }
         loadSettings()
         refresh()
     }
@@ -84,10 +87,14 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let width = view.bounds.width
-        let top = view.bounds.height - KeyLayout.height - KeyLayout.bottomPadding
+        let space = view.bounds.height - HushBar.height - KeyLayout.topPadding - KeyLayout.bottomPadding
+        let rowHeight = space > 0 ? min(KeyLayout.rowHeight, space / 4) : KeyLayout.rowHeight
+        let keysHeight = KeyLayout.height(rowHeight: rowHeight)
+        let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
         bar?.view.frame = CGRect(x: 0, y: top - HushBar.height, width: width, height: HushBar.height)
-        emoji?.view.frame = CGRect(x: 0, y: top + KeyLayout.topPadding, width: width, height: KeyLayout.rowHeight * 3)
-        keys.frame = CGRect(x: 0, y: top, width: width, height: KeyLayout.height)
+        emoji?.view.frame = CGRect(x: 0, y: top + KeyLayout.topPadding, width: width, height: rowHeight * 3)
+        keys.rowHeight = rowHeight
+        keys.frame = CGRect(x: 0, y: top, width: width, height: keysHeight)
     }
 
     override func viewWillLayoutSubviews() {

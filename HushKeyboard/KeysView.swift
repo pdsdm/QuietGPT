@@ -200,6 +200,12 @@ final class KeysView: UIView {
 
     var actions: KeyboardActions?
     var topLimit: CGFloat = 0
+    var rowHeight = KeyLayout.rowHeight {
+        didSet {
+            guard rowHeight != oldValue else { return }
+            rebuild()
+        }
+    }
 
     var state: KeyState? {
         didSet {
@@ -265,7 +271,7 @@ final class KeysView: UIView {
     private func rebuild() {
         guard let state else { return }
         builtWidth = bounds.width
-        specs = KeyLayout.build(state, width: bounds.width)
+        specs = KeyLayout.build(state, width: bounds.width, rowHeight: rowHeight)
         let style = style
         var next: [String: KeyCap] = [:]
         var spare = caps

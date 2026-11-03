@@ -81,8 +81,14 @@ enum KeyLayout {
         "%": ["‰"]
     ]
 
-    static func build(_ state: KeyState, width: CGFloat) -> [KeySpec] {
+    static func height(rowHeight: CGFloat) -> CGFloat {
+        topPadding + rowHeight * 4
+    }
+
+    static func build(_ state: KeyState, width: CGFloat, rowHeight: CGFloat = rowHeight) -> [KeySpec] {
         guard width > 0 else { return [] }
+        let height = height(rowHeight: rowHeight)
+        let insetY = insetY * rowHeight / Self.rowHeight
         let unit = (width - margin * 2) / 10
         let uppercase = state.layer == .letters && state.shift != .off
         var rows: [[Item]] = []

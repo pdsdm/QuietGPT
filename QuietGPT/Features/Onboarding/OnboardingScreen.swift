@@ -103,6 +103,7 @@ struct OnboardingScreen: View {
                 .font(QuietGPTFont.subheadline)
                 .foregroundStyle(palette.text2)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 

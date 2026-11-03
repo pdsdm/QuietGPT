@@ -17,9 +17,9 @@ struct AsciiLock: View {
 
     private let input = FieldInput.shared
 
-    private static let fontSize: CGFloat = 9
+    private static let fontSize: CGFloat = 6
     private static let cellWidth: CGFloat = fontSize * 0.6
-    private static let lineHeight: CGFloat = 9.5
+    private static let lineHeight: CGFloat = 6.4
 
     var body: some View {
         TimelineView(.animation(paused: reduceMotion)) { context in
@@ -36,7 +36,7 @@ struct AsciiLock: View {
                     aspect: Double(Self.lineHeight / Self.cellWidth),
                     pose: pose
                 )
-                let font = Font.system(size: Self.fontSize, weight: .medium, design: .monospaced)
+                let font = Font(UIFont.monospacedSystemFont(ofSize: Self.fontSize, weight: AsciiGlyphs.weight))
                 for (row, line) in lines.enumerated() {
                     let text = canvas.resolve(Text(line).font(font).foregroundStyle(palette.text))
                     canvas.draw(text, at: CGPoint(x: size.width / 2, y: CGFloat(row) * Self.lineHeight), anchor: .top)

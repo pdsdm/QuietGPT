@@ -14,13 +14,14 @@ final class LockEngine {
         var z: Double
 
         static func - (a: Vector, b: Vector) -> Vector { Vector(x: a.x - b.x, y: a.y - b.y, z: a.z - b.z) }
+        static func + (a: Vector, b: Vector) -> Vector { Vector(x: a.x + b.x, y: a.y + b.y, z: a.z + b.z) }
         static func * (a: Vector, k: Double) -> Vector { Vector(x: a.x * k, y: a.y * k, z: a.z * k) }
         func dot(_ b: Vector) -> Double { x * b.x + y * b.y + z * b.z }
         var length: Double { dot(self).squareRoot() }
     }
 
     private struct Group {
-        let centers: [Vector]
+        let occupied: [Bool]
         let low: Vector
         let high: Vector
     }
@@ -37,7 +38,8 @@ final class LockEngine {
     static let pace = 1.6
     static let settled = 1.7 * pace
     static let closed = 1.25 * pace
-    private static let ramp: [Character] = Array(" .:-=+*#%@")
+    private static let ramp = AsciiGlyphs.ramp
+    private static let reachCap = 1.5 * unit - half
     private static let light: Vector = {
         let v = Vector(x: -0.45, y: 0.6, z: -0.66)
         return v * (1 / v.length)
@@ -49,8 +51,10 @@ final class LockEngine {
     private static func group(_ cells: [(column: Int, row: Int)]) -> Group {
         let centers = cells.map { Vector(x: Double($0.column - 2) * unit, y: Double(2 - $0.row) * unit, z: 0) }
         let xs = centers.map(\.x), ys = centers.map(\.y)
+        var occupied = Array(repeating: false, count: LockMark.size * LockMark.size)
+        for cell in cells { occupied[cell.row * LockMark.size + cell.column] = true }
         return Group(
-            centers: centers,
+            occupied: occupied,
             low: Vector(x: xs.min()! - half, y: ys.min()! - half, z: -half),
             high: Vector(x: xs.max()! + half, y: ys.max()! + half, z: half)
         )
@@ -101,11 +105,11 @@ final class LockEngine {
             return Vector(x: x * cosSwing + y * sinSwing + Self.pivotX, y: -x * sinSwing + y * cosSwing + Self.pivotY, z: p.z)
         }
 
-        func box(_ p: Vector, _ center: Vector) -> Double {
+        func box(_ p: Vector, _ cx: Double, _ cy: Double) -> Double {
             let inner = Self.half - Self.rounding
-            let qx = abs(p.x - center.x) - inner
-            let qy = abs(p.y - center.y) - inner
-            let qz = abs(p.z - center.z) - inner
+            let qx = abs(p.x - cx) - inner
+            let qy = abs(p.y - cy) - inner
+            let qz = abs(p.z) - inner
             let outside = Vector(x: max(qx, 0), y: max(qy, 0), z: max(qz, 0)).length
             return outside + min(max(qx, max(qy, qz)), 0) - Self.rounding
         }
@@ -120,9 +124,14 @@ final class LockEngine {
         func distance(_ g: Vector, _ group: Group) -> Double {
             let far = bound(g, group)
             if far > 0.25 { return far }
-            var best = Double.greatestFiniteMagnitude
-            for center in group.centers {
-                best = min(best, box(g, center))
+            let size = LockMark.size
+            let column = Int((g.x / Self.unit + 2).rounded())
+            let row = Int((2 - g.y / Self.unit).rounded())
+            var best = Self.reachCap
+            for r in stride(from: max(0, row - 1), through: min(size - 1, row + 1), by: 1) {
+                for c in stride(from: max(0, column - 1), through: min(size - 1, column + 1), by: 1) where group.occupied[r * size + c] {
+                    best = min(best, box(g, Double(c - 2) * Self.unit, Double(2 - r) * Self.unit))
+                }
             }
             return best
         }
@@ -167,8 +176,13 @@ final class LockEngine {
                     y: scene(Vector(x: hit.x, y: hit.y + e, z: hit.z)) - scene(Vector(x: hit.x, y: hit.y - e, z: hit.z)),
                     z: scene(Vector(x: hit.x, y: hit.y, z: hit.z + e)) - scene(Vector(x: hit.x, y: hit.y, z: hit.z - e))
                 )
-                let diffuse = max(0, normal.dot(local(viewLight)) / max(normal.length, 1e-6))
-                let value = 0.12 + 0.88 * diffuse
+                let unitNormal = normal * (1 / max(normal.length, 1e-6))
+                let lightDirection = local(viewLight)
+                let diffuse = max(0, unitNormal.dot(lightDirection))
+                let toEye = local(Vector(x: 0, y: 0, z: -1))
+                let halfway = lightDirection + toEye
+                let shine = pow(max(0, unitNormal.dot(halfway * (1 / max(halfway.length, 1e-6)))), 24)
+                let value = min(1, 0.1 + 0.72 * diffuse + 0.35 * shine)
                 line.append(ramp[1 + Int(min(top - 1, (value * (top - 1)).rounded(.down)))])
             }
             lines.append(String(line))

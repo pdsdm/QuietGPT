@@ -44,7 +44,7 @@ struct KeyStyle {
         key: UIColor(white: 117 / 255, alpha: 1),
         pressed: UIColor(red: 42 / 255, green: 44 / 255, blue: 42 / 255, alpha: 1),
         lit: UIColor(white: 165 / 255, alpha: 1),
-        popup: UIColor(white: 140 / 255, alpha: 1),
+        popup: UIColor(white: 158 / 255, alpha: 1),
         outline: UIColor(white: 1, alpha: 0.14),
         text: UIColor(white: 1, alpha: 1),
         secondary: UIColor(red: 235 / 255, green: 235 / 255, blue: 245 / 255, alpha: 0.7),

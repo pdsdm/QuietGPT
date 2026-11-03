@@ -18,7 +18,7 @@ struct LockScreen: View {
             VStack(spacing: 0) {
                 Spacer()
                 VStack(spacing: 22) {
-                    AppMark(size: 88)
+                    AsciiLock(side: 180, startsLocked: true)
                         .opacity(authenticating ? 0.6 : 1)
                         .animation(.easeInOut(duration: 0.4), value: authenticating)
                         .keyframeAnimator(initialValue: 0.0, trigger: failed) { content, offset in

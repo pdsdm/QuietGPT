@@ -146,9 +146,6 @@ private struct PrivacyCover: View {
     @Environment(\.palette) private var palette
 
     var body: some View {
-        ZStack {
-            palette.background.ignoresSafeArea()
-            AppMark(size: 88)
-        }
+        palette.background.ignoresSafeArea()
     }
 }

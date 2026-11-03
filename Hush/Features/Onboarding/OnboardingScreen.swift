@@ -156,9 +156,9 @@ private struct TerminalLines: View {
             }
         }
         .padding(16)
-        .background(palette.surface.opacity(0.9), in: .rect(cornerRadius: 18, style: .continuous))
+        .background(palette.surface.opacity(0.9), in: .rect(cornerRadius: Radius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                 .strokeBorder(palette.line, lineWidth: 1)
         }
         .task {

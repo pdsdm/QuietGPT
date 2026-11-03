@@ -249,7 +249,7 @@ private struct BarPreview: View {
             .padding(.horizontal, 6)
             .padding(.bottom, 8)
         }
-        .background(Color(style.background), in: .rect(cornerRadius: 26, style: .continuous))
+        .background(Color(style.background), in: .rect(cornerRadius: Radius.large, style: .continuous))
         .animation(Motion.snappy, value: titles)
     }
 }

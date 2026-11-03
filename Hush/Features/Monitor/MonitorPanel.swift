@@ -23,9 +23,9 @@ struct MonitorPanel: View {
             }
         }
         .padding(12)
-        .background(palette.surface, in: .rect(cornerRadius: 22, style: .continuous))
+        .background(palette.surface, in: .rect(cornerRadius: Radius.panel, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)
                 .strokeBorder(palette.line, lineWidth: 1)
         }
         .onAppear { store.start(reading: controller) }
@@ -178,7 +178,7 @@ private struct MonitorTile<Graph: View>: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(palette.raised, in: .rect(cornerRadius: 14, style: .continuous))
+        .background(palette.raised, in: .rect(cornerRadius: Radius.medium, style: .continuous))
         .animation(Motion.snappy, value: value)
     }
 }

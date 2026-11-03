@@ -184,7 +184,7 @@ private struct SearchField: View {
         }
         .padding(.horizontal, 12)
         .frame(height: 40)
-        .background(palette.raised, in: .rect(cornerRadius: 12, style: .continuous))
+        .background(palette.raised, in: .rect(cornerRadius: Radius.small, style: .continuous))
         .animation(Motion.snappy, value: text.isEmpty)
     }
 }

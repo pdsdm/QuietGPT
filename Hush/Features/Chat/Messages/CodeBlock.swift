@@ -42,9 +42,9 @@ struct CodeBlock: View {
                     .textSelection(.enabled)
             }
         }
-        .background(palette.background, in: .rect(cornerRadius: 14, style: .continuous))
+        .background(palette.background, in: .rect(cornerRadius: Radius.medium, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.medium, style: .continuous)
                 .strokeBorder(palette.line, lineWidth: 1)
         }
     }

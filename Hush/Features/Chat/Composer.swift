@@ -54,9 +54,9 @@ struct Composer: View {
                 }
             )
         }
-        .background(palette.raised, in: .rect(cornerRadius: 26, style: .continuous))
+        .background(palette.raised, in: .rect(cornerRadius: Radius.large, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
                 .strokeBorder(focused ? palette.accent.opacity(0.5) : .clear, lineWidth: 1)
         }
         .animation(Motion.spring, value: focused)

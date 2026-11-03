@@ -142,9 +142,9 @@ struct PrivacyScreen: View {
 
     private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 0, content: content)
-            .background(palette.surface, in: .rect(cornerRadius: 18, style: .continuous))
+            .background(palette.surface, in: .rect(cornerRadius: Radius.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                     .strokeBorder(palette.line, lineWidth: 1)
             }
     }

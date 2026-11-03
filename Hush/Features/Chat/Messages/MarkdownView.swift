@@ -139,7 +139,7 @@ private struct BlockChrome: ViewModifier {
             content
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(palette.background, in: .rect(cornerRadius: 14, style: .continuous))
+                .background(palette.background, in: .rect(cornerRadius: Radius.medium, style: .continuous))
         case .paragraph, .heading:
             content
         }

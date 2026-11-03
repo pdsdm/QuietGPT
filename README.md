@@ -45,7 +45,7 @@ Without Apple Intelligence, Hush shows a short message that explains how to turn
 ## Run
 
 1. Open `Hush.xcodeproj`.
-2. Select your team in Signing & Capabilities for each target.
+2. To use your own team, create `Config/Local.xcconfig` with `DEVELOPMENT_TEAM` and `HUSH_BUNDLE_PREFIX`. It overrides `Config/Base.xcconfig` and git ignores it.
 3. Run the `Hush` scheme.
 
 Run the tests with `Cmd+U` or:

@@ -199,9 +199,7 @@ final class KeyboardViewController: UIInputViewController {
             stop: { [weak self] in self?.stopWriting() },
             undo: { [weak self] in self?.undo() },
             close: { [weak self] in self?.closePanel() },
-            setLanguage: { [weak self] language in self?.change { $0.language = language } },
-            setAutoCapitalize: { [weak self] isOn in self?.change { $0.autoCapitalize = isOn } },
-            setPeriodShortcut: { [weak self] isOn in self?.change { $0.periodShortcut = isOn } }
+            setLanguage: { [weak self] language in self?.change { $0.language = language } }
         )
     }
 

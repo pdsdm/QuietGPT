@@ -142,9 +142,6 @@ struct HushPanel: View {
             .background(Color(style.key).opacity(0.45), in: .capsule)
 
             Spacer(minLength: 0)
-
-            toggle("Aa", isOn: model.options.autoCapitalize, label: "Auto capitals", action: actions.setAutoCapitalize)
-            toggle("␣ .", isOn: model.options.periodShortcut, label: "Double space adds a period", action: actions.setPeriodShortcut)
         }
         .frame(height: 30)
     }
@@ -155,26 +152,6 @@ struct HushPanel: View {
         case .english: "EN"
         case .spanish: "ES"
         }
-    }
-
-    private func toggle(_ title: String, isOn: Bool, label: String, action: @escaping (Bool) -> Void) -> some View {
-        Button {
-            action(!isOn)
-        } label: {
-            Text(title)
-                .font(BrandFont.font(size: 13, weight: .medium))
-                .foregroundStyle(Color(isOn ? style.accent : style.secondary))
-                .padding(.horizontal, 12)
-                .frame(height: 30)
-                .background(Color(style.key).opacity(isOn ? 1 : 0.45), in: .capsule)
-                .overlay {
-                    Capsule().strokeBorder(isOn ? Color(style.accent).opacity(0.6) : .clear, lineWidth: 1)
-                }
-                .contentShape(.capsule)
-        }
-        .buttonStyle(BarPressStyle())
-        .accessibilityLabel(label)
-        .accessibilityValue(isOn ? "On" : "Off")
     }
 
     private func pill(_ title: String, symbol: String, filled: Bool = false, action: @escaping () -> Void) -> some View {

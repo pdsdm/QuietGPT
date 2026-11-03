@@ -79,6 +79,4 @@ struct BarActions {
     var undo: () -> Void
     var close: () -> Void
     var setLanguage: (KeyboardLanguage) -> Void
-    var setAutoCapitalize: (Bool) -> Void
-    var setPeriodShortcut: (Bool) -> Void
 }

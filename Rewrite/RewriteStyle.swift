@@ -5,13 +5,30 @@ struct RewriteStyle: Codable, Identifiable, Hashable {
     var title: String
     var prompt: String
     var isOn: Bool
+    var usesRules: Bool
 
-    init(id: UUID = UUID(), title: String, prompt: String, isOn: Bool = true) {
+    init(id: UUID = UUID(), title: String, prompt: String, isOn: Bool = true, usesRules: Bool? = nil) {
         self.id = id
         self.title = title
         self.prompt = prompt
         self.isOn = isOn
+        self.usesRules = usesRules ?? !Self.withoutRules.contains(id)
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        prompt = try container.decode(String.self, forKey: .prompt)
+        isOn = try container.decode(Bool.self, forKey: .isOn)
+        usesRules = try container.decodeIfPresent(Bool.self, forKey: .usesRules) ?? !Self.withoutRules.contains(id)
+    }
+
+    private static let withoutRules: Set<UUID> = [
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000005")!,
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000006")!,
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!
+    ]
 
     static let builtIn: [RewriteStyle] = [
         RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000001")!, title: "Kinder", prompt: "Make this message kinder and warmer. Keep the same meaning."),
@@ -79,9 +96,13 @@ enum StyleStore {
     Keep the language of the message unless you are asked to translate it.
     """
 
+    static let maxRules = 10
+    static let maxRuleLength = 120
+
     private static let stylesKey = "styles"
     private static let instructionsKey = "instructions"
     private static let optionsKey = "keyboardOptions"
+    private static let rulesKey = "rules"
 
     static var shared: UserDefaults {
         group.flatMap { UserDefaults(suiteName: $0) } ?? .standard
@@ -104,6 +125,25 @@ enum StyleStore {
         set { shared.set(newValue, forKey: instructionsKey) }
     }
 
+    static var rules: [String] {
+        get { decode([String].self, rulesKey) ?? [] }
+        set { encode(newValue, rulesKey) }
+    }
+
+    static func instructions(usesRules: Bool) -> String {
+        compose(base: instructions, rules: usesRules ? rules : [])
+    }
+
+    static func compose(base: String, rules: [String]) -> String {
+        let clean = rules
+            .map { String($0.trimmingCharacters(in: .whitespacesAndNewlines).prefix(maxRuleLength)) }
+            .filter { !$0.isEmpty }
+            .prefix(maxRules)
+        guard !clean.isEmpty else { return base }
+        let lines = clean.enumerated().map { "\($0.offset + 1). \($0.element)" }.joined(separator: "\n")
+        return "\(base)\n\nAlways follow these rules from the user:\n\(lines)"
+    }
+
     static var options: KeyboardOptions {
         get { decode(KeyboardOptions.self, optionsKey) ?? KeyboardOptions() }
         set { encode(newValue, optionsKey) }
@@ -113,6 +153,7 @@ enum StyleStore {
         shared.removeObject(forKey: stylesKey)
         shared.removeObject(forKey: instructionsKey)
         shared.removeObject(forKey: optionsKey)
+        shared.removeObject(forKey: rulesKey)
     }
 
     private static func decode<Value: Decodable>(_ type: Value.Type, _ key: String) -> Value? {

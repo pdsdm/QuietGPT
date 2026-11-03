@@ -10,15 +10,19 @@ struct Rewriter {
 
     func prepare() {
         guard isAvailable else { return }
-        LanguageModelSession(model: model, instructions: StyleStore.instructions).prewarm()
+        session(usesRules: true).prewarm()
+    }
+
+    private func session(usesRules: Bool) -> LanguageModelSession {
+        LanguageModelSession(model: model, instructions: StyleStore.instructions(usesRules: usesRules))
     }
 
     func rewrite(_ text: String, style: RewriteStyle) -> AsyncThrowingStream<String, Error> {
-        rewrite(text, request: style.prompt)
+        rewrite(text, request: style.prompt, usesRules: style.usesRules)
     }
 
-    func rewrite(_ text: String, request: String) -> AsyncThrowingStream<String, Error> {
-        let session = LanguageModelSession(model: model, instructions: StyleStore.instructions)
+    func rewrite(_ text: String, request: String, usesRules: Bool = true) -> AsyncThrowingStream<String, Error> {
+        let session = session(usesRules: usesRules)
         let prompt = "\(request)\n\nMessage:\n\(text)"
         return AsyncThrowingStream { continuation in
             let task = Task {

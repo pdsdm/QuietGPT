@@ -5,41 +5,84 @@ final class LavaLamp {
     static let shared = LavaLamp()
     static let stride = 6
 
-    private struct Blob {
-        var position: SIMD2<Double>
-        var velocity: SIMD2<Double>
-        var radius: Double
-        var tone: Double
-        var phase: Double
-        var pace: Double
+    private enum Tuning {
+        static let grabReach = 1.6
+        static let spacing = 0.75
+        static let cohesion = 5.0
+        static let viscosity = 3.0
+        static let separation = 2.0
+        static let drag = 1.0
+        static let pull = 6.0
+        static let pullReach = 0.5
+        static let lead = 0.15
+        static let holdDamping = 0.85
+        static let maxSpeed = 1.2
+        static let parallax = 0.02
     }
 
-    private static let grabReach = 1.6
+    private struct Bead {
+        var position: SIMD2<Double>
+        var velocity: SIMD2<Double> = .zero
+        var radius: Double
+        var depth = 0.5
+        var phase: Double
+        var rest: SIMD2<Double> = .zero
+        var drop: Int
+    }
 
-    private var blobs: [Blob]
+    private struct Drop {
+        var pace: Double
+        var phase: Double
+    }
+
+    private enum Touch {
+        case idle
+        case holding(drop: Int, bead: Int, grip: SIMD2<Double>)
+    }
+
+    private var beads: [Bead] = []
+    private var drops: [Int: Drop] = [:]
     private var extent = SIMD2<Double>(1, 2.1)
     private var down = SIMD2<Double>(0, 1)
     private var pull = 0.8
-    private var grabbed: Int?
-    private var grip = SIMD2<Double>(0, 0)
+    private var touch = Touch.idle
     private var wasPressing = false
     private var spawns = 0
+    private var clock = 0.0
+    private var nextDrop = 0
     private var last: Date?
 
     private(set) var packed: [Float] = []
 
-    private init() {
-        let radii = [0.12, 0.09, 0.075, 0.105, 0.085, 0.07, 0.1, 0.08]
-        blobs = radii.enumerated().map { index, radius in
+    convenience init() {
+        let sizes = [4, 2, 2, 3, 2, 1, 3, 2]
+        self.init(layout: sizes.enumerated().map { index, size in
             let fi = Double(index)
-            return Blob(
-                position: SIMD2(0.15 + 0.7 * (fi * 0.618).truncatingRemainder(dividingBy: 1), 0.1 + 2 * (fi * 0.382).truncatingRemainder(dividingBy: 1)),
-                velocity: .zero,
-                radius: radius,
-                tone: (fi * 0.29).truncatingRemainder(dividingBy: 1),
-                phase: fi * 1.7,
-                pace: 0.6 + 0.8 * (fi * 0.447).truncatingRemainder(dividingBy: 1)
+            return (
+                center: SIMD2(0.15 + 0.7 * (fi * 0.618).truncatingRemainder(dividingBy: 1), 0.1 + 2 * (fi * 0.382).truncatingRemainder(dividingBy: 1)),
+                beads: size
             )
+        })
+    }
+
+    init(layout: [(center: SIMD2<Double>, beads: Int)]) {
+        for (index, item) in layout.enumerated() {
+            let fi = Double(index)
+            let id = nextDrop
+            nextDrop += 1
+            drops[id] = Drop(pace: 0.6 + 0.8 * (fi * 0.447).truncatingRemainder(dividingBy: 1), phase: fi * 1.7)
+            for bead in 0..<item.beads {
+                let seed = Double(beads.count)
+                let angle = seed * 2.399
+                let reach = 0.055 * sqrt(Double(bead)) * (0.8 + 0.5 * (seed * 0.731).truncatingRemainder(dividingBy: 1))
+                beads.append(Bead(
+                    position: item.center + SIMD2(cos(angle), sin(angle)) * reach,
+                    radius: 0.05 + 0.02 * (seed * 0.618).truncatingRemainder(dividingBy: 1),
+                    phase: seed * 1.3,
+                    drop: id
+                ))
+            }
+            settle(drop: id)
         }
         pack()
     }
@@ -48,12 +91,25 @@ final class LavaLamp {
         SIMD2(Float(down.x), Float(down.y))
     }
 
+    var beadCount: Int {
+        beads.count
+    }
+
+    var dropSizes: [Int] {
+        groups.keys.sorted().compactMap { groups[$0]?.count }
+    }
+
+    var dropCenters: [SIMD2<Double>] {
+        groups.keys.sorted().map { center(of: $0) }
+    }
+
     func step(to date: Date, extent newExtent: SIMD2<Double>, gravity: CGPoint, finger: SIMD2<Double>, pressing: Bool, energy: Double) {
         guard date != last else { return }
         let dt = min(1.0 / 20, max(0, date.timeIntervalSince(last ?? date)))
         last = date
         extent = newExtent
         guard dt > 0 else { return }
+        clock += dt
 
         let raw = SIMD2(Double(gravity.x), Double(gravity.y))
         let magnitude = min(1, simd_length(raw))
@@ -62,63 +118,137 @@ final class LavaLamp {
         }
         pull += (magnitude - pull) * (1 - exp(-dt * 3))
 
-        if pressing, !wasPressing {
-            grabbed = blobs.indices
-                .map { (index: $0, distance: simd_length(blobs[$0].position - finger) / blobs[$0].radius) }
-                .filter { $0.distance < Self.grabReach }
-                .min { $0.distance < $1.distance }?
-                .index
-            if let grabbed { grip = blobs[grabbed].position - finger }
-        }
-        if !pressing { grabbed = nil }
-        wasPressing = pressing
-
-        let side = SIMD2(-down.y, down.x)
-        let time = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)
-
-        for index in blobs.indices {
-            var blob = blobs[index]
-
-            var force = down * 0.05 * blob.pace * energy * (0.3 + 0.7 * pull)
-            force += side * 0.025 * sin(time * 0.31 + blob.phase)
-            force -= down * 0.03 * sin(time * 0.43 * blob.pace + blob.phase * 1.3)
-
-            for other in blobs.indices where other != index {
-                let away = blob.position - blobs[other].position
-                let distance = simd_length(away)
-                let reach = (blob.radius + blobs[other].radius) * 0.8
-                if distance < reach, distance > 1e-4 {
-                    force += away / distance * (1 - distance / reach) * 0.25
-                }
-            }
-
-            if index == grabbed {
-                grip *= exp(-dt * 3)
-                let target = finger + grip
-                blob.velocity = (target - blob.position) * min(1, dt * 18) / dt
-                blob.position += blob.velocity * dt
-                blobs[index] = blob
-                continue
-            }
-
-            blob.velocity += force * dt
-            blob.velocity *= exp(-dt * 1.4)
-            let speed = simd_length(blob.velocity)
-            if speed > 1.2 { blob.velocity *= 1.2 / speed }
-            blob.position += blob.velocity * dt
-
-            let margin = blob.radius * 2
-            let outside = blob.position.x < -margin || blob.position.y < -margin
-                || blob.position.x > extent.x + margin || blob.position.y > extent.y + margin
-            if outside { respawn(&blob) }
-            blobs[index] = blob
-        }
+        updateTouch(finger: finger, pressing: pressing, dt: dt)
+        moveBeads(finger: finger, energy: energy, dt: dt)
+        respawnLostDrops()
         pack()
     }
 
-    private func respawn(_ blob: inout Blob) {
+    private var groups: [Int: [Int]] {
+        Dictionary(grouping: beads.indices) { beads[$0].drop }
+    }
+
+    private func center(of drop: Int) -> SIMD2<Double> {
+        center(of: groups[drop] ?? [])
+    }
+
+    private func center(of members: [Int]) -> SIMD2<Double> {
+        guard !members.isEmpty else { return .zero }
+        return members.reduce(SIMD2<Double>.zero) { $0 + beads[$1].position } / Double(members.count)
+    }
+
+    private func updateTouch(finger: SIMD2<Double>, pressing: Bool, dt: Double) {
+        if pressing, !wasPressing {
+            let hit = beads.indices
+                .map { (index: $0, distance: simd_length(beads[$0].position - finger) / beads[$0].radius) }
+                .filter { $0.distance < Tuning.grabReach }
+                .min { $0.distance < $1.distance }?
+                .index
+            if let hit {
+                touch = .holding(drop: beads[hit].drop, bead: hit, grip: beads[hit].position - finger)
+            }
+        }
+        if !pressing { touch = .idle }
+        wasPressing = pressing
+        if case .holding(let drop, let bead, let grip) = touch {
+            touch = .holding(drop: drop, bead: bead, grip: grip * exp(-dt * 3))
+        }
+    }
+
+    private func moveBeads(finger: SIMD2<Double>, energy: Double, dt: Double) {
+        let side = SIMD2(-down.y, down.x)
+        var acceleration = [SIMD2<Double>](repeating: .zero, count: beads.count)
+
+        for (id, members) in groups {
+            let count = Double(members.count)
+            let middle = center(of: members)
+            let flow = members.reduce(SIMD2<Double>.zero) { $0 + beads[$1].velocity } / count
+            var inner = [SIMD2<Double>](repeating: .zero, count: members.count)
+
+            for (slot, index) in members.enumerated() {
+                let bead = beads[index]
+                let breathe = 1 + 0.25 * sin(clock * 0.4 + bead.phase)
+                let turn = 0.25 * sin(clock * 0.17 + bead.phase)
+                let rest = bead.rest * breathe
+                let target = middle + SIMD2(rest.x * cos(turn) - rest.y * sin(turn), rest.x * sin(turn) + rest.y * cos(turn))
+                inner[slot] += (target - bead.position) * Tuning.cohesion
+
+                for other in members where other != index {
+                    let away = bead.position - beads[other].position
+                    let distance = simd_length(away)
+                    let reach = (bead.radius + beads[other].radius) * Tuning.spacing
+                    if distance < reach, distance > 1e-4 {
+                        inner[slot] += away / distance * (1 - distance / reach) * Tuning.separation
+                    }
+                }
+                beads[index].velocity += (flow - bead.velocity) * (1 - exp(-dt * Tuning.viscosity))
+                beads[index].depth = 0.5 + 0.5 * sin(clock * 0.35 + bead.phase)
+            }
+
+            let balance = inner.reduce(SIMD2<Double>.zero, +) / count
+            for (slot, index) in members.enumerated() {
+                acceleration[index] = inner[slot] - balance
+            }
+
+            var damping = Tuning.drag
+            if case .holding(id, let held, let grip) = touch {
+                let gap = finger + grip - beads[held].position
+                let distance = simd_length(gap)
+                let force = (distance > Tuning.pullReach ? gap / distance * Tuning.pullReach : gap) * Tuning.pull
+                let share = (1 - Tuning.lead) / count
+                for index in members {
+                    acceleration[index] += force * (index == held ? Tuning.lead + share : share)
+                }
+                damping = 2 * Tuning.holdDamping * sqrt(Tuning.pull / count)
+            } else if let drop = drops[id] {
+                var drift = down * 0.05 * drop.pace * energy * (0.3 + 0.7 * pull)
+                drift += side * 0.025 * sin(clock * 0.31 + drop.phase)
+                drift -= down * 0.03 * sin(clock * 0.43 * drop.pace + drop.phase * 1.3)
+                for index in members { acceleration[index] += drift }
+            }
+
+            for index in members {
+                var velocity = (beads[index].velocity + acceleration[index] * dt) * exp(-dt * damping)
+                let speed = simd_length(velocity)
+                if speed > Tuning.maxSpeed { velocity *= Tuning.maxSpeed / speed }
+                beads[index].velocity = velocity
+            }
+        }
+
+        for index in beads.indices {
+            beads[index].position += beads[index].velocity * dt
+        }
+    }
+
+    private func settle(drop: Int) {
+        let members = groups[drop] ?? []
+        let middle = center(of: members)
+        let limit = 0.055 * sqrt(Double(members.count)) * 1.2
+        let farthest = members.map { simd_length(beads[$0].position - middle) }.max() ?? 0
+        let scale = farthest > limit ? limit / farthest : 1
+        for index in members {
+            beads[index].rest = (beads[index].position - middle) * scale
+        }
+    }
+
+    private func respawnLostDrops() {
+        var heldDrop: Int?
+        if case .holding(let drop, _, _) = touch { heldDrop = drop }
+        for (id, members) in groups where id != heldDrop {
+            let lost = members.allSatisfy { index in
+                let margin = beads[index].radius * 2
+                let point = beads[index].position
+                return point.x < -margin || point.y < -margin || point.x > extent.x + margin || point.y > extent.y + margin
+            }
+            if lost { respawn(members) }
+        }
+    }
+
+    private func respawn(_ members: [Int]) {
         spawns += 1
         let seed = Double(spawns)
+        let middle = center(of: members)
+        let size = members.map { simd_length(beads[$0].position - middle) + beads[$0].radius }.max() ?? 0
         let point = SIMD2(
             extent.x * (0.1 + 0.8 * (seed * 0.618).truncatingRemainder(dividingBy: 1)),
             extent.y * (0.1 + 0.8 * (seed * 0.382).truncatingRemainder(dividingBy: 1))
@@ -128,15 +258,20 @@ final class LavaLamp {
             let distance = down[axis] > 0 ? point[axis] / down[axis] : (point[axis] - extent[axis]) / down[axis]
             back = min(back, distance)
         }
-        blob.position = point - down * (back + blob.radius * 1.9)
-        blob.velocity = down * 0.04
+        let shift = point - down * (back + size * 1.9) - middle
+        for index in members {
+            beads[index].position += shift
+            beads[index].velocity = down * 0.04
+        }
     }
 
     private func pack() {
+        let tilt = (down - SIMD2(0, 1)) * Tuning.parallax
         var values: [Float] = []
-        values.reserveCapacity(blobs.count * Self.stride)
-        for blob in blobs {
-            values += [Float(blob.position.x), Float(blob.position.y), Float(blob.radius), Float(blob.velocity.x), Float(blob.velocity.y), Float(blob.tone)]
+        values.reserveCapacity(beads.count * Self.stride)
+        for bead in beads {
+            let point = bead.position + tilt * bead.depth
+            values += [Float(point.x), Float(point.y), Float(bead.radius), Float(bead.velocity.x), Float(bead.velocity.y), Float(bead.depth)]
         }
         packed = values
     }

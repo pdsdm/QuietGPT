@@ -139,8 +139,8 @@ final class KeyboardViewController: UIInputViewController {
         keys.frame = CGRect(x: 0, y: top, width: width, height: keysHeight)
         var state = model.keys
         state.layer = .letters
-        if let lock = KeyLayout.build(state, width: width, rowHeight: rowHeight).first(where: { $0.kind == .quietGPT }) {
-            let frame = lock.face.offsetBy(dx: 0, dy: top)
+        if let corner = KeyLayout.build(state, width: width, rowHeight: rowHeight).first(where: { $0.id == "switch" }) {
+            let frame = corner.face.offsetBy(dx: 0, dy: top)
             if model.closeFrame != frame {
                 model.closeFrame = frame
             }

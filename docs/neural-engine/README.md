@@ -21,11 +21,12 @@ All tests ran on an iPhone 16 Pro Max.
 
 | Question | Result |
 |---|---|
-| Does the ANE work during a reply? | Yes. It is busy 87% of the time while text streams, and 0% before and after |
-| Did all test replies use the ANE? | Yes. All 12 replies have ANE events, 1,100 in total |
+| Does the ANE work during a reply? | Yes. It is busy 84–87% of the time while text streams, and 0% just before the reply |
+| Did all test replies use the ANE? | Yes. All 14 replies with ANE data have ANE events |
 | Does the AI work appear on the GPU? | No separate AI process appears on the GPU |
-| How fast is a long reply? | About 21 tokens/s |
-| How much power does it use? | Not measured yet |
+| How fast is a long reply? | About 21 and about 48 tokens/s in two tests |
+| How much power does it use? | No watt or battery number yet. Instruments gives only impact scores |
+| Is the GPU free when the app is idle? | Not on most tabs. The animated background uses 39–92% of GPU time, with no reply running |
 
 ## What the ANE is
 
@@ -116,22 +117,68 @@ Each reply window comes from the time in the QuietGPT log.
 - **84% of all ANE time is inside these windows** (15.39 s of 18.37 s). The app also loads at launch. The source of the other ANE work is not known. iOS can use the ANE for other features.
 - **GPU use in the full recording:** the system compositor 58.62 s, QuietGPT 17.25 s, all others less than 0.25 s. No separate AI process appears.
 
+### Second test, 4 November
+
+**Test setup:** the same iPhone and iOS version, on the cable and charging. The build is a debug build. We did not record which commit it contains.
+
+The reply had 1,591 characters, about 398 tokens. The first text came after 2.97 s. The total time was 11.28 s, about 48 tokens each second. The app log puts the start of the reply at 8.78 s, and the first ANE event comes at 8.81 s.
+
+| Phase | Seconds | ANE busy |
+|---|---|---|
+| Before the reply | 0–7 | 0% |
+| Load and read the prompt | 8–10 | 8–32% |
+| Text streams | 11–19 | 84% on average (77–87%) |
+| After the reply | 21–34 | 0% |
+| No message sent | 35–36 and 38–42 | 3–87% |
+
+The recording has 742 prediction events and 10 load events. Two of these events have a name: `md8-text-encoder_main_ctx_512__Op0_AneInference`. They come at 35.55 s and 35.72 s, after the reply.
+
+**The ANE also works without a QuietGPT reply.** Second 35–42 in this table has no message. A recording of idle tabs with no message also has an ANE burst, with an average of 47% over 5 seconds. That recording also has an event named `sbert_quantized_mlprogram_main__Op1_AneInference`. The source of this work is not known. It can be iOS. For this reason, ANE activity alone does not prove a reply. The match in time does.
+
+### GPU use when the app is idle
+
+We opened one tab at a time, and we sent no message. The table gives QuietGPT GPU time. We ignored the first 10 seconds of each tab.
+
+| Tab | Animated background (`LiquidField`) | Average GPU time, each second | Range |
+|---|---|---|---|
+| Keyboard, three tests | No | 0 ms | 0 ms |
+| Chats | Yes | 453 ms | 386–570 ms |
+| Privacy | Yes | 565 ms | 454–676 ms |
+| Chat | Yes | 815 ms | 543–921 ms |
+
+GPU time goes to zero on the only tab without the background. Chats and Privacy have no chat interface and still use the GPU. This points to `LiquidField`. We did not make a build without it, so this is not a final proof.
+
+The GPU use can jump with no change on the screen. On the Chat tab, it went from about 555 ms to about 915 ms each second. The app sends 120 GPU intervals each second in both phases, and each interval takes about 4.7 ms before the jump and about 7.6 ms after it. A separate power recording shows the GPU impact score of QuietGPT fall from about 20 to about 13. Together, these suggest that iOS slows the GPU. We did not read the GPU clock, so this is not confirmed.
+
+### Power impact
+
+A `Power Profiler` recording gives these results for one reply on the same iPhone:
+
+| Item | Result |
+|---|---|
+| Battery use of the full system | `0.0%/hr`. The iPhone was charging on the cable, so this is not a real value |
+| Thermal state | `Serious` for the full recording. Charging, earlier tests and the app can each be part of the cause |
+| CPU impact of QuietGPT | 20–24 from second 1 to second 4, and 0.1 from second 10 |
+| GPU impact of QuietGPT | About 20 when idle, then about 13 |
+
+Impact scores have no unit in Instruments. They are not watts. These scores do not show ANE power, so this test does not compare the ANE with the GPU.
+
 ## Why the ANE is better for QuietGPT
 
 | Benefit | Status | Evidence |
 |---|---|---|
-| The GPU stays free for the interface | **Measured** | No AI process appears on the GPU |
+| The AI work does not take GPU time | **Measured** | No AI process appears on the GPU. The GPU time of QuietGPT comes from its interface, mainly the animated background |
 | Works in the keyboard and the share card | **By design** | These extensions have low memory limits, and QuietGPT loads no weights in them |
 | No large download in the app | **By design** | iOS installs the weights. Other apps can use the same copy |
 | Low power | **Reported by Apple, not measured in QuietGPT** | Apple's 2022 study measured 3.47 ms at 0.454 W on the iPhone 13 ANE, with a small text network |
-| Less heat and more battery life | **Expected, not measured** | Low power suggests this, but we have no iPhone power or heat test |
+| Less heat and more battery life | **Expected, not measured** | Low power suggests this, but we have no battery test. The animated background can also use more power than the ANE saves. We did not measure this |
 
 ## Tradeoffs
 
 | Tradeoff | Effect | Data or source |
 |---|---|---|
-| **Long replies are slow on iPhone** | The long reply ran at about 21 tokens/s. The ANE was busy 87% of the time, so the limit is not the interface | iPhone test |
-| **First text can be late** | The first text took 0.54–4.00 s on iPhone | iPhone test |
+| **Reply speed changes** | Long replies ran at about 21 and about 48 tokens/s on the same iPhone. The cause of the difference is not known. The ANE was busy 84–87% of the time in both | iPhone tests |
+| **First text can be late** | The first text took 0.54–4.00 s on iPhone | iPhone tests |
 | **No hardware control** | QuietGPT cannot select the ANE or check it live. iOS can change this in an update | API used by the app |
 | **No choice of AI system** | QuietGPT cannot change its size, its weights or its quality | Apple Foundation Models |
 | **Apple safety filters** | Some harmless requests can get a refusal | `guardrailViolation` and `refusal` in `ReplyEngine` |
@@ -144,12 +191,13 @@ Each reply window comes from the time in the QuietGPT log.
 - **The events have no process name.** The ANE table does not name a process. We connect events to replies by their time.
 - **We recorded chat replies only.** Keyboard and share card rewrites use the same system framework, but we did not record them.
 - **We tested one iPhone and one iOS version.** Other iPhones and iOS 26 are not tested.
-- **We have no power, heat or battery data.** We also did not compare the ANE with the GPU on an iPhone, so the report gives no number for how much better the ANE is.
+- **We have no watt or battery data.** The iPhone was charging, and impact scores have no unit. We also did not compare the ANE with the GPU on an iPhone, so the report gives no number for how much better the ANE is.
+- **The thermal state was `Serious` in the power recording.** The GPU and ANE can run slower at this state. We recorded the thermal state only in that recording.
 - **The token count is an estimate.** Characters ÷ 4 is not a real count.  Very short replies give unreliable speed values.
-- **The sample is small.** Results come from 13 replies.
+- **The sample is small.** The ANE tables come from 14 replies on one iPhone.
 - **The Monitor panel does not detect the ANE.** Its `neural engine` tile shows estimated reply speed. iOS gives apps no way to read ANE use. The label comes from these tests.
 
-The Oct 30 raw recordings no longer exist. The tables here keep their values, and the CSV files have the same numbers.
+The raw recordings are not in this repo. The Oct 30 recordings no longer exist. The tables here keep their values, and the CSV files have the same numbers.
 
 ## Repeat the tests
 
@@ -175,6 +223,14 @@ The Oct 30 raw recordings no longer exist. The tables here keep their values, an
 
 If the ANE does the work, `ane_busy_percent` goes up during the reply and returns to 0 after it. If the GPU does the work, a large GPU column appears and the ANE stays at 0.
 
+To read the reply time from the app log, add `--instrument "os_log"` to the command in step 4.
+
+To read the power impact, record with the app as the target. One instrument in this template rejects `--all-processes`. For battery use, the iPhone must not charge.
+
+```sh
+xcrun xctrace record --device DEVICE_ID --template "Power Profiler" --instrument "Thermal State" --time-limit 45s --output power.trace --launch -- com.pdsdm.hush
+```
+
 ### Make the charts again
 
 ```sh
@@ -189,6 +245,9 @@ This script needs `matplotlib`.
 |---|---|
 | [`iphone-long-reply.csv`](data/iphone-long-reply.csv) | ANE busy percent and GPU time for each second of the long reply |
 | [`iphone-12-replies.csv`](data/iphone-12-replies.csv) | ANE and GPU use, and speed, for each of the 12 replies |
+| [`iphone-nov-reply.csv`](data/iphone-nov-reply.csv) | ANE busy percent and GPU time for each second of the 4 November reply |
+| [`iphone-nov-idle-tabs.csv`](data/iphone-nov-idle-tabs.csv) | ANE busy percent and GPU time for each second, with the tab open and no message |
+| [`iphone-nov-power-impact.csv`](data/iphone-nov-power-impact.csv) | CPU, GPU and display impact scores of QuietGPT for each second |
 
 ## Sources
 

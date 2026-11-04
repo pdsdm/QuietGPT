@@ -8,10 +8,10 @@ struct ChatScreen: View {
     @State private var greeted = false
     @State private var monitorShown = false
 
-    private static let ideas: [(title: String, hint: String, prompt: String)] = [
-        ("Help me write a message", "write", "Help me write a short, kind message to a friend I have not talked to in a while."),
-        ("Summarize a long text", "read", "I will paste a long text. Summarize it in five short points."),
-        ("Think a decision through", "think", "Help me think through a decision. Ask me one question at a time.")
+    private static let ideas: [(title: String, prompt: String)] = [
+        ("Help me write a message", "Help me write a short, kind message to a friend I have not talked to in a while."),
+        ("Summarize a long text", "I will paste a long text. Summarize it in five short points."),
+        ("Think a decision through", "Help me think through a decision. Ask me one question at a time.")
     ]
 
     var body: some View {
@@ -86,68 +86,55 @@ struct ChatScreen: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
-        } else {
-            HStack {
-                Wordmark(size: 26)
-                Spacer()
-                Chip(title: "On this iPhone", dot: palette.local)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
         }
     }
 
     private var welcome: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            Spacer()
-            VStack(alignment: .leading, spacing: 4) {
-                Text("What is on")
-                    .opacity(greeted ? 1 : 0)
-                    .blur(radius: greeted ? 0 : 8)
-                    .offset(y: greeted ? 0 : 12)
-                Text("your mind?")
-                    .opacity(greeted ? 1 : 0)
-                    .blur(radius: greeted ? 0 : 8)
-                    .offset(y: greeted ? 0 : 12)
-                    .animation(Motion.gentle.delay(0.12), value: greeted)
-            }
-            .font(QuietGPTFont.largeTitle)
-            .tracking(-0.6)
-            .foregroundStyle(palette.text)
-            .animation(Motion.gentle, value: greeted)
-
-            VStack(spacing: 0) {
-                ForEach(Array(Self.ideas.enumerated()), id: \.offset) { index, idea in
-                    Button {
-                        controller.send(idea.prompt)
-                    } label: {
-                        HStack {
-                            Text(idea.title)
-                                .font(QuietGPTFont.body)
-                                .foregroundStyle(palette.text)
-                            Spacer()
-                            Text(idea.hint)
-                                .font(QuietGPTFont.mono)
-                                .foregroundStyle(palette.text3)
-                        }
-                        .frame(minHeight: 50)
-                        .contentShape(.rect)
-                    }
-                    .buttonStyle(PressableStyle(scale: 0.98))
-                    .overlay(alignment: .bottom) {
-                        Rectangle().fill(palette.line).frame(height: 1)
-                    }
-                    .opacity(greeted ? 1 : 0)
-                    .offset(y: greeted ? 0 : 16)
-                    .animation(Motion.gentle.delay(0.25 + Double(index) * 0.07), value: greeted)
-                }
-            }
-            .overlay(alignment: .top) {
-                Rectangle().fill(palette.line).frame(height: 1)
-            }
+        VStack(spacing: 4) {
+            Text("What is on")
+                .opacity(greeted ? 1 : 0)
+                .blur(radius: greeted ? 0 : 8)
+                .offset(y: greeted ? 0 : 12)
+            Text("your mind?")
+                .opacity(greeted ? 1 : 0)
+                .blur(radius: greeted ? 0 : 8)
+                .offset(y: greeted ? 0 : 12)
+                .animation(Motion.gentle.delay(0.12), value: greeted)
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 24)
+        .font(QuietGPTFont.largeTitle)
+        .tracking(-0.6)
+        .foregroundStyle(palette.text)
+        .animation(Motion.gentle, value: greeted)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .bottom) {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(Array(Self.ideas.enumerated()), id: \.offset) { index, idea in
+                        Button {
+                            controller.send(idea.prompt)
+                        } label: {
+                            Text(idea.title)
+                                .font(QuietGPTFont.subheadline)
+                                .foregroundStyle(palette.text)
+                                .padding(.horizontal, 14)
+                                .frame(height: 44)
+                                .background(palette.background, in: .capsule)
+                                .overlay {
+                                    Capsule().strokeBorder(palette.line, lineWidth: 1)
+                                }
+                                .contentShape(.capsule)
+                        }
+                        .buttonStyle(PressableStyle(scale: 0.96))
+                        .opacity(greeted ? 1 : 0)
+                        .offset(y: greeted ? 0 : 16)
+                        .animation(Motion.gentle.delay(0.25 + Double(index) * 0.07), value: greeted)
+                    }
+                }
+                .padding(.horizontal, 12)
+            }
+            .scrollIndicators(.hidden)
+            .padding(.bottom, 10)
+        }
         .onAppear { greeted = true }
         .onDisappear { greeted = false }
     }

@@ -33,6 +33,7 @@ final class KeyboardModel {
     var isSpanish = false
     var showsAsk = true
     var showsPanel = false
+    var closeFrame = CGRect.zero
     var options = KeyboardOptions()
 
     var goTitle: String { KeyboardText.string("go") }

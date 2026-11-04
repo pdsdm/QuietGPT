@@ -109,6 +109,12 @@ final class KeyboardViewController: UIInputViewController {
         keys.rowHeight = rowHeight
         keys.topLimit = -top
         keys.frame = CGRect(x: 0, y: top, width: width, height: keysHeight)
+        if let lock = KeyLayout.build(model.keys, width: width, rowHeight: rowHeight).first(where: { $0.kind == .quietGPT }) {
+            let frame = lock.face.offsetBy(dx: 0, dy: top)
+            if model.closeFrame != frame {
+                model.closeFrame = frame
+            }
+        }
         keys.isHidden = mode.panel
         panel?.view.frame = view.bounds
         panel?.view.isHidden = !mode.panel

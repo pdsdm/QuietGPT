@@ -23,6 +23,9 @@ struct QuietGPTPanel: View {
         .padding(.top, 8)
         .padding(.bottom, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay(alignment: .topLeading) {
+            closeButton
+        }
         .animation(.snappy(duration: 0.25), value: model.isWriting)
         .animation(.snappy(duration: 0.25), value: model.canUndo)
         .animation(.snappy(duration: 0.25), value: model.hint)
@@ -49,22 +52,27 @@ struct QuietGPTPanel: View {
             } else if model.canUndo {
                 pill(KeyboardText.string("Undo"), symbol: "arrow.uturn.backward", action: actions.undo)
             }
-            Button {
-                UIDevice.current.playInputClick()
-                actions.close()
-            } label: {
-                Image(systemName: "keyboard")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color(style.text))
-                    .frame(width: 44, height: 30)
-                    .background(Color(style.key), in: .capsule)
-                    .contentShape(.capsule)
-            }
-            .buttonStyle(BarPressStyle())
-            .accessibilityLabel(KeyboardText.string("Back to letters"))
         }
         .frame(minHeight: 36)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var closeButton: some View {
+        let frame = model.closeFrame
+        return Button {
+            UIDevice.current.playInputClick()
+            actions.close()
+        } label: {
+            Image(systemName: "keyboard")
+                .font(.system(size: 19))
+                .foregroundStyle(Color(style.text))
+                .frame(width: frame.width, height: frame.height)
+                .background(Color(style.key), in: .rect(cornerRadius: KeyStyle.radius, style: .continuous))
+                .contentShape(.rect)
+        }
+        .buttonStyle(BarPressStyle())
+        .accessibilityLabel(KeyboardText.string("Back to letters"))
+        .position(x: frame.midX, y: frame.midY)
     }
 
     private var status: String {
@@ -157,6 +165,8 @@ struct QuietGPTPanel: View {
 
     private var settings: some View {
         HStack(spacing: 6) {
+            Spacer(minLength: 0)
+
             HStack(spacing: 2) {
                 ForEach(KeyboardLanguage.allCases) { language in
                     let selected = model.options.language == language
@@ -182,8 +192,6 @@ struct QuietGPTPanel: View {
             }
             .padding(2)
             .background(Color(style.key).opacity(0.45), in: .capsule)
-
-            Spacer(minLength: 0)
         }
         .frame(height: 30)
     }

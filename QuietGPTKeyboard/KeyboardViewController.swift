@@ -124,8 +124,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let width = view.bounds.width
-        let barHeight = mode.bar ? QuietGPTBar.height : 0
-        let space = view.bounds.height - barHeight - topMargin - KeyLayout.topPadding - KeyLayout.bottomPadding
+        let space = view.bounds.height - topArea(asking: mode.bar) - KeyLayout.topPadding - KeyLayout.bottomPadding
         let rowHeight = space > 0 ? min(keyHeight, space / 4) : keyHeight
         let keysHeight = KeyLayout.height(rowHeight: rowHeight)
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
@@ -211,10 +210,14 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func updateHeight() {
-        let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding + topMargin
+        let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding + topArea(asking: model.isAsking)
         let wanted = model.showsPanel ? max(base, KeyLayout.panelHeight) : emoji.isHidden ? base : base + KeyLayout.emojiExtra
         let screen = view.window?.windowScene?.screen.bounds.height ?? .infinity
         height?.constant = min(wanted, screen * KeyLayout.maxScreenShare)
+    }
+
+    private func topArea(asking: Bool) -> CGFloat {
+        asking ? max(QuietGPTBar.height, topMargin) : topMargin
     }
 
     private func apply(panel: Bool, bar: Bool) {

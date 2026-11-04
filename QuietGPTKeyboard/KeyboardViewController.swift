@@ -73,9 +73,19 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if height == nil {
-            let height = view.heightAnchor.constraint(equalToConstant: QuietGPTBar.height + KeyLayout.height + KeyLayout.bottomPadding)
+            let sizer = UIView()
+            sizer.translatesAutoresizingMaskIntoConstraints = false
+            sizer.isUserInteractionEnabled = false
+            view.insertSubview(sizer, at: 0)
+            let height = sizer.heightAnchor.constraint(equalToConstant: KeyLayout.height + KeyLayout.bottomPadding)
             height.priority = .required - 1
-            height.isActive = true
+            NSLayoutConstraint.activate([
+                sizer.topAnchor.constraint(equalTo: view.topAnchor),
+                sizer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                sizer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                sizer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                height
+            ])
             self.height = height
         }
         updateHeight()
@@ -126,6 +136,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillLayoutSubviews() {
         model.showsGlobe = needsInputModeSwitchKey
+        updateHeight()
         super.viewWillLayoutSubviews()
     }
 
@@ -150,8 +161,10 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func updateHeight() {
-        let base = QuietGPTBar.height + KeyLayout.height + KeyLayout.bottomPadding
-        height?.constant = emoji.isHidden ? base : base + KeyLayout.emojiExtra
+        let base = KeyLayout.height + KeyLayout.bottomPadding
+        let wanted = emoji.isHidden ? base : base + KeyLayout.emojiExtra
+        let screen = view.window?.windowScene?.screen.bounds.height ?? .infinity
+        height?.constant = min(wanted, screen * KeyLayout.maxScreenShare)
     }
 
     private func apply(panel: Bool, bar: Bool) {

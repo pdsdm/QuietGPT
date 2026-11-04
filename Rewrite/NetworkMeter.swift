@@ -132,6 +132,7 @@ final class NetworkWatch {
             if socket.port != 0 {
                 identity.descriptor = -1
             }
+            guard current[identity] == nil else { continue }
             if let last = seen[identity] {
                 own.sentBytes += socket.sent >= last ? socket.sent - last : 0
             } else {

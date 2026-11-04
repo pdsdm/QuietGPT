@@ -3,6 +3,7 @@ import Foundation
 import Testing
 @testable import QuietGPT
 
+@Suite(.serialized)
 struct NetworkMeterTests {
     private func makeWatch(key: String = "network.app", suite: String = UUID().uuidString) throws -> NetworkWatch {
         NetworkWatch(defaults: try #require(UserDefaults(suiteName: suite)), key: key)

@@ -192,7 +192,7 @@ The Monitor panel also shows live network use for the full iPhone.
 
 ### Tests
 
-Press `Cmd+U` or run this command. To see the simulators that you have, run `xcrun simctl list devices available`.
+Press `Cmd+U` or run this command. To see the simulators that you have, run `xcrun simctl list devices available`. If you have more than one iOS version and the command does not find the simulator, add the version, for example `name=iPhone 17 Pro,OS=26.0`.
 
 ```sh
 xcodebuild test -project QuietGPT.xcodeproj -scheme QuietGPT -destination 'platform=iOS Simulator,name=iPhone 17 Pro'

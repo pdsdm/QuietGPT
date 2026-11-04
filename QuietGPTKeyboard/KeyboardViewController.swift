@@ -141,7 +141,10 @@ final class KeyboardViewController: UIInputViewController {
         var state = model.keys
         state.layer = .letters
         if let corner = KeyLayout.build(state, width: width, rowHeight: rowHeight).first(where: { $0.id == "switch" }) {
-            let frame = corner.face.offsetBy(dx: 0, dy: top)
+            var frame = corner.face.offsetBy(dx: 0, dy: top)
+            if !model.showsGlobe {
+                frame.origin.x = KeyLayout.systemGlobeCenterX - frame.width / 2
+            }
             if model.closeFrame != frame {
                 model.closeFrame = frame
             }

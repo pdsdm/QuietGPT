@@ -48,6 +48,7 @@ enum KeyLayout {
     static let topPadding: CGFloat = 2.5
     static let bottomPadding: CGFloat = -0.33
     static let margin: CGFloat = 1
+    static let systemGlobeCenterX: CGFloat = 42.33
     static let insetX: CGFloat = 3
     static let insetY: CGFloat = 5.5
     static let insetRowHeight: CGFloat = 78

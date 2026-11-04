@@ -35,7 +35,7 @@ enum NetworkMeter {
     }
 
     static func ownSockets() -> [OwnSocket] {
-        (0..<min(getdtablesize(), maxDescriptors)).compactMap(ownSocket)
+        (0..<min(getdtablesize(), maxDescriptors)).compactMap { ownSocket($0) }
     }
 
     static func sentBytes(onSocket descriptor: Int32) -> UInt64 {
@@ -75,9 +75,9 @@ enum NetworkMeter {
     }
 
     private static func isLoopback(_ storage: sockaddr_storage) -> Bool {
-        var storage = storage
-        return withUnsafeBytes(of: &storage) { raw in
-            switch Int32(storage.ss_family) {
+        let family = Int32(storage.ss_family)
+        return withUnsafeBytes(of: storage) { raw in
+            switch family {
             case AF_INET:
                 let address = raw.load(fromByteOffset: MemoryLayout.offset(of: \sockaddr_in.sin_addr)!, as: in_addr.self)
                 return UInt32(bigEndian: address.s_addr) >> 24 == 127
@@ -92,8 +92,7 @@ enum NetworkMeter {
     }
 
     private static func port(of storage: sockaddr_storage) -> UInt16 {
-        var storage = storage
-        return withUnsafeBytes(of: &storage) { raw in
+        withUnsafeBytes(of: storage) { raw in
             UInt16(bigEndian: raw.load(fromByteOffset: MemoryLayout.offset(of: \sockaddr_in.sin_port)!, as: UInt16.self))
         }
     }

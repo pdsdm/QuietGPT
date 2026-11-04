@@ -81,9 +81,18 @@ struct KeyboardOptions: Codable, Equatable {
     var autoCapitalize = true
     var periodShortcut = true
     var showsAsk = true
-    var language = KeyboardLanguage.automatic
+    var language = KeyboardLanguage.automatic {
+        didSet { languageDate = .now }
+    }
+    var languageDate: Date?
 
     init() {}
+
+    mutating func adopt(_ local: LanguageChoice?) {
+        guard let local, let date = local.date, date > languageDate ?? .distantPast else { return }
+        language = local.language
+        languageDate = date
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -91,6 +100,18 @@ struct KeyboardOptions: Codable, Equatable {
         periodShortcut = try container.decodeIfPresent(Bool.self, forKey: .periodShortcut) ?? periodShortcut
         showsAsk = try container.decodeIfPresent(Bool.self, forKey: .showsAsk) ?? showsAsk
         language = (try? container.decodeIfPresent(KeyboardLanguage.self, forKey: .language)) ?? language
+        languageDate = try container.decodeIfPresent(Date.self, forKey: .languageDate)
+    }
+}
+
+struct LanguageChoice: Codable, Equatable {
+    var language: KeyboardLanguage
+    var date: Date?
+}
+
+enum RewriteUndo {
+    static func cursorFollows(_ written: String, before: String) -> Bool {
+        !before.isEmpty && (before.hasSuffix(written) || written.hasSuffix(before))
     }
 }
 
@@ -112,6 +133,7 @@ enum StyleStore {
     private static let optionsKey = "keyboardOptions"
     private static let rulesKey = "rules"
     private static let peopleKey = "people"
+    private static let localLanguageKey = "localLanguage"
 
     static var shared: UserDefaults {
         group.flatMap { UserDefaults(suiteName: $0) } ?? .standard
@@ -173,6 +195,15 @@ enum StyleStore {
     static var options: KeyboardOptions {
         get { decode(KeyboardOptions.self, optionsKey) ?? KeyboardOptions() }
         set { encode(newValue, optionsKey) }
+    }
+
+    static var localLanguage: LanguageChoice? {
+        get {
+            UserDefaults.standard.data(forKey: localLanguageKey).flatMap { try? JSONDecoder().decode(LanguageChoice.self, from: $0) }
+        }
+        set {
+            UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: localLanguageKey)
+        }
     }
 
     static func reset() {

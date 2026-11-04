@@ -187,6 +187,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func applyOptions() {
         model.options = options
+        options.adopt(StyleStore.localLanguage)
         model.isSpanish = options.language.isSpanish
         primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
         KeyboardText.use(spanish: model.isSpanish)

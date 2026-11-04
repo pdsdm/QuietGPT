@@ -7,6 +7,7 @@ struct ChatScreen: View {
     @Environment(\.palette) private var palette
     @State private var greeted = false
     @State private var monitorShown = false
+    @ScaledMetric(relativeTo: .largeTitle) private var greetingSize: CGFloat = 64
 
     private static let ideas: [(title: String, prompt: String)] = [
         ("Help me write a message", "Help me write a short, kind message to a friend I have not talked to in a while."),
@@ -90,7 +91,7 @@ struct ChatScreen: View {
     }
 
     private var welcome: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 0) {
             Text("What is on")
                 .opacity(greeted ? 1 : 0)
                 .blur(radius: greeted ? 0 : 8)
@@ -101,10 +102,13 @@ struct ChatScreen: View {
                 .offset(y: greeted ? 0 : 12)
                 .animation(Motion.gentle.delay(0.12), value: greeted)
         }
-        .font(QuietGPTFont.largeTitle)
-        .tracking(-0.6)
+        .font(BrandFont.font(size: greetingSize))
+        .tracking(-greetingSize * 0.025)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
         .foregroundStyle(palette.text)
         .animation(Motion.gentle, value: greeted)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(alignment: .bottom) {
             ScrollView(.horizontal) {
@@ -205,6 +209,6 @@ struct ChatScreen: View {
             )
         }
         .padding(.horizontal, 12)
-        .padding(.bottom, 8)
+        .padding(.bottom, controller.hasConversation ? 8 : 24)
     }
 }

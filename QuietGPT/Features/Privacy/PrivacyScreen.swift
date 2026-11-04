@@ -132,10 +132,7 @@ struct PrivacyScreen: View {
     }
 
     private func deleteAll() {
-        controller.startNew()
-        try? context.delete(model: Message.self)
-        try? context.delete(model: Conversation.self)
-        try? context.save()
+        controller.deleteAll()
     }
 }
 

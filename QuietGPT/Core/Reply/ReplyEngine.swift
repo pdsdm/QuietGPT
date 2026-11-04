@@ -59,6 +59,10 @@ final class ReplyEngine {
         sessions[conversationID] = nil
     }
 
+    func forgetAll() {
+        sessions.removeAll()
+    }
+
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn]) -> AsyncThrowingStream<String, Error> {
         #if DEBUG
         if let simulatedReply {

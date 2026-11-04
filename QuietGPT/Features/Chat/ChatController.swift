@@ -25,6 +25,7 @@ final class ChatController {
     private let engine: ReplyEngine
     private var context: ModelContext?
     private var task: Task<Void, Never>?
+    private var reply: (token: UUID, conversationID: UUID)?
 
     init(engine: ReplyEngine? = nil) {
         self.engine = engine ?? ReplyEngine()
@@ -70,21 +71,23 @@ final class ChatController {
         phase = .thinking
         liveMetrics = ReplyMetrics()
 
+        let token = UUID()
+        reply = (token, conversation.id)
         let stream = engine.reply(to: prompt, in: conversation.id, history: history)
         task = Task { [weak self] in
             do {
                 for try await text in stream {
-                    guard let self else { return }
+                    guard let self, self.reply?.token == token else { return }
                     self.liveMetrics?.received(text)
                     if self.phase == .thinking { self.phase = .streaming }
                     self.streamingText = text
                 }
-                self?.finishReply(in: conversation)
+                self?.finishReply(token, in: conversation)
             } catch is CancellationError {
-                self?.finishReply(in: conversation)
+                self?.finishReply(token, in: conversation)
             } catch {
                 Self.logger.error("Reply failed: \(String(describing: error), privacy: .public)")
-                self?.finishReply(in: conversation, fallback: ReplyEngine.message(for: error))
+                self?.finishReply(token, in: conversation, fallback: ReplyEngine.message(for: error))
             }
         }
     }
@@ -104,22 +107,49 @@ final class ChatController {
         guard !isResponding, let conversation, let context else { return }
         let ordered = conversation.orderedMessages
         guard let lastUser = ordered.last(where: { $0.role == .user }) else { return }
-        for message in ordered where message.createdAt >= lastUser.createdAt {
+        let prompt = lastUser.text
+        let start = lastUser.createdAt
+        let removed = ordered.filter { $0.createdAt >= start }
+        conversation.messages.removeAll { message in removed.contains { $0.id == message.id } }
+        for message in removed {
             context.delete(message)
         }
         try? context.save()
         engine.forget(conversation.id)
-        send(lastUser.text)
+        send(prompt)
     }
 
     func delete(_ conversation: Conversation) {
         guard let context else { return }
+        if conversation.id == reply?.conversationID {
+            dropReply()
+        }
         if conversation.id == self.conversation?.id {
             startNew()
         }
         engine.forget(conversation.id)
         context.delete(conversation)
         try? context.save()
+    }
+
+    func deleteAll() {
+        guard let context else { return }
+        dropReply()
+        startNew()
+        engine.forgetAll()
+        for conversation in (try? context.fetch(FetchDescriptor<Conversation>())) ?? [] {
+            context.delete(conversation)
+        }
+        try? context.save()
+    }
+
+    private func dropReply() {
+        task?.cancel()
+        task = nil
+        reply = nil
+        liveMetrics = nil
+        streamingText = ""
+        phase = .idle
     }
 
     private func makeConversation(titled prompt: String, in context: ModelContext) -> Conversation {
@@ -137,8 +167,9 @@ final class ChatController {
         try? context?.save()
     }
 
-    private func finishReply(in conversation: Conversation, fallback: String? = nil) {
-        guard phase != .idle else { return }
+    private func finishReply(_ token: UUID, in conversation: Conversation, fallback: String? = nil) {
+        guard reply?.token == token else { return }
+        reply = nil
         let text = streamingText.trimmingCharacters(in: .whitespacesAndNewlines)
         let final = text.isEmpty ? (fallback ?? "") : text
         if !final.isEmpty {

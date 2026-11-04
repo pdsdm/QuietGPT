@@ -192,7 +192,6 @@ final class KeyboardViewController: UIInputViewController {
     private var topMargin: CGFloat { CGFloat(options.topMargin) }
 
     private func updateTuning() {
-        model.glassStrip = proxy.textContentType == KeyboardOptions.tuningField ? 0 : KeyLayout.glassStrip
         guard proxy.textContentType == KeyboardOptions.tuningField else {
             tuningTimer?.invalidate()
             tuningTimer = nil

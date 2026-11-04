@@ -37,10 +37,7 @@ struct TopRow: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            content
-                .offset(y: KeyLayout.topCenter(margin: geometry.size.height, strip: model.glassStrip) - geometry.size.height / 2)
-        }
+        content
         .animation(.snappy(duration: 0.25), value: model.hint)
         .animation(.snappy(duration: 0.25), value: items)
         .animation(.snappy(duration: 0.25), value: model.active)

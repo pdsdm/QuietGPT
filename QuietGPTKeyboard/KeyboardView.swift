@@ -66,7 +66,6 @@ struct QuietGPTBar: View {
                 }
             }
             .frame(maxHeight: .infinity)
-            .offset(y: KeyLayout.topCenter(margin: geometry.size.height, strip: model.glassStrip) - geometry.size.height / 2)
         }
         .animation(.snappy(duration: 0.25), value: model.isAsking)
         .animation(.snappy(duration: 0.25), value: model.hint)

@@ -165,7 +165,7 @@ struct RewriteCard: View {
             return
         }
         guard rewriter.isAvailable else {
-            failure = "QuietGPT needs Apple Intelligence. Turn it on in Settings."
+            failure = Rewriter.unavailableMessage
             return
         }
         isWriting = true
@@ -178,9 +178,13 @@ struct RewriteCard: View {
             } catch is CancellationError {
                 return
             } catch {
+                result = ""
                 failure = Rewriter.message(for: error)
             }
             if !Task.isCancelled {
+                if result.isEmpty, failure == nil {
+                    failure = String(localized: "Nothing came back, try again")
+                }
                 isWriting = false
             }
         }

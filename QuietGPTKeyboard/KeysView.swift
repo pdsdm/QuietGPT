@@ -230,6 +230,7 @@ final class KeysView: UIView {
         isMultipleTouchEnabled = true
         isExclusiveTouch = false
         clipsToBounds = false
+        backgroundColor = UIColor(white: 1, alpha: 0.001)
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: KeysView, _: UITraitCollection) in
             view.rebuild()
         }

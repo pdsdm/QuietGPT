@@ -177,6 +177,17 @@
         }
       }
     },
+    "Ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pedir"
+          }
+        }
+      }
+    },
     "Ask for any change…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1695,6 +1706,17 @@
         }
       }
     },
+    "These show next to the QuietGPT logo, above the keys. The logo opens the panel. The row needs a top margin of 26 pt or more." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparecen junto al logo de QuietGPT, encima de las teclas. El logo abre el panel. La fila necesita un margen superior de 26 pt o más."
+          }
+        }
+      }
+    },
     "Think a decision through" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1889,6 +1911,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Margen superior"
+          }
+        }
+      }
+    },
+    "Top row" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila superior"
           }
         }
       }

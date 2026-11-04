@@ -78,15 +78,24 @@ enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-struct KeyboardSize: Codable, Equatable {
+struct KeyboardLayoutChoice: Codable, Equatable {
     var keyHeight: Double
     var topMargin: Double
+    var topRow: [String]?
 }
 
 struct KeyboardOptions: Codable, Equatable {
     static let defaultKeyHeight = 58.0
     static let keyHeights = 48.0...96.0
-    static let defaultTopMargin = 10.0
+    static let defaultTopMargin = 36.0
+    static let topRowMinimumMargin = 26.0
+    static let topRowAsk = "ask"
+    static let defaultTopRow = [
+        "6B0F7C1E-0001-4000-8000-000000000005",
+        "6B0F7C1E-0001-4000-8000-000000000002",
+        "6B0F7C1E-0001-4000-8000-000000000001",
+        topRowAsk
+    ]
     static let topMargins = 0.0...50.0
     static let tuningField = UITextContentType.sublocality
 
@@ -107,12 +116,14 @@ struct KeyboardOptions: Codable, Equatable {
     var languageDate: Date?
     var keyHeight = KeyboardOptions.defaultKeyHeight
     var topMargin = KeyboardOptions.defaultTopMargin
+    var topRow = KeyboardOptions.defaultTopRow
 
-    var size: KeyboardSize {
-        get { KeyboardSize(keyHeight: keyHeight, topMargin: topMargin) }
+    var layoutChoice: KeyboardLayoutChoice {
+        get { KeyboardLayoutChoice(keyHeight: keyHeight, topMargin: topMargin, topRow: topRow) }
         set {
             keyHeight = Self.clampedKeyHeight(newValue.keyHeight)
             topMargin = Self.clampedTopMargin(newValue.topMargin)
+            topRow = newValue.topRow ?? topRow
         }
     }
 
@@ -133,6 +144,7 @@ struct KeyboardOptions: Codable, Equatable {
         languageDate = try container.decodeIfPresent(Date.self, forKey: .languageDate)
         keyHeight = Self.clampedKeyHeight(try container.decodeIfPresent(Double.self, forKey: .keyHeight) ?? keyHeight)
         topMargin = Self.clampedTopMargin(try container.decodeIfPresent(Double.self, forKey: .topMargin) ?? topMargin)
+        topRow = try container.decodeIfPresent([String].self, forKey: .topRow) ?? topRow
     }
 }
 
@@ -233,11 +245,11 @@ enum StyleStore {
         group.flatMap { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: $0) }?.appending(path: "keyboardSize.json")
     }
 
-    static var savedSize: KeyboardSize? {
+    static var savedLayout: KeyboardLayoutChoice? {
         get {
             keyboardSizeFile
                 .flatMap { try? Data(contentsOf: $0) }
-                .flatMap { try? JSONDecoder().decode(KeyboardSize.self, from: $0) }
+                .flatMap { try? JSONDecoder().decode(KeyboardLayoutChoice.self, from: $0) }
         }
         set {
             guard let url = keyboardSizeFile else { return }
@@ -272,7 +284,7 @@ enum StyleStore {
         shared.removeObject(forKey: optionsKey)
         shared.removeObject(forKey: rulesKey)
         shared.removeObject(forKey: peopleKey)
-        savedSize = nil
+        savedLayout = nil
     }
 
     private static func decode<Value: Decodable>(_ type: Value.Type, _ key: String) -> Value? {

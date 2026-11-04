@@ -35,19 +35,30 @@ struct StyleTile: View {
         return ZStack {
             Circle()
                 .fill(lit ? Color(style.text) : Color(style.lit).opacity(0.45))
-            if let code = isPerson ? value.initials : Self.codes[value.id] {
-                Text(code)
-                    .font(BrandFont.font(size: 12, weight: .semibold))
-                    .tracking(0.3)
-                    .foregroundStyle(ink)
-            } else {
-                Image(systemName: Self.symbols[value.id] ?? "pencil")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(ink)
-            }
+            StyleGlyph(value: value, isPerson: isPerson, color: ink)
         }
         .frame(width: 36, height: 36)
         .accessibilityHidden(true)
+    }
+
+}
+
+struct StyleGlyph: View {
+    let value: RewriteStyle
+    var isPerson = false
+    let color: Color
+
+    var body: some View {
+        if let code = isPerson ? value.initials : Self.codes[value.id] {
+            Text(code)
+                .font(BrandFont.font(size: 12, weight: .semibold))
+                .tracking(0.3)
+                .foregroundStyle(color)
+        } else {
+            Image(systemName: Self.symbols[value.id] ?? "pencil")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(color)
+        }
     }
 
     private static let symbols: [RewriteStyle.ID: String] = {

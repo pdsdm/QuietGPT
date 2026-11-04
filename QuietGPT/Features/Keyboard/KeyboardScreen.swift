@@ -156,6 +156,32 @@ struct KeyboardScreen: View {
                     }
 
                     Section {
+                        ForEach(people.filter(\.isOn)) { person in
+                            topRowToggle(person.title, id: person.id.uuidString) {
+                                StyleGlyph(value: person, isPerson: true, color: palette.text)
+                            }
+                        }
+                        ForEach(styles.filter(\.isOn)) { style in
+                            topRowToggle(style.title, id: style.id.uuidString) {
+                                StyleGlyph(value: style, color: palette.text)
+                            }
+                        }
+                        if options.showsAsk {
+                            topRowToggle(String(localized: "Ask"), id: KeyboardOptions.topRowAsk) {
+                                Image(systemName: "text.bubble")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(palette.text)
+                            }
+                        }
+                    } header: {
+                        Text("Top row")
+                    } footer: {
+                        Text("These show next to the QuietGPT logo, above the keys. The logo opens the panel. The row needs a top margin of 26 pt or more.")
+                            .font(QuietGPTFont.footnote)
+                            .foregroundStyle(palette.text2)
+                    }
+
+                    Section {
                         Button {
                             editsInstructions = true
                         } label: {
@@ -277,13 +303,13 @@ struct KeyboardScreen: View {
         .onChange(of: styles) { _, value in StyleStore.styles = value }
         .onChange(of: options) { old, value in
             StyleStore.options = value
-            if old.size != value.size {
-                StyleStore.savedSize = value.size
+            if old.layoutChoice != value.layoutChoice {
+                StyleStore.savedLayout = value.layoutChoice
             }
         }
         .onChange(of: instructions) { _, value in StyleStore.instructions = value }
         .sensoryFeedback(.selection, trigger: styles.map(\.isOn))
-        .sensoryFeedback(.selection, trigger: options.size)
+        .sensoryFeedback(.selection, trigger: options.layoutChoice)
     }
 
     private func sizeRow(_ title: LocalizedStringKey, value: Binding<Double>, in range: ClosedRange<Double>) -> some View {
@@ -302,6 +328,27 @@ struct KeyboardScreen: View {
                 .tint(palette.accent)
                 .accessibilityLabel(title)
         }
+        .listRowBackground(palette.surface)
+    }
+
+    private func topRowToggle(_ title: String, id: String, @ViewBuilder icon: () -> some View) -> some View {
+        Toggle(isOn: Binding {
+            options.topRow.contains(id)
+        } set: { isOn in
+            options.topRow.removeAll { $0 == id }
+            if isOn {
+                options.topRow.append(id)
+            }
+        }) {
+            HStack(spacing: 12) {
+                icon()
+                    .frame(width: 24)
+                Text(title)
+                    .font(QuietGPTFont.callout)
+                    .foregroundStyle(palette.text)
+            }
+        }
+        .tint(palette.toggle)
         .listRowBackground(palette.surface)
     }
 

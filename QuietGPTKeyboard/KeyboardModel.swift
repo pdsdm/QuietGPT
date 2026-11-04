@@ -81,5 +81,6 @@ struct BarActions {
     var stop: () -> Void
     var undo: () -> Void
     var close: () -> Void
+    var open: () -> Void
     var setLanguage: (KeyboardLanguage) -> Void
 }

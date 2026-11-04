@@ -16,6 +16,7 @@ final class KeyboardViewController: UIInputViewController {
     private let rewriter = Rewriter()
     private let keys = KeysView()
     private var bar: UIHostingController<QuietGPTBar>?
+    private var topRow: UIHostingController<TopRow>?
     private let emoji = EmojiPanel()
     private var panel: UIHostingController<QuietGPTPanel>?
     private var mode = (panel: false, bar: false)
@@ -47,6 +48,15 @@ final class KeyboardViewController: UIInputViewController {
         view.addSubview(bar.view)
         bar.didMove(toParent: self)
         self.bar = bar
+
+        let topRow = UIHostingController(rootView: TopRow(model: model, actions: barActions))
+        topRow.view.backgroundColor = UIColor(white: 0, alpha: 0.01)
+        topRow.sizingOptions = []
+        topRow.safeAreaRegions = []
+        addChild(topRow)
+        view.addSubview(topRow.view)
+        topRow.didMove(toParent: self)
+        self.topRow = topRow
 
         emoji.onInsert = { [weak self] in self?.insert($0) }
         emoji.isHidden = true
@@ -121,6 +131,7 @@ final class KeyboardViewController: UIInputViewController {
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
         bar?.view.frame = CGRect(x: 0, y: top - QuietGPTBar.height, width: width, height: QuietGPTBar.height)
         bar?.view.isHidden = !mode.bar
+        topRow?.view.frame = CGRect(x: 0, y: 0, width: width, height: max(top, 0))
         emoji.frame = view.bounds
         emoji.gridHeight = top + KeyLayout.topPadding + rowHeight * 3
         keys.rowHeight = rowHeight
@@ -166,6 +177,8 @@ final class KeyboardViewController: UIInputViewController {
                 emoji.refresh()
             }
             emoji.isHidden = !showsEmoji
+            topRow?.view.isHidden = showsEmoji || model.showsPanel || model.isAsking
+                || model.options.topMargin < KeyboardOptions.topRowMinimumMargin
             updateHeight()
             apply(panel: model.showsPanel, bar: model.isAsking)
         } onChange: { [weak self] in
@@ -185,13 +198,14 @@ final class KeyboardViewController: UIInputViewController {
         }
         guard tuningTimer == nil else { return }
         tuningTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.followSavedSize() }
+            MainActor.assumeIsolated { self?.followSavedLayout() }
         }
     }
 
-    private func followSavedSize() {
-        guard let saved = StyleStore.savedSize, saved != options.size else { return }
-        options.size = saved
+    private func followSavedLayout() {
+        guard let saved = StyleStore.savedLayout, saved != options.layoutChoice else { return }
+        options.layoutChoice = saved
+        model.options = options
         updateHeight()
         view.setNeedsLayout()
     }
@@ -215,7 +229,7 @@ final class KeyboardViewController: UIInputViewController {
     private func loadSettings() {
         options = StyleStore.options
         options.adopt(StyleStore.localLanguage)
-        options.size = StyleStore.savedSize ?? options.size
+        options.layoutChoice = StyleStore.savedLayout ?? options.layoutChoice
         applyOptions()
         model.styles = StyleStore.enabledStyles
         model.people = StyleStore.enabledPeople
@@ -273,6 +287,7 @@ final class KeyboardViewController: UIInputViewController {
             stop: { [weak self] in self?.stopWriting() },
             undo: { [weak self] in self?.undo() },
             close: { [weak self] in self?.closePanel() },
+            open: { [weak self] in self?.openPanel() },
             setLanguage: { [weak self] language in self?.change { $0.language = language } }
         )
     }

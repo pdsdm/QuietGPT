@@ -38,10 +38,28 @@ struct KeyboardOptionsTests {
     @Test func savedSizeStaysInTheRange() {
         var options = KeyboardOptions()
 
-        options.size = KeyboardSize(keyHeight: 500, topMargin: -5)
+        options.layoutChoice = KeyboardLayoutChoice(keyHeight: 500, topMargin: -5, topRow: nil)
 
         #expect(options.keyHeight == KeyboardOptions.keyHeights.upperBound)
         #expect(options.topMargin == KeyboardOptions.topMargins.lowerBound)
+        #expect(options.topRow == KeyboardOptions.defaultTopRow)
+    }
+
+    @Test func oldLayoutFileKeepsTheTopRow() throws {
+        let choice = try JSONDecoder().decode(KeyboardLayoutChoice.self, from: Data(#"{"keyHeight":58,"topMargin":50}"#.utf8))
+        var options = KeyboardOptions()
+        options.topRow = ["ask"]
+
+        options.layoutChoice = choice
+
+        #expect(options.keyHeight == 58)
+        #expect(options.topRow == ["ask"])
+    }
+
+    @Test func defaultTopRowHasBuiltInStyles() {
+        let ids = Set(RewriteStyle.builtIn.map(\.id.uuidString))
+
+        #expect(KeyboardOptions.defaultTopRow.filter { $0 != KeyboardOptions.topRowAsk }.allSatisfy(ids.contains))
     }
 
     @Test func newerLocalLanguageWins() {

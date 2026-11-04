@@ -78,6 +78,9 @@ enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
 }
 
 struct KeyboardOptions: Codable, Equatable {
+    static let defaultKeyHeight = 78.0
+    static let keyHeights = 48.0...96.0
+
     var autoCapitalize = true
     var periodShortcut = true
     var showsAsk = true
@@ -85,6 +88,7 @@ struct KeyboardOptions: Codable, Equatable {
         didSet { languageDate = .now }
     }
     var languageDate: Date?
+    var keyHeight = KeyboardOptions.defaultKeyHeight
 
     init() {}
 
@@ -101,6 +105,8 @@ struct KeyboardOptions: Codable, Equatable {
         showsAsk = try container.decodeIfPresent(Bool.self, forKey: .showsAsk) ?? showsAsk
         language = (try? container.decodeIfPresent(KeyboardLanguage.self, forKey: .language)) ?? language
         languageDate = try container.decodeIfPresent(Date.self, forKey: .languageDate)
+        let height = try container.decodeIfPresent(Double.self, forKey: .keyHeight) ?? keyHeight
+        keyHeight = min(max(height, Self.keyHeights.lowerBound), Self.keyHeights.upperBound)
     }
 }
 
@@ -195,6 +201,14 @@ enum StyleStore {
     static var options: KeyboardOptions {
         get { decode(KeyboardOptions.self, optionsKey) ?? KeyboardOptions() }
         set { encode(newValue, optionsKey) }
+    }
+
+    static var keyHeightSignal: CFNotificationName {
+        CFNotificationName("\(group ?? "quietgpt").keyHeight" as CFString)
+    }
+
+    static func announceKeyHeight() {
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), keyHeightSignal, nil, nil, true)
     }
 
     static var localLanguage: LanguageChoice? {

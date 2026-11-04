@@ -12,6 +12,23 @@ struct KeyboardOptionsTests {
         #expect(options.language == .automatic)
     }
 
+    @Test func oldOptionsGetTheDefaultKeyHeight() throws {
+        let data = Data(#"{"autoCapitalize":false}"#.utf8)
+        let options = try JSONDecoder().decode(KeyboardOptions.self, from: data)
+
+        #expect(options.keyHeight == KeyboardOptions.defaultKeyHeight)
+    }
+
+    @Test func savedKeyHeightStaysInTheRange() throws {
+        let low = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":10}"#.utf8))
+        let high = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":500}"#.utf8))
+        let kept = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":64}"#.utf8))
+
+        #expect(low.keyHeight == KeyboardOptions.keyHeights.lowerBound)
+        #expect(high.keyHeight == KeyboardOptions.keyHeights.upperBound)
+        #expect(kept.keyHeight == 64)
+    }
+
     @Test func newerLocalLanguageWins() {
         var options = KeyboardOptions()
         options.language = .english

@@ -29,6 +29,10 @@ final class KeyboardViewController: UIInputViewController {
     private var lastShiftTap: ContinuousClock.Instant?
     private var height: NSLayoutConstraint?
 
+    deinit {
+        CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDarwinNotifyCenter(), Unmanaged.passUnretained(self).toOpaque())
+    }
+
     override func loadView() {
         let input = KeyboardInputView(frame: .zero, inputViewStyle: .keyboard)
         input.allowsSelfSizing = true
@@ -67,6 +71,7 @@ final class KeyboardViewController: UIInputViewController {
         loadSettings()
         updateReturnKey()
         observe()
+        observeKeyHeight()
         rewriter.prepare()
         Self.logger.notice("Keyboard loaded, rewriter available: \(self.rewriter.isAvailable, privacy: .public)")
     }
@@ -78,7 +83,7 @@ final class KeyboardViewController: UIInputViewController {
             sizer.translatesAutoresizingMaskIntoConstraints = false
             sizer.isUserInteractionEnabled = false
             view.insertSubview(sizer, at: 0)
-            let height = sizer.heightAnchor.constraint(equalToConstant: KeyLayout.height + KeyLayout.bottomPadding)
+            let height = sizer.heightAnchor.constraint(equalToConstant: KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding)
             height.priority = .required - 1
             NSLayoutConstraint.activate([
                 sizer.topAnchor.constraint(equalTo: view.topAnchor),
@@ -89,8 +94,8 @@ final class KeyboardViewController: UIInputViewController {
             ])
             self.height = height
         }
-        updateHeight()
         loadSettings()
+        updateHeight()
         refresh()
     }
 
@@ -112,7 +117,7 @@ final class KeyboardViewController: UIInputViewController {
         let width = view.bounds.width
         let barHeight = mode.bar ? QuietGPTBar.height : 0
         let space = view.bounds.height - barHeight - KeyLayout.topPadding - KeyLayout.bottomPadding
-        let rowHeight = space > 0 ? min(KeyLayout.rowHeight, space / 4) : KeyLayout.rowHeight
+        let rowHeight = space > 0 ? min(keyHeight, space / 4) : keyHeight
         let keysHeight = KeyLayout.height(rowHeight: rowHeight)
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
         bar?.view.frame = CGRect(x: 0, y: top - QuietGPTBar.height, width: width, height: QuietGPTBar.height)
@@ -169,8 +174,31 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    private var keyHeight: CGFloat { CGFloat(options.keyHeight) }
+
+    private func observeKeyHeight() {
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            Unmanaged.passUnretained(self).toOpaque(),
+            { _, observer, _, _, _ in
+                guard let observer else { return }
+                let controller = Unmanaged<KeyboardViewController>.fromOpaque(observer).takeUnretainedValue()
+                Task { @MainActor in controller.keyHeightDidChange() }
+            },
+            StyleStore.keyHeightSignal.rawValue,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func keyHeightDidChange() {
+        loadSettings()
+        updateHeight()
+        view.setNeedsLayout()
+    }
+
     private func updateHeight() {
-        let base = KeyLayout.height + KeyLayout.bottomPadding
+        let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding
         let wanted = emoji.isHidden ? base : base + KeyLayout.emojiExtra
         let screen = view.window?.windowScene?.screen.bounds.height ?? .infinity
         height?.constant = min(wanted, screen * KeyLayout.maxScreenShare)

@@ -30,6 +30,7 @@ final class KeyboardViewController: UIInputViewController {
     private var lastShiftTap: ContinuousClock.Instant?
     private var height: NSLayoutConstraint?
     private var tuningTimer: Timer?
+    private var asksFromPanel = false
 
     override func loadView() {
         let input = KeyboardInputView(frame: .zero, inputViewStyle: .keyboard)
@@ -42,8 +43,9 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidLoad()
 
         let bar = UIHostingController(rootView: QuietGPTBar(model: model, actions: barActions))
-        bar.view.backgroundColor = .clear
+        bar.view.backgroundColor = UIColor(white: 0, alpha: 0.01)
         bar.sizingOptions = []
+        bar.safeAreaRegions = []
         addChild(bar)
         view.addSubview(bar.view)
         bar.didMove(toParent: self)
@@ -128,7 +130,7 @@ final class KeyboardViewController: UIInputViewController {
         let rowHeight = space > 0 ? min(keyHeight, space / 4) : keyHeight
         let keysHeight = KeyLayout.height(rowHeight: rowHeight)
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
-        bar?.view.frame = CGRect(x: 0, y: top - QuietGPTBar.height, width: width, height: QuietGPTBar.height)
+        bar?.view.frame = CGRect(x: 0, y: 0, width: width, height: max(top, 0))
         bar?.view.isHidden = !mode.bar
         topRow?.view.frame = CGRect(x: 0, y: 0, width: width, height: max(top, 0))
         emoji.frame = view.bounds
@@ -190,6 +192,7 @@ final class KeyboardViewController: UIInputViewController {
     private var topMargin: CGFloat { CGFloat(options.topMargin) }
 
     private func updateTuning() {
+        model.glassStrip = proxy.textContentType == KeyboardOptions.tuningField ? 0 : KeyLayout.glassStrip
         guard proxy.textContentType == KeyboardOptions.tuningField else {
             tuningTimer?.invalidate()
             tuningTimer = nil
@@ -257,6 +260,8 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func openPanel() {
+        model.isAsking = false
+        model.instruction = ""
         model.layer = .letters
         model.showsPanel = true
     }
@@ -466,8 +471,14 @@ final class KeyboardViewController: UIInputViewController {
 
     private func toggleAsk() {
         stopWriting()
-        model.isAsking.toggle()
-        model.showsPanel = !model.isAsking
+        if model.isAsking {
+            model.isAsking = false
+            model.showsPanel = asksFromPanel
+        } else {
+            asksFromPanel = model.showsPanel
+            model.isAsking = true
+            model.showsPanel = false
+        }
         model.instruction = ""
         model.layer = .letters
         updateShift()

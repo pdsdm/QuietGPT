@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct QuietGPTBar: View {
-    static let height: CGFloat = 43.33
+    static let height: CGFloat = 34
     static let markWidth: CGFloat = 40
 
     private enum Item: Identifiable, Equatable {
@@ -34,9 +34,17 @@ struct QuietGPTBar: View {
         GeometryReader { geometry in
             let slot = (geometry.size.width - Self.markWidth) / 3
             HStack(spacing: 0) {
-                BarMark(style: style)
-                    .padding(.leading, 6)
-                    .frame(width: Self.markWidth)
+                Button {
+                    UIDevice.current.playInputClick()
+                    actions.open()
+                } label: {
+                    BarMark(style: style, size: 26)
+                        .frame(width: Self.markWidth, height: Self.markWidth)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(BarPressStyle())
+                .accessibilityLabel(BrandFont.name)
+                .padding(.leading, 6)
                 ZStack {
                     if model.isAsking {
                         askRow
@@ -57,9 +65,9 @@ struct QuietGPTBar: View {
                     }
                 }
             }
-            .padding(.top, 5)
+            .frame(maxHeight: .infinity)
+            .offset(y: KeyLayout.topCenter(margin: geometry.size.height, strip: model.glassStrip) - geometry.size.height / 2)
         }
-        .frame(height: Self.height)
         .animation(.snappy(duration: 0.25), value: model.isAsking)
         .animation(.snappy(duration: 0.25), value: model.hint)
         .animation(.snappy(duration: 0.25), value: model.canUndo)

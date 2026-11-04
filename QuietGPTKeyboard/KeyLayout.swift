@@ -52,6 +52,7 @@ enum KeyLayout {
     static let insetY: CGFloat = 5.5
     static let insetRowHeight: CGFloat = 78
     static let emojiExtra: CGFloat = 44
+    static let topContentHeight: CGFloat = 30
 
     private struct Item {
         var spec: KeySpec
@@ -85,6 +86,14 @@ enum KeyLayout {
         "&": ["§"],
         "%": ["‰"]
     ]
+
+    static var glassStrip: CGFloat {
+        if #available(iOS 27, *) { 16 } else { 0 }
+    }
+
+    static func topCenter(margin: CGFloat, strip: CGFloat) -> CGFloat {
+        margin / 2 - min(strip / 2, max((margin - topContentHeight) / 2, 0))
+    }
 
     static func height(rowHeight: CGFloat) -> CGFloat {
         topPadding + rowHeight * 4

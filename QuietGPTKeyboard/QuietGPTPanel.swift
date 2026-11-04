@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuietGPTPanel: View {
     private static let settingsHeight: CGFloat = 30
+    private static let headerHeight: CGFloat = 36
 
     let model: KeyboardModel
     let actions: BarActions
@@ -13,14 +14,15 @@ struct QuietGPTPanel: View {
     var body: some View {
         VStack(spacing: 6) {
             header
-                .padding(.horizontal, 12)
+                .padding(.leading, 13)
+                .padding(.trailing, 12)
+                .padding(.top, KeyLayout.topCenter(margin: CGFloat(model.options.topMargin), strip: model.glassStrip) - Self.headerHeight / 2)
             rail
             if model.showsAsk {
                 askField
                     .padding(.horizontal, 12)
             }
         }
-        .padding(.top, 5)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .topLeading) {
             settings
@@ -57,7 +59,7 @@ struct QuietGPTPanel: View {
                 pill(KeyboardText.string("Undo"), symbol: "arrow.uturn.backward", action: actions.undo)
             }
         }
-        .frame(minHeight: 36)
+        .frame(minHeight: Self.headerHeight)
         .fixedSize(horizontal: false, vertical: true)
     }
 

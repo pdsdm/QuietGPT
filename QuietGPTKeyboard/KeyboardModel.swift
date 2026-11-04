@@ -34,6 +34,7 @@ final class KeyboardModel {
     var showsAsk = true
     var showsPanel = false
     var closeFrame = CGRect.zero
+    var glassStrip = KeyLayout.glassStrip
     var options = KeyboardOptions()
 
     var goTitle: String { KeyboardText.string("go") }

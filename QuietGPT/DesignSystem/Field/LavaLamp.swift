@@ -18,6 +18,21 @@ final class LavaLamp {
         static let holdDamping = 0.85
         static let maxSpeed = 1.2
         static let parallax = 0.02
+        static let mergeDistance = 0.85
+        static let mergeDelay = 0.2
+        static let mergeLimit = 12
+        static let pushReach = 1.4
+        static let pushForce = 1.0
+    }
+
+    private struct DropPair: Hashable {
+        let low: Int
+        let high: Int
+
+        init(_ first: Int, _ second: Int) {
+            low = min(first, second)
+            high = max(first, second)
+        }
     }
 
     private struct Bead {
@@ -33,6 +48,7 @@ final class LavaLamp {
     private struct Drop {
         var pace: Double
         var phase: Double
+        var noMergeUntil = 0.0
     }
 
     private enum Touch {
@@ -50,6 +66,7 @@ final class LavaLamp {
     private var spawns = 0
     private var clock = 0.0
     private var nextDrop = 0
+    private var contacts: [DropPair: Double] = [:]
     private var last: Date?
 
     private(set) var packed: [Float] = []
@@ -119,6 +136,7 @@ final class LavaLamp {
         pull += (magnitude - pull) * (1 - exp(-dt * 3))
 
         updateTouch(finger: finger, pressing: pressing, dt: dt)
+        mergeTouchingDrops(dt: dt)
         moveBeads(finger: finger, energy: energy, dt: dt)
         respawnLostDrops()
         pack()
@@ -218,6 +236,52 @@ final class LavaLamp {
         for index in beads.indices {
             beads[index].position += beads[index].velocity * dt
         }
+    }
+
+    private func mergeTouchingDrops(dt: Double) {
+        let sizes = groups.mapValues(\.count)
+        var touching = Set<DropPair>()
+
+        for first in beads.indices {
+            for second in beads.indices where second > first && beads[first].drop != beads[second].drop {
+                let away = beads[first].position - beads[second].position
+                let distance = simd_length(away)
+                let reach = beads[first].radius + beads[second].radius
+                guard distance > 1e-4 else { continue }
+                let pair = DropPair(beads[first].drop, beads[second].drop)
+                if canMerge(pair, sizes: sizes) {
+                    if distance < reach * Tuning.mergeDistance { touching.insert(pair) }
+                } else if distance < reach * Tuning.pushReach {
+                    let push = away / distance * (1 - distance / (reach * Tuning.pushReach)) * Tuning.pushForce * dt
+                    beads[first].velocity += push
+                    beads[second].velocity -= push
+                }
+            }
+        }
+
+        contacts = contacts.filter { touching.contains($0.key) }
+        for pair in touching { contacts[pair, default: 0] += dt }
+        guard let ready = contacts.filter({ $0.value >= Tuning.mergeDelay }).keys.min(by: { ($0.low, $0.high) < ($1.low, $1.high) }) else { return }
+        merge(ready)
+    }
+
+    private func canMerge(_ pair: DropPair, sizes: [Int: Int]) -> Bool {
+        guard let low = drops[pair.low], let high = drops[pair.high] else { return false }
+        return (sizes[pair.low] ?? 0) + (sizes[pair.high] ?? 0) <= Tuning.mergeLimit
+            && clock >= low.noMergeUntil
+            && clock >= high.noMergeUntil
+    }
+
+    private func merge(_ pair: DropPair) {
+        var kept = pair.low
+        var gone = pair.high
+        if case .holding(pair.high, _, _) = touch { swap(&kept, &gone) }
+        for index in beads.indices where beads[index].drop == gone {
+            beads[index].drop = kept
+        }
+        drops[gone] = nil
+        contacts = contacts.filter { $0.key.low != gone && $0.key.high != gone }
+        settle(drop: kept)
     }
 
     private func settle(drop: Int) {

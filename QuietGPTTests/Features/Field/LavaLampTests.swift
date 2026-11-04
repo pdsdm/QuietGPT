@@ -59,6 +59,25 @@ struct LavaLampTests {
         #expect(driver.lamp.dropCenters[0].x > before + 0.01)
     }
 
+    @Test func touchingDropsBecomeOne() {
+        var driver = Driver(lamp: LavaLamp(layout: [
+            (center: SIMD2(0.45, 0.5), beads: 2),
+            (center: SIMD2(0.53, 0.5), beads: 3)
+        ]))
+        driver.run(seconds: 0.5)
+        #expect(driver.lamp.dropSizes == [5])
+        #expect(driver.lamp.beadCount == 5)
+    }
+
+    @Test func mergeStopsAtTheSizeLimit() {
+        var driver = Driver(lamp: LavaLamp(layout: [
+            (center: SIMD2(0.42, 0.5), beads: 8),
+            (center: SIMD2(0.58, 0.5), beads: 8)
+        ]))
+        driver.run(seconds: 2)
+        #expect(driver.lamp.dropSizes == [8, 8])
+    }
+
     @Test func beadCountStaysTheSame() {
         var driver = Driver(lamp: LavaLamp())
         driver.run(seconds: 10)

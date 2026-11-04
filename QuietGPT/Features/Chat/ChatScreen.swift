@@ -30,7 +30,10 @@ struct ChatScreen: View {
                     conversation
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 } else {
-                    welcome
+                    ScrollView { welcome }
+                        .defaultScrollAnchor(.bottom)
+                        .scrollBounceBehavior(.basedOnSize)
+                        .scrollIndicators(.hidden)
                         .transition(.blurReplace)
                 }
                 footer

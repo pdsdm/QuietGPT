@@ -229,6 +229,7 @@ struct KeyboardScreen: View {
                     }
                 }
                 .environment(\.editMode, $editMode)
+                .background(KeyboardTapCatcher())
                 .scrollContentBackground(.hidden)
                 .background(palette.background.ignoresSafeArea())
                 .toolbar(.hidden, for: .navigationBar)

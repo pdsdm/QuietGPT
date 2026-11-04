@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct QuietGPTPanel: View {
+    private static let settingsHeight: CGFloat = 30
+
     let model: KeyboardModel
     let actions: BarActions
 
@@ -9,7 +11,7 @@ struct QuietGPTPanel: View {
     private var style: KeyStyle { .current(scheme) }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             header
                 .padding(.horizontal, 12)
             rail
@@ -17,12 +19,14 @@ struct QuietGPTPanel: View {
                 askField
                     .padding(.horizontal, 12)
             }
+        }
+        .padding(.top, 5)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay(alignment: .topLeading) {
             settings
                 .padding(.horizontal, 12)
+                .offset(y: model.closeFrame.midY - Self.settingsHeight / 2)
         }
-        .padding(.top, 8)
-        .padding(.bottom, 6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .topLeading) {
             closeButton
         }
@@ -193,7 +197,7 @@ struct QuietGPTPanel: View {
             .padding(2)
             .background(Color(style.key).opacity(0.45), in: .capsule)
         }
-        .frame(height: 30)
+        .frame(height: Self.settingsHeight)
     }
 
     private func code(_ language: KeyboardLanguage) -> String {

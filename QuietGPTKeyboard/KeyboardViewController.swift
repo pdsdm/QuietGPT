@@ -28,10 +28,7 @@ final class KeyboardViewController: UIInputViewController {
     private var lastSpace: ContinuousClock.Instant?
     private var lastShiftTap: ContinuousClock.Instant?
     private var height: NSLayoutConstraint?
-
-    deinit {
-        CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDarwinNotifyCenter(), Unmanaged.passUnretained(self).toOpaque())
-    }
+    private var tuningTimer: Timer?
 
     override func loadView() {
         let input = KeyboardInputView(frame: .zero, inputViewStyle: .keyboard)
@@ -71,7 +68,6 @@ final class KeyboardViewController: UIInputViewController {
         loadSettings()
         updateReturnKey()
         observe()
-        observeKeyHeight()
         rewriter.prepare()
         Self.logger.notice("Keyboard loaded, rewriter available: \(self.rewriter.isAvailable, privacy: .public)")
     }
@@ -83,7 +79,7 @@ final class KeyboardViewController: UIInputViewController {
             sizer.translatesAutoresizingMaskIntoConstraints = false
             sizer.isUserInteractionEnabled = false
             view.insertSubview(sizer, at: 0)
-            let height = sizer.heightAnchor.constraint(equalToConstant: KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding)
+            let height = sizer.heightAnchor.constraint(equalToConstant: KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding + topMargin)
             height.priority = .required - 1
             NSLayoutConstraint.activate([
                 sizer.topAnchor.constraint(equalTo: view.topAnchor),
@@ -101,6 +97,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        updateTuning()
         for recognizer in view.window?.gestureRecognizers ?? [] {
             recognizer.delaysTouchesBegan = false
             recognizer.delaysTouchesEnded = false
@@ -109,6 +106,8 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        tuningTimer?.invalidate()
+        tuningTimer = nil
         stopWriting()
     }
 
@@ -116,7 +115,7 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidLayoutSubviews()
         let width = view.bounds.width
         let barHeight = mode.bar ? QuietGPTBar.height : 0
-        let space = view.bounds.height - barHeight - KeyLayout.topPadding - KeyLayout.bottomPadding
+        let space = view.bounds.height - barHeight - topMargin - KeyLayout.topPadding - KeyLayout.bottomPadding
         let rowHeight = space > 0 ? min(keyHeight, space / 4) : keyHeight
         let keysHeight = KeyLayout.height(rowHeight: rowHeight)
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
@@ -156,6 +155,7 @@ final class KeyboardViewController: UIInputViewController {
             abandonWriting()
         }
         refresh()
+        updateTuning()
     }
 
     private func observe() {
@@ -175,31 +175,30 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private var keyHeight: CGFloat { CGFloat(options.keyHeight) }
+    private var topMargin: CGFloat { CGFloat(options.topMargin) }
 
-    private func observeKeyHeight() {
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            Unmanaged.passUnretained(self).toOpaque(),
-            { _, observer, _, _, _ in
-                guard let observer else { return }
-                let controller = Unmanaged<KeyboardViewController>.fromOpaque(observer).takeUnretainedValue()
-                Task { @MainActor in controller.keyHeightDidChange() }
-            },
-            StyleStore.keyHeightSignal.rawValue,
-            nil,
-            .deliverImmediately
-        )
+    private func updateTuning() {
+        guard proxy.textContentType == KeyboardOptions.tuningField else {
+            tuningTimer?.invalidate()
+            tuningTimer = nil
+            return
+        }
+        guard tuningTimer == nil else { return }
+        tuningTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.followSavedSize() }
+        }
     }
 
-    private func keyHeightDidChange() {
-        loadSettings()
+    private func followSavedSize() {
+        guard let saved = StyleStore.savedSize, saved != options.size else { return }
+        options.size = saved
         updateHeight()
         view.setNeedsLayout()
     }
 
     private func updateHeight() {
-        let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding
-        let wanted = emoji.isHidden ? base : base + KeyLayout.emojiExtra
+        let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding + topMargin
+        let wanted = model.showsPanel ? max(base, KeyLayout.panelHeight) : emoji.isHidden ? base : base + KeyLayout.emojiExtra
         let screen = view.window?.windowScene?.screen.bounds.height ?? .infinity
         height?.constant = min(wanted, screen * KeyLayout.maxScreenShare)
     }
@@ -216,6 +215,7 @@ final class KeyboardViewController: UIInputViewController {
     private func loadSettings() {
         options = StyleStore.options
         options.adopt(StyleStore.localLanguage)
+        options.size = StyleStore.savedSize ?? options.size
         applyOptions()
         model.styles = StyleStore.enabledStyles
         model.people = StyleStore.enabledPeople

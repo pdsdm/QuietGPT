@@ -1882,6 +1882,17 @@
         }
       }
     },
+    "Top margin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Margen superior"
+          }
+        }
+      }
+    },
     "tracking" : {
       "extractionState" : "manual",
       "localizations" : {

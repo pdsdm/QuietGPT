@@ -44,11 +44,13 @@ struct KeySpec {
 enum KeyLayout {
     static let rowHeight = CGFloat(KeyboardOptions.defaultKeyHeight)
     static let maxScreenShare: CGFloat = 0.5
+    static let panelHeight: CGFloat = 244
     static let topPadding: CGFloat = 2.5
     static let bottomPadding: CGFloat = -0.33
     static let margin: CGFloat = 1
     static let insetX: CGFloat = 3
     static let insetY: CGFloat = 5.5
+    static let insetRowHeight: CGFloat = 78
     static let emojiExtra: CGFloat = 44
 
     private struct Item {
@@ -91,7 +93,7 @@ enum KeyLayout {
     static func build(_ state: KeyState, width: CGFloat, rowHeight: CGFloat = rowHeight) -> [KeySpec] {
         guard width > 0 else { return [] }
         let height = height(rowHeight: rowHeight)
-        let insetY = insetY * rowHeight / Self.rowHeight
+        let insetY = insetY * rowHeight / insetRowHeight
         let unit = (width - margin * 2) / 10
         let uppercase = state.layer == .letters && state.shift != .off
         var rows: [[Item]] = []

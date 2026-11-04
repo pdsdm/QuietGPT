@@ -29,6 +29,21 @@ struct KeyboardOptionsTests {
         #expect(kept.keyHeight == 64)
     }
 
+    @Test func oldOptionsGetTheDefaultTopMargin() throws {
+        let options = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":64}"#.utf8))
+
+        #expect(options.topMargin == KeyboardOptions.defaultTopMargin)
+    }
+
+    @Test func savedSizeStaysInTheRange() {
+        var options = KeyboardOptions()
+
+        options.size = KeyboardSize(keyHeight: 500, topMargin: -5)
+
+        #expect(options.keyHeight == KeyboardOptions.keyHeights.upperBound)
+        #expect(options.topMargin == KeyboardOptions.topMargins.lowerBound)
+    }
+
     @Test func newerLocalLanguageWins() {
         var options = KeyboardOptions()
         options.language = .english

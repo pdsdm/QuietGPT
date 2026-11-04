@@ -139,25 +139,12 @@ struct KeyboardScreen: View {
                     }
 
                     Section {
-                        VStack(spacing: 8) {
-                            HStack {
-                                Text("Key height")
-                                    .font(QuietGPTFont.callout)
-                                    .foregroundStyle(palette.text)
-                                Spacer()
-                                Text("\(Int(options.keyHeight)) pt")
-                                    .font(QuietGPTFont.callout)
-                                    .foregroundStyle(palette.text2)
-                                    .monospacedDigit()
-                            }
-                            Slider(value: $options.keyHeight, in: KeyboardOptions.keyHeights, step: 2)
-                                .tint(palette.accent)
-                                .accessibilityLabel("Key height")
-                        }
-                        .id(Self.keyHeightRow)
-                        .listRowBackground(palette.surface)
+                        sizeRow("Key height", value: $options.keyHeight, in: KeyboardOptions.keyHeights)
+                            .id(Self.keyHeightRow)
+                        sizeRow("Top margin", value: $options.topMargin, in: KeyboardOptions.topMargins)
                         TextField("Tap here to try the keyboard", text: $keyboardTest)
                             .focused($testsKeyboard)
+                            .textContentType(KeyboardOptions.tuningField)
                             .font(QuietGPTFont.callout)
                             .listRowBackground(palette.surface)
                     } header: {
@@ -290,13 +277,32 @@ struct KeyboardScreen: View {
         .onChange(of: styles) { _, value in StyleStore.styles = value }
         .onChange(of: options) { old, value in
             StyleStore.options = value
-            if old.keyHeight != value.keyHeight {
-                StyleStore.announceKeyHeight()
+            if old.size != value.size {
+                StyleStore.savedSize = value.size
             }
         }
         .onChange(of: instructions) { _, value in StyleStore.instructions = value }
         .sensoryFeedback(.selection, trigger: styles.map(\.isOn))
-        .sensoryFeedback(.selection, trigger: options.keyHeight)
+        .sensoryFeedback(.selection, trigger: options.size)
+    }
+
+    private func sizeRow(_ title: LocalizedStringKey, value: Binding<Double>, in range: ClosedRange<Double>) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text(title)
+                    .font(QuietGPTFont.callout)
+                    .foregroundStyle(palette.text)
+                Spacer()
+                Text("\(Int(value.wrappedValue)) pt")
+                    .font(QuietGPTFont.callout)
+                    .foregroundStyle(palette.text2)
+                    .monospacedDigit()
+            }
+            Slider(value: value, in: range, step: 2)
+                .tint(palette.accent)
+                .accessibilityLabel(title)
+        }
+        .listRowBackground(palette.surface)
     }
 
     private func toggle(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {

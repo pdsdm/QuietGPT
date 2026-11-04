@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct RewriteStyle: Codable, Identifiable, Hashable {
     var id: UUID
@@ -77,9 +78,25 @@ enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+struct KeyboardSize: Codable, Equatable {
+    var keyHeight: Double
+    var topMargin: Double
+}
+
 struct KeyboardOptions: Codable, Equatable {
-    static let defaultKeyHeight = 78.0
+    static let defaultKeyHeight = 58.0
     static let keyHeights = 48.0...96.0
+    static let defaultTopMargin = 10.0
+    static let topMargins = 0.0...30.0
+    static let tuningField = UITextContentType.sublocality
+
+    static func clampedKeyHeight(_ height: Double) -> Double {
+        min(max(height, keyHeights.lowerBound), keyHeights.upperBound)
+    }
+
+    static func clampedTopMargin(_ margin: Double) -> Double {
+        min(max(margin, topMargins.lowerBound), topMargins.upperBound)
+    }
 
     var autoCapitalize = true
     var periodShortcut = true
@@ -89,6 +106,15 @@ struct KeyboardOptions: Codable, Equatable {
     }
     var languageDate: Date?
     var keyHeight = KeyboardOptions.defaultKeyHeight
+    var topMargin = KeyboardOptions.defaultTopMargin
+
+    var size: KeyboardSize {
+        get { KeyboardSize(keyHeight: keyHeight, topMargin: topMargin) }
+        set {
+            keyHeight = Self.clampedKeyHeight(newValue.keyHeight)
+            topMargin = Self.clampedTopMargin(newValue.topMargin)
+        }
+    }
 
     init() {}
 
@@ -105,8 +131,8 @@ struct KeyboardOptions: Codable, Equatable {
         showsAsk = try container.decodeIfPresent(Bool.self, forKey: .showsAsk) ?? showsAsk
         language = (try? container.decodeIfPresent(KeyboardLanguage.self, forKey: .language)) ?? language
         languageDate = try container.decodeIfPresent(Date.self, forKey: .languageDate)
-        let height = try container.decodeIfPresent(Double.self, forKey: .keyHeight) ?? keyHeight
-        keyHeight = min(max(height, Self.keyHeights.lowerBound), Self.keyHeights.upperBound)
+        keyHeight = Self.clampedKeyHeight(try container.decodeIfPresent(Double.self, forKey: .keyHeight) ?? keyHeight)
+        topMargin = Self.clampedTopMargin(try container.decodeIfPresent(Double.self, forKey: .topMargin) ?? topMargin)
     }
 }
 
@@ -203,12 +229,24 @@ enum StyleStore {
         set { encode(newValue, optionsKey) }
     }
 
-    static var keyHeightSignal: CFNotificationName {
-        CFNotificationName("\(group ?? "quietgpt").keyHeight" as CFString)
+    private static var keyboardSizeFile: URL? {
+        group.flatMap { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: $0) }?.appending(path: "keyboardSize.json")
     }
 
-    static func announceKeyHeight() {
-        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), keyHeightSignal, nil, nil, true)
+    static var savedSize: KeyboardSize? {
+        get {
+            keyboardSizeFile
+                .flatMap { try? Data(contentsOf: $0) }
+                .flatMap { try? JSONDecoder().decode(KeyboardSize.self, from: $0) }
+        }
+        set {
+            guard let url = keyboardSizeFile else { return }
+            if let newValue, let data = try? JSONEncoder().encode(newValue) {
+                try? data.write(to: url, options: .atomic)
+            } else {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
     }
 
     static var localLanguage: LanguageChoice? {
@@ -234,6 +272,7 @@ enum StyleStore {
         shared.removeObject(forKey: optionsKey)
         shared.removeObject(forKey: rulesKey)
         shared.removeObject(forKey: peopleKey)
+        savedSize = nil
     }
 
     private static func decode<Value: Decodable>(_ type: Value.Type, _ key: String) -> Value? {

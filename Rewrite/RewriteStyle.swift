@@ -38,15 +38,15 @@ struct RewriteStyle: Codable, Identifiable, Hashable {
         UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!
     ]
 
-    static let builtIn: [RewriteStyle] = [
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000001")!, title: "Kinder", prompt: "Make this message kinder and warmer. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000002")!, title: "Shorter", prompt: "Make this message shorter. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000003")!, title: "Longer", prompt: "Make this message a little longer and more complete. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000004")!, title: "Formal", prompt: "Make this message polite and formal."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000005")!, title: "Fix", prompt: "Fix the spelling, grammar and punctuation. Change nothing else."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000006")!, title: "English", prompt: "Translate this message into natural English."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!, title: "Spanish", prompt: "Translate this message into natural Spanish.")
-    ]
+    static var builtIn: [RewriteStyle] { [
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000001")!, title: String(localized: "Kinder", bundle: Rewriter.bundle), prompt: "Make this message kinder and warmer. Keep the same meaning."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000002")!, title: String(localized: "Shorter", bundle: Rewriter.bundle), prompt: "Make this message shorter. Keep the same meaning."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000003")!, title: String(localized: "Longer", bundle: Rewriter.bundle), prompt: "Make this message a little longer and more complete. Keep the same meaning."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000004")!, title: String(localized: "Formal", bundle: Rewriter.bundle), prompt: "Make this message polite and formal."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000005")!, title: String(localized: "Fix", bundle: Rewriter.bundle), prompt: "Fix the spelling, grammar and punctuation. Change nothing else."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000006")!, title: String(localized: "English", bundle: Rewriter.bundle), prompt: "Translate this message into natural English."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!, title: String(localized: "Spanish", bundle: Rewriter.bundle), prompt: "Translate this message into natural Spanish.")
+    ] }
 }
 
 enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
@@ -58,9 +58,9 @@ enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .automatic: "Automatic"
-        case .english: "English (US)"
-        case .spanish: "Spanish"
+        case .automatic: String(localized: "Automatic", bundle: Rewriter.bundle)
+        case .english: String(localized: "English (US)", bundle: Rewriter.bundle)
+        case .spanish: String(localized: "Spanish", bundle: Rewriter.bundle)
         }
     }
 

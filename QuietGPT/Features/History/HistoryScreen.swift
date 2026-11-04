@@ -197,7 +197,7 @@ private struct HistoryGroup: Identifiable {
 
     static func group(_ conversations: [Conversation], now: Date = .now) -> [HistoryGroup] {
         let calendar = Calendar.current
-        var buckets: [(String, [Conversation])] = [("Today", []), ("Yesterday", []), ("Last week", []), ("Earlier", [])]
+        var buckets: [(String, [Conversation])] = [(String(localized: "Today"), []), (String(localized: "Yesterday"), []), (String(localized: "Last week"), []), (String(localized: "Earlier"), [])]
         for conversation in conversations {
             let date = conversation.updatedAt
             let index: Int

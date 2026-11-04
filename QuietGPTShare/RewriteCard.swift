@@ -36,9 +36,9 @@ struct RewriteCard: View {
 
     private var status: String {
         switch ruleCount {
-        case 0: "on this iPhone"
-        case 1: "on this iPhone · 1 rule"
-        default: "on this iPhone · \(ruleCount) rules"
+        case 0: String(localized: "on this iPhone")
+        case 1: String(localized: "on this iPhone · 1 rule")
+        default: String(localized: "on this iPhone · \(ruleCount) rules")
         }
     }
 
@@ -109,7 +109,7 @@ struct RewriteCard: View {
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundStyle(Ink.text3)
                 ScrollView {
-                    Text(failure ?? (result.isEmpty ? "writing…" : result))
+                    Text(failure ?? (result.isEmpty ? String(localized: "writing…") : result))
                         .font(BrandFont.font(size: 18))
                         .foregroundStyle(failure == nil && !result.isEmpty ? Ink.text : Ink.text3)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,7 +126,7 @@ struct RewriteCard: View {
             }
 
             Button(action: copy) {
-                Text(copied ? "Copied · paste it in your chat" : "Copy")
+                Text(copied ? String(localized: "Copied · paste it in your chat") : String(localized: "Copy"))
                     .font(BrandFont.font(size: 17))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
@@ -161,7 +161,7 @@ struct RewriteCard: View {
         failure = nil
         copied = false
         guard !original.isEmpty else {
-            failure = "Select some text, then share it to QuietGPT."
+            failure = String(localized: "Select some text, then share it to QuietGPT.")
             return
         }
         guard rewriter.isAvailable else {

@@ -87,11 +87,11 @@ struct StylePack: Codable, Equatable {
 
     static func message(for error: Error) -> String {
         switch error as? Failure {
-        case .tooLarge: "This file is too large to be a style pack."
-        case .newerVersion: "This pack needs a newer version of QuietGPT."
-        case .tooManyStyles, .tooManyRules, .textTooLong: "This pack is larger than QuietGPT allows."
-        case .empty: "This pack has no styles or rules."
-        default: "QuietGPT can't read this file."
+        case .tooLarge: String(localized: "This file is too large to be a style pack.")
+        case .newerVersion: String(localized: "This pack needs a newer version of QuietGPT.")
+        case .tooManyStyles, .tooManyRules, .textTooLong: String(localized: "This pack is larger than QuietGPT allows.")
+        case .empty: String(localized: "This pack has no styles or rules.")
+        default: String(localized: "QuietGPT can't read this file.")
         }
     }
 }

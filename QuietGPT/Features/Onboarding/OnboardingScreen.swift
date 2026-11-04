@@ -107,7 +107,7 @@ struct OnboardingScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func exampleLine(_ label: String, _ text: String, color: Color) -> some View {
+    private func exampleLine(_ label: LocalizedStringKey, _ text: LocalizedStringKey, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(QuietGPTFont.mono)
@@ -125,11 +125,11 @@ struct OnboardingScreen: View {
                 .tracking(-0.6)
                 .foregroundStyle(palette.text)
             TerminalLines(lines: [
-                ("account", "none"),
-                ("cloud", "none"),
-                ("tracking", "none"),
-                ("airplane mode", "works"),
-                ("sent", NetworkMeter.format(NetworkWatch.shared.total.sentBytes))
+                (String(localized: "account"), String(localized: "none")),
+                (String(localized: "cloud"), String(localized: "none")),
+                (String(localized: "tracking"), String(localized: "none")),
+                (String(localized: "airplane mode"), String(localized: "works")),
+                (String(localized: "sent"), NetworkMeter.format(NetworkWatch.shared.total.sentBytes))
             ])
         }
         .frame(maxWidth: .infinity, alignment: .leading)

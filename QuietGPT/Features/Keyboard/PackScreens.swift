@@ -171,16 +171,20 @@ struct PackImportScreen: View {
     private var summary: String {
         let merged = merged
         var parts = [merged.addedStyles == 0 && merged.addedRules == 0
-            ? "You already have everything in this pack."
-            : "This adds \(count(merged.addedStyles, "style")) and \(count(merged.addedRules, "rule"))."]
+            ? String(localized: "You already have everything in this pack.")
+            : String(localized: "This adds \(styleCount(merged.addedStyles)) and \(ruleCount(merged.addedRules)).")]
         if merged.skippedRules > 0 {
-            parts.append("\(count(merged.skippedRules, "rule")) will not be added, because the limit is \(StyleStore.maxRules) rules.")
+            parts.append(String(localized: "\(ruleCount(merged.skippedRules)) will not be added, because the limit is \(StyleStore.maxRules) rules."))
         }
         return parts.joined(separator: " ")
     }
 
-    private func count(_ value: Int, _ noun: String) -> String {
-        value == 1 ? "1 \(noun)" : "\(value) \(noun)s"
+    private func styleCount(_ value: Int) -> String {
+        value == 1 ? String(localized: "1 style") : String(localized: "\(value) styles")
+    }
+
+    private func ruleCount(_ value: Int) -> String {
+        value == 1 ? String(localized: "1 rule") : String(localized: "\(value) rules")
     }
 
     var body: some View {
@@ -230,7 +234,7 @@ struct PackImportScreen: View {
             }
             .scrollContentBackground(.hidden)
             .background(palette.background.ignoresSafeArea())
-            .navigationTitle(pack.name.isEmpty ? "Style pack" : pack.name)
+            .navigationTitle(pack.name.isEmpty ? String(localized: "Style pack") : pack.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

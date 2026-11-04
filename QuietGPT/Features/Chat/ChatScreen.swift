@@ -10,9 +10,9 @@ struct ChatScreen: View {
     @ScaledMetric(relativeTo: .largeTitle) private var greetingSize: CGFloat = 64
 
     private static let ideas: [(title: String, prompt: String)] = [
-        ("Help me write a message", "Help me write a short, kind message to a friend I have not talked to in a while."),
-        ("Summarize a long text", "I will paste a long text. Summarize it in five short points."),
-        ("Think a decision through", "Help me think through a decision. Ask me one question at a time.")
+        (String(localized: "Help me write a message"), String(localized: "Help me write a short, kind message to a friend I have not talked to in a while.")),
+        (String(localized: "Summarize a long text"), String(localized: "I will paste a long text. Summarize it in five short points.")),
+        (String(localized: "Think a decision through"), String(localized: "Help me think through a decision. Ask me one question at a time."))
     ]
 
     var body: some View {

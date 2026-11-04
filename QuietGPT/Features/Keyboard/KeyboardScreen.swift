@@ -250,7 +250,7 @@ struct KeyboardScreen: View {
         .sensoryFeedback(.selection, trigger: styles.map(\.isOn))
     }
 
-    private func toggle(_ title: String, isOn: Binding<Bool>) -> some View {
+    private func toggle(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             Text(title)
                 .font(QuietGPTFont.callout)
@@ -303,9 +303,9 @@ private struct PanelPreview: View {
 
     private var status: String {
         switch ruleCount {
-        case 0: "on this iPhone"
-        case 1: "on this iPhone · 1 rule"
-        default: "on this iPhone · \(ruleCount) rules"
+        case 0: String(localized: "on this iPhone")
+        case 1: String(localized: "on this iPhone · 1 rule")
+        default: String(localized: "on this iPhone · \(ruleCount) rules")
         }
     }
 
@@ -374,14 +374,14 @@ private struct StyleEditor: View {
         case style
         case person
 
-        var newTitle: String { self == .style ? "New style" : "New person" }
-        var deleteTitle: String { self == .style ? "Delete style" : "Delete person" }
-        var namePlaceholder: String { self == .style ? "For example, Friendly" : "For example, Boss" }
-        var promptHeader: String { self == .style ? "What QuietGPT does" : "How you write to this person" }
+        var newTitle: String { self == .style ? String(localized: "New style") : String(localized: "New person") }
+        var deleteTitle: String { self == .style ? String(localized: "Delete style") : String(localized: "Delete person") }
+        var namePlaceholder: String { self == .style ? String(localized: "For example, Friendly") : String(localized: "For example, Boss") }
+        var promptHeader: String { self == .style ? String(localized: "What QuietGPT does") : String(localized: "How you write to this person") }
         var promptFooter: String {
             self == .style
-                ? "Write it as an order. For example: Make this message friendly and relaxed. Keep the same meaning."
-                : "Write it as an order. For example: Write to my boss. Be polite and direct. Do not use emoji."
+                ? String(localized: "Write it as an order. For example: Make this message friendly and relaxed. Keep the same meaning.")
+                : String(localized: "Write it as an order. For example: Write to my boss. Be polite and direct. Do not use emoji.")
         }
     }
 
@@ -569,7 +569,7 @@ private struct TryItSection: View {
         result = ""
         failure = nil
         guard rewriter.isAvailable else {
-            failure = "Turn on Apple Intelligence in Settings to try styles."
+            failure = Rewriter.unavailableMessage
             return
         }
         isWriting = true

@@ -13,7 +13,7 @@ struct PrivacyScreen: View {
 
     private var network: NetworkWatch { .shared }
 
-    private static let checks: [(title: String, body: String)] = [
+    private static let checks: [(title: LocalizedStringKey, body: LocalizedStringKey)] = [
         ("Runs on this iPhone", "QuietGPT answers on the device. No server."),
         ("Encrypted storage", "Chats are locked with your passcode."),
         ("No account, no analytics", "No tracking, no crash reports, no ads.")

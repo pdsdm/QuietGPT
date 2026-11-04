@@ -17,8 +17,8 @@ QuietGPT rewrites your messages with your own rules, in one tap, in any app. It 
 
 <p align="center">
   <img src="docs/screenshots/onboarding.png" width="200" alt="Onboarding">
+  <img src="docs/screenshots/keyboard.png" width="200" alt="Keyboard tab with the panel preview, rules and people">
   <img src="docs/screenshots/chat.png" width="200" alt="Chat">
-  <img src="docs/screenshots/voice.png" width="200" alt="Voice">
   <img src="docs/screenshots/privacy.png" width="200" alt="Privacy">
 </p>
 

@@ -30,12 +30,12 @@ struct ChatScreen: View {
                 if controller.hasConversation {
                     conversation
                         .contentShape(.rect)
-                        .onTapGesture(perform: hideKeyboard)
+                        .onTapGesture(perform: KeyboardDismissal.hide)
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 } else {
                     welcome
                         .contentShape(.rect)
-                        .onTapGesture(perform: hideKeyboard)
+                        .onTapGesture(perform: KeyboardDismissal.hide)
                         .transition(.blurReplace)
                 }
                 footer
@@ -51,10 +51,6 @@ struct ChatScreen: View {
         #endif
         .toolbarVisibility(controller.hasConversation ? .hidden : .visible, for: .tabBar)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: controller.completedReplies)
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     @ViewBuilder

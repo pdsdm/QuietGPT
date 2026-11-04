@@ -144,6 +144,7 @@ private struct AppFlow: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
+                KeyboardDismissal.hide()
                 controller.stop()
                 if lockEnabled {
                     locked = true

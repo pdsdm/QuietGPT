@@ -8,7 +8,7 @@ struct VoiceScreen: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            LiquidField(mode: .ripple, mask: .vignette)
+            LiquidField(mode: .ripple, mask: .vignette, share: 0.5)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -68,7 +68,7 @@ private struct BreathingMic: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(paused: reduceMotion)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
             ZStack {
                 ForEach(0..<3, id: \.self) { ring in

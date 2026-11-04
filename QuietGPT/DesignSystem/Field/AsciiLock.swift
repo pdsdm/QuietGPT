@@ -22,7 +22,7 @@ struct AsciiLock: View {
     private static let lineHeight: CGFloat = 6.4
 
     var body: some View {
-        TimelineView(.animation(paused: reduceMotion)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
             Canvas { canvas, size in
                 let columns = Int(size.width / Self.cellWidth)
                 let rows = Int(size.height / Self.lineHeight)

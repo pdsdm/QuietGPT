@@ -23,9 +23,6 @@ struct ArrivalRenderer: TextRenderer {
                     var copy = context
                     copy.opacity = eased
                     copy.translateBy(x: 0, y: (1 - eased) * 5)
-                    if eased < 1 {
-                        copy.addFilter(.blur(radius: (1 - eased) * 3))
-                    }
                     copy.draw(glyph)
                 }
             }
@@ -43,7 +40,7 @@ struct StreamingText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(paused: reduceMotion)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
             composed(now: context.date.timeIntervalSinceReferenceDate)
                 .font(font)
                 .foregroundStyle(color)
@@ -91,20 +88,17 @@ struct StreamArrival: Equatable {
 struct StreamCursor: View {
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var dim = false
+    private static let blink = 0.55
 
     var body: some View {
-        Capsule()
-            .fill(palette.accent)
-            .frame(width: 3, height: 18)
-            .opacity(dim ? 0.2 : 1)
-            .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
-                    dim = true
-                }
-            }
-            .accessibilityHidden(true)
+        TimelineView(.periodic(from: .now, by: Self.blink)) { context in
+            let step = Int(context.date.timeIntervalSinceReferenceDate / Self.blink)
+            Capsule()
+                .fill(palette.accent)
+                .frame(width: 3, height: 18)
+                .opacity(reduceMotion || step % 2 == 0 ? 1 : 0.2)
+        }
+        .accessibilityHidden(true)
     }
 }
 

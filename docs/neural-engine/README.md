@@ -26,7 +26,7 @@ All tests ran on an iPhone 16 Pro Max.
 | Does the AI work appear on the GPU? | No separate AI process appears on the GPU |
 | How fast is a long reply? | About 21 and about 48 tokens/s in two tests |
 | How much power does it use? | No watt or battery number yet. Instruments gives only impact scores |
-| Is the GPU free when the app is idle? | Not on most tabs. The animated background uses 39–92% of GPU time, with no reply running |
+| Is the GPU free when the app is idle? | Not on most tabs. The tabs with the animated background use 39–92% of GPU time, with no reply running. With the background off, the idle Chat tab uses 0% |
 
 ## What the ANE is
 
@@ -146,9 +146,20 @@ We opened one tab at a time, and we sent no message. The table gives QuietGPT GP
 | Privacy | Yes | 565 ms | 454–676 ms |
 | Chat | Yes | 815 ms | 543–921 ms |
 
-GPU time goes to zero on the only tab without the background. Chats and Privacy have no chat interface and still use the GPU. This points to `LiquidField`. We did not make a build without it, so this is not a final proof.
+GPU time goes to zero on the only tab without the background. Chats and Privacy have no chat interface and still use the GPU.
 
-The GPU use can jump with no change on the screen. On the Chat tab, it went from about 555 ms to about 915 ms each second. The app sends 120 GPU intervals each second in both phases, and each interval takes about 4.7 ms before the jump and about 7.6 ms after it. A separate power recording shows the GPU impact score of QuietGPT fall from about 20 to about 13. Together, these suggest that iOS slows the GPU. We did not read the GPU clock, so this is not confirmed.
+To confirm the cause, we made a test build from one commit with a launch option that turns `LiquidField` off. We recorded the idle Chat tab in four phases and ignored the first 10 seconds of each phase. This test build is not in the repo.
+
+| Phase | `LiquidField` | Seconds | Average QuietGPT GPU time, each second | Average compositor GPU time, each second |
+|---|---|---|---|---|
+| 1 | Off | 12–48 | 0 ms | 4 ms |
+| 2 | On | 58–92 | 632 ms | 288 ms |
+| 3 | Off | 103–138 | 0 ms | 0 ms |
+| 4 | On | 149–189 | 768 ms | 302 ms |
+
+**`LiquidField` causes the idle GPU use of the Chat tab.** With it off, the idle Chat tab uses no measurable GPU time.
+
+The GPU use can jump with no change on the screen. In this test, it went up about 20 seconds after each launch with the field on, to about 885 ms each second. The app sends 120 GPU intervals each second, and each interval takes about 7.4 ms after the jump. The thermal state was `Nominal` when each jump came, so a thermal limit does not explain it. The cause of the jump is not known.
 
 ### Power impact
 
@@ -248,6 +259,7 @@ This script needs `matplotlib`.
 | [`iphone-nov-reply.csv`](data/iphone-nov-reply.csv) | ANE busy percent and GPU time for each second of the 4 November reply |
 | [`iphone-nov-idle-tabs.csv`](data/iphone-nov-idle-tabs.csv) | ANE busy percent and GPU time for each second, with the tab open and no message |
 | [`iphone-nov-power-impact.csv`](data/iphone-nov-power-impact.csv) | CPU, GPU and display impact scores of QuietGPT for each second |
+| [`iphone-nov-no-field.csv`](data/iphone-nov-no-field.csv) | GPU time for each second of the idle Chat tab, with `LiquidField` off and on |
 
 ## Sources
 

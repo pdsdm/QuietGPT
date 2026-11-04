@@ -54,6 +54,7 @@ struct TopRow: View {
                     }
                 }
                 .scrollIndicators(.hidden)
+                .scrollEdgeEffectHidden()
                 .scrollBounceBehavior(.basedOnSize)
                 .transition(.opacity)
             }

@@ -58,9 +58,11 @@ struct Composer: View {
         .background(palette.raised, in: .rect(cornerRadius: Radius.large, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
-                .strokeBorder(focused ? palette.accent.opacity(0.5) : .clear, lineWidth: 1)
+                .strokeBorder(lineWidth: 1)
+                .animation(Motion.spring) {
+                    $0.foregroundStyle(focused ? palette.accent.opacity(0.5) : palette.raised)
+                }
         }
-        .animation(Motion.spring, value: focused)
         .sensoryFeedback(.impact(weight: .light), trigger: sends)
         .sensoryFeedback(.success, trigger: secretHolds)
     }

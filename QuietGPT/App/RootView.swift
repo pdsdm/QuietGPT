@@ -136,9 +136,11 @@ private struct AppFlow: View {
             withAnimation(.easeOut(duration: 0.45)) { loading = false }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background, lockEnabled {
+            if phase == .background {
                 controller.stop()
-                locked = true
+                if lockEnabled {
+                    locked = true
+                }
             }
         }
     }

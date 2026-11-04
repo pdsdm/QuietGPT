@@ -89,7 +89,16 @@ struct NetworkLedger: Codable, Equatable {
 
 @Observable
 final class NetworkWatch {
-    static let shared = NetworkWatch(defaults: StyleStore.shared, key: ownKey)
+    static let shared = NetworkWatch(defaults: sharedDefaults, key: ownKey)
+
+    private static var sharedDefaults: UserDefaults {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return UserDefaults(suiteName: "network.tests") ?? .standard
+        }
+        #endif
+        return StyleStore.shared
+    }
 
     private static let keys = ["network.app", "network.share", "network.keyboard"]
 

@@ -120,13 +120,21 @@ Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-Qu
 | Data | Where it stays |
 |---|---|
 | Text that you rewrite | It goes to Apple Foundation Models on the iPhone |
-| Chats | SwiftData on the iPhone, with `NSFileProtectionComplete` |
-| Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card |
+| Chats | SwiftData in a private app folder, with `NSFileProtectionComplete`. iCloud Backup and computer backups do not include this folder, so chats do not move to a new iPhone |
+| Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card. An iPhone backup can include them |
 | Style packs | On the iPhone, until you send the file. A pack does not include your people |
 
-QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access.
+QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles.
 
-The Privacy tab shows `0 B` sent. This is a fixed value, not a measurement. It is correct because the source has no network code.
+### What the Privacy tab measures
+
+| Value | How QuietGPT measures it | Limit |
+|---|---|---|
+| Sent by QuietGPT | Each second, the app looks for its own internet connections and reads the bytes sent on TCP connections | A connection that opens and closes between two checks is not counted. UDP bytes are not available, but the connection is counted |
+| Connections opened by QuietGPT | The same check | The same limit |
+| Sent to Apple, at most | The bytes that the full iPhone sends on Wi-Fi and cellular during each reply and rewrite | iOS does not count bytes for each app, and Apple's writing service runs outside QuietGPT. This value also includes other apps and iOS, so it can be above 0 B when the iPhone is online |
+
+The maximum for Apple is 0 B only when no other traffic occurs, for example in Airplane Mode. The keyboard counts its rewrites only if iOS lets it save to the app group.
 
 ### Check it yourself
 
@@ -151,7 +159,11 @@ The Monitor panel also shows live network use for the full iPhone.
 
 | Problem | Solution |
 |---|---|
-| The panel shows "Apple Intelligence is off" | Go to Settings > Apple Intelligence & Siri and turn it on. Wait for the download to finish. |
+| The panel shows "QuietGPT needs Apple Intelligence" | Go to Settings > Apple Intelligence & Siri and turn it on. |
+| The panel shows "Apple Intelligence is still getting ready" | Wait for the download to finish. Then try again. |
+| "This text is too long" | Select a shorter part of the text. |
+| "The text field changed, so the rewrite stopped" | Stay in the same field until the rewrite is done. |
+| "The cursor moved, so undo is off" | Undo works only while the cursor is after the rewritten text. |
 | The chat shows "I can't think yet on this iPhone" | Do the same step. Then make sure that your iPhone is in the [list](#to-use-quietgpt). |
 | "QuietGPT can't rewrite this language yet" | Apple Intelligence does not support this language. Set the panel to a language that it supports. |
 | "QuietGPT can't rewrite this one" | The system refused this text. Try another style. |
@@ -250,7 +262,7 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 
 - **Bugs and ideas.** Open an [issue](https://github.com/pdsdm/QuietGPT/issues). For a bug, give your iPhone, your iOS version and the steps.
 - **Code.** Open an issue before a large change. Add tests in `QuietGPTTests`, and make sure that all tests pass before you open a pull request.
-- **Translations.** The keyboard text is in `QuietGPTKeyboard/Localizable.xcstrings`. It has English and Spanish now.
+- **Translations.** Each target has a `Localizable.xcstrings` file: `QuietGPT`, `QuietGPTKeyboard` and `QuietGPTShare`. They have English and Spanish now. The Monitor panel stays in English.
 - **Privacy.** Do not add network code, analytics or third-party packages.
 
 ## License

@@ -352,6 +352,281 @@
           }
         }
       }
+    },
+    "Apple Intelligence is still getting ready. Try again soon." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence aún se está preparando. Inténtalo de nuevo pronto."
+          }
+        }
+      }
+    },
+    "Automatic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
+        }
+      }
+    },
+    "Cancel instruction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar instrucción"
+          }
+        }
+      }
+    },
+    "English" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inglés"
+          }
+        }
+      }
+    },
+    "English (US)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inglés (EE. UU.)"
+          }
+        }
+      }
+    },
+    "Fix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corregir"
+          }
+        }
+      }
+    },
+    "Formal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formal"
+          }
+        }
+      }
+    },
+    "Kinder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más amable"
+          }
+        }
+      }
+    },
+    "Longer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más largo"
+          }
+        }
+      }
+    },
+    "Nothing came back, try again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No ha llegado nada, inténtalo de nuevo"
+          }
+        }
+      }
+    },
+    "QuietGPT can't read this file." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede leer este archivo."
+          }
+        }
+      }
+    },
+    "QuietGPT can't rewrite right now. Check that Apple Intelligence is on in Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede reescribir ahora. Comprueba en Ajustes que Apple Intelligence esté activado."
+          }
+        }
+      }
+    },
+    "QuietGPT can't rewrite this language yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT aún no puede reescribir en este idioma."
+          }
+        }
+      }
+    },
+    "QuietGPT can't rewrite this one. Try another style." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede reescribir este texto. Prueba otro estilo."
+          }
+        }
+      }
+    },
+    "QuietGPT needs Apple Intelligence. Turn it on in Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT necesita Apple Intelligence. Actívalo en Ajustes."
+          }
+        }
+      }
+    },
+    "Shorter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más corto"
+          }
+        }
+      }
+    },
+    "Spanish" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Español"
+          }
+        }
+      }
+    },
+    "The cursor moved, so undo is off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El cursor se ha movido, así que no se puede deshacer"
+          }
+        }
+      }
+    },
+    "The text field changed, so the rewrite stopped" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El campo de texto ha cambiado, así que la reescritura se ha detenido"
+          }
+        }
+      }
+    },
+    "This file is too large to be a style pack." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este archivo es demasiado grande para ser un paquete de estilos."
+          }
+        }
+      }
+    },
+    "This iPhone does not support Apple Intelligence." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este iPhone no es compatible con Apple Intelligence."
+          }
+        }
+      }
+    },
+    "This pack has no styles or rules." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este paquete no tiene estilos ni reglas."
+          }
+        }
+      }
+    },
+    "This pack is larger than QuietGPT allows." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este paquete es más grande de lo que QuietGPT permite."
+          }
+        }
+      }
+    },
+    "This pack needs a newer version of QuietGPT." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este paquete necesita una versión más nueva de QuietGPT."
+          }
+        }
+      }
+    },
+    "This text is too long. Select a shorter part." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este texto es demasiado largo. Selecciona una parte más corta."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

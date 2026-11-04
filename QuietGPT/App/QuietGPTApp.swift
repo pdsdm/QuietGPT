@@ -3,6 +3,8 @@ import SwiftUI
 
 @main
 struct QuietGPTApp: App {
+    private let container = ChatStore.makeContainer()
+
     init() {
         let bar = UINavigationBar.appearance()
         if let title = BrandFont.uiFont(size: 17, weight: .medium) {
@@ -17,6 +19,6 @@ struct QuietGPTApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [Conversation.self, Message.self])
+        .modelContainer(container)
     }
 }

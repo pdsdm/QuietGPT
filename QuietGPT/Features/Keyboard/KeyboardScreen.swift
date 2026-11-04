@@ -431,22 +431,6 @@ private struct PanelPreview: View {
             }
             .padding(.horizontal, 12)
 
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    ForEach(people) { StyleTile(value: $0, style: style, isPerson: true) }
-                    ForEach(styles) { StyleTile(value: $0, style: style) }
-                    if people.isEmpty && styles.isEmpty {
-                        Text("No styles on")
-                            .font(BrandFont.font(size: 15))
-                            .foregroundStyle(Color(style.secondary))
-                            .frame(height: 86)
-                    }
-                }
-            }
-            .contentMargins(.horizontal, 12, for: .scrollContent)
-            .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
-
             if showsAsk {
                 HStack(spacing: 10) {
                     Image(systemName: "text.bubble")
@@ -463,6 +447,22 @@ private struct PanelPreview: View {
                 .padding(.horizontal, 12)
                 .transition(.opacity)
             }
+
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(people) { StyleTile(value: $0, style: style, isPerson: true) }
+                    ForEach(styles) { StyleTile(value: $0, style: style) }
+                    if people.isEmpty && styles.isEmpty {
+                        Text("No styles on")
+                            .font(BrandFont.font(size: 15))
+                            .foregroundStyle(Color(style.secondary))
+                            .frame(height: 86)
+                    }
+                }
+            }
+            .contentMargins(.horizontal, 12, for: .scrollContent)
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
         }
         .padding(.vertical, 12)
         .background(Color(style.background), in: .rect(cornerRadius: Radius.large, style: .continuous))

@@ -17,11 +17,11 @@ struct QuietGPTPanel: View {
                 .padding(.leading, 13)
                 .padding(.trailing, 12)
                 .padding(.top, (CGFloat(model.options.topMargin) - Self.headerHeight) / 2)
-            rail
             if model.showsAsk {
                 askField
                     .padding(.horizontal, 12)
             }
+            rail
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .topLeading) {

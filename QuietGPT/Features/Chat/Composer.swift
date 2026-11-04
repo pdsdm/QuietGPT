@@ -25,6 +25,7 @@ struct Composer: View {
                 .focused($focused)
                 .padding(.vertical, 12)
                 .padding(.leading, 18)
+                .frame(minHeight: 52)
                 .submitLabel(.send)
                 .onSubmit(send)
                 #if DEBUG

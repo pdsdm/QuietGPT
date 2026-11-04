@@ -78,6 +78,7 @@ final class KeyboardViewController: UIInputViewController {
             height.isActive = true
             self.height = height
         }
+        updateHeight()
         loadSettings()
         refresh()
     }
@@ -140,11 +141,17 @@ final class KeyboardViewController: UIInputViewController {
                 emoji.refresh()
             }
             emoji.isHidden = !showsEmoji
+            updateHeight()
             apply(panel: model.showsPanel, bar: model.isAsking)
         } onChange: { [weak self] in
             let controller = self
             Task { @MainActor in controller?.observe() }
         }
+    }
+
+    private func updateHeight() {
+        let base = QuietGPTBar.height + KeyLayout.height + KeyLayout.bottomPadding
+        height?.constant = emoji.isHidden ? base : base + KeyLayout.emojiExtra
     }
 
     private func apply(panel: Bool, bar: Bool) {

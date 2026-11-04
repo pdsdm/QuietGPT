@@ -49,6 +49,7 @@ enum KeyLayout {
     static let margin: CGFloat = 1
     static let insetX: CGFloat = 3
     static let insetY: CGFloat = 5.5
+    static let emojiExtra: CGFloat = 44
 
     private struct Item {
         var spec: KeySpec

@@ -760,6 +760,17 @@
         }
       }
     },
+    "Key height" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altura de las teclas"
+          }
+        }
+      }
+    },
     "Keyboard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1552,6 +1563,17 @@
         }
       }
     },
+    "Size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño"
+          }
+        }
+      }
+    },
     "soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1640,6 +1662,17 @@
         }
       }
     },
+    "Tap here to try the keyboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca aquí para probar el teclado"
+          }
+        }
+      }
+    },
     "Test it: turn on airplane mode and keep chatting." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1647,6 +1680,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pruébalo: activa el modo avión y sigue chateando."
+          }
+        }
+      }
+    },
+    "The keyboard changes while you move the slider. It takes at most half of the screen." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teclado cambia mientras mueves el control. Ocupa como máximo la mitad de la pantalla."
           }
         }
       }

@@ -53,7 +53,7 @@ A message to your manager and a message to your best friend need different words
 
 ### Rewrite
 
-- **QuietGPT keyboard.** It looks and types like the iOS keyboard. It has accent variants, cursor control on the space bar and an emoji page with all categories, recent emojis and skin tones. The lock key opens the rewrite panel. You can set the key height in the Keyboard tab.
+- **QuietGPT keyboard.** It looks and types like the iOS keyboard. It has accent variants, cursor control on the space bar and an emoji page with all categories, recent emojis and skin tones. The lock key opens the rewrite panel. You can set the key height and the top margin in the Keyboard tab.
 - **Share card.** Share text from any app to QuietGPT and get a rewrite.
 - **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish or your own instruction. Edit, add and order styles in the Keyboard tab. You can also change the base instructions.
 - **My rules.** Up to 10 short rules that QuietGPT follows in each rewrite. Each style can turn them off. Fix and the translations do not use them by default.

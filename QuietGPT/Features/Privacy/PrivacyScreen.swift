@@ -74,7 +74,7 @@ struct PrivacyScreen: View {
                                 .font(QuietGPTFont.callout)
                                 .foregroundStyle(palette.text)
                         }
-                        .tint(palette.local)
+                        .tint(palette.toggle)
                         .padding(.horizontal, 16)
                         .frame(minHeight: 52)
                     }

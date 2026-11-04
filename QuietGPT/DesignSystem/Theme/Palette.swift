@@ -19,6 +19,7 @@ struct Palette {
     let danger: Color
     let primary: Color
     let onPrimary: Color
+    let toggle: Color
 
     static let dark = Palette(
         background: Color(hex: 0x000000),
@@ -38,7 +39,8 @@ struct Palette {
         localSoft: Color(hex: 0x1A1A1A),
         danger: Color(hex: 0xFF8A80),
         primary: Color(hex: 0xFFFFFF),
-        onPrimary: Color(hex: 0x0A0A0A)
+        onPrimary: Color(hex: 0x0A0A0A),
+        toggle: Color(hex: 0x0A84FF)
     )
 
     static let light = Palette(
@@ -59,7 +61,8 @@ struct Palette {
         localSoft: Color(hex: 0xEFEFEF),
         danger: Color(hex: 0xC8372D),
         primary: Color(hex: 0x0A0A0A),
-        onPrimary: Color(hex: 0xFFFFFF)
+        onPrimary: Color(hex: 0xFFFFFF),
+        toggle: Color(hex: 0x0A0A0A)
     )
 
     static func forScheme(_ scheme: ColorScheme) -> Palette {

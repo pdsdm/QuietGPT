@@ -311,7 +311,7 @@ struct KeyboardScreen: View {
                 .font(QuietGPTFont.callout)
                 .foregroundStyle(palette.text)
         }
-        .tint(palette.accent)
+        .tint(palette.toggle)
         .listRowBackground(palette.surface)
     }
 }
@@ -340,7 +340,7 @@ private struct StyleRow: View {
             .buttonStyle(.plain)
             Toggle("", isOn: $style.isOn)
                 .labelsHidden()
-                .tint(palette.accent)
+                .tint(palette.toggle)
         }
         .padding(.vertical, 2)
     }
@@ -487,7 +487,7 @@ private struct StyleEditor: View {
                             .font(QuietGPTFont.callout)
                             .foregroundStyle(palette.text)
                     }
-                    .tint(palette.accent)
+                    .tint(palette.toggle)
                     .listRowBackground(palette.surface)
                 }
                 TryItSection(request: style.prompt, usesRules: style.usesRules)

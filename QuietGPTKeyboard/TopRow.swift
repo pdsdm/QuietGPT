@@ -23,6 +23,10 @@ struct TopRow: View {
 
     private var style: KeyStyle { .current(scheme) }
 
+    private var tagHeight: CGFloat {
+        min(30, CGFloat(model.options.topMargin) - 6)
+    }
+
     private var items: [Item] {
         let chosen = Set(model.options.topRow)
         let people = model.people.filter { chosen.contains($0.id.uuidString) }.map { Item.style($0, isPerson: true) }
@@ -80,33 +84,42 @@ struct TopRow: View {
         return Button {
             tap(item)
         } label: {
-            glyph(item, active: active)
-                .frame(width: 40, height: 40)
-                .background {
-                    if active {
-                        Circle().fill(Color(style.key))
-                    }
-                }
-                .contentShape(.rect)
-                .opacity(dimmed ? 0.4 : 1)
+            HStack(spacing: 5) {
+                glyph(item)
+                    .accessibilityHidden(true)
+                Text(label(item))
+                    .font(BrandFont.font(size: 14, weight: .medium))
+                    .foregroundStyle(Color(style.text))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .padding(.horizontal, 10)
+            .frame(height: tagHeight)
+            .background(Color(style.key), in: .capsule)
+            .overlay {
+                Capsule().strokeBorder(active ? Color(style.accent) : Color(style.outline), lineWidth: active ? 1.5 : 0.5)
+            }
+            .frame(height: 40)
+            .contentShape(.rect)
+            .opacity(dimmed ? 0.4 : 1)
         }
         .buttonStyle(BarPressStyle())
         .disabled(dimmed)
-        .accessibilityLabel(label(item))
     }
 
     @ViewBuilder
-    private func glyph(_ item: Item, active: Bool) -> some View {
+    private func glyph(_ item: Item) -> some View {
         switch item {
         case .undo:
             Image(systemName: "arrow.uturn.backward")
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color(style.text))
         case .style(let value, let isPerson):
             StyleGlyph(value: value, isPerson: isPerson, color: Color(style.text))
+                .scaleEffect(0.85)
         case .ask:
             Image(systemName: "text.bubble")
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color(style.text))
         }
     }

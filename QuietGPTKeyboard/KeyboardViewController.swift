@@ -24,6 +24,7 @@ final class KeyboardViewController: UIInputViewController {
     private var hintReset: Task<Void, Never>?
     private var last: (original: String, written: String)?
     private var draft: (original: String, shown: String)?
+    private var writingDocument: UUID?
     private var lastSpace: ContinuousClock.Instant?
     private var lastShiftTap: ContinuousClock.Instant?
     private var height: NSLayoutConstraint?
@@ -101,6 +102,11 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopWriting()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let width = view.bounds.width
@@ -141,6 +147,9 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     override func textDidChange(_ textInput: (any UITextInput)?) {
+        if model.isWriting, documentChanged {
+            abandonWriting()
+        }
         refresh()
     }
 
@@ -178,6 +187,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func loadSettings() {
         options = StyleStore.options
+        options.adopt(StyleStore.localLanguage)
         applyOptions()
         model.styles = StyleStore.enabledStyles
         model.people = StyleStore.enabledPeople
@@ -187,7 +197,6 @@ final class KeyboardViewController: UIInputViewController {
 
     private func applyOptions() {
         model.options = options
-        options.adopt(StyleStore.localLanguage)
         model.isSpanish = options.language.isSpanish
         primaryLanguage = model.isSpanish ? "es-ES" : "en-US"
         KeyboardText.use(spanish: model.isSpanish)
@@ -197,6 +206,7 @@ final class KeyboardViewController: UIInputViewController {
         UIDevice.current.playInputClick()
         update(&options)
         StyleStore.options = options
+        StyleStore.localLanguage = LanguageChoice(language: options.language, date: options.languageDate)
         applyOptions()
         refresh()
     }
@@ -440,7 +450,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
         guard rewriter.isAvailable else {
-            show(hint: "Apple Intelligence is off")
+            show(hint: Rewriter.unavailableMessage)
             return
         }
 
@@ -450,13 +460,18 @@ final class KeyboardViewController: UIInputViewController {
         forgetUndo()
         model.active = style?.id
         model.isWriting = true
-        let stream = rewriter.rewrite(text, request: request)
+        writingDocument = proxy.documentIdentifier
+        let stream = rewriter.rewrite(text, request: request, usesRules: style?.usesRules ?? true)
         task = Task {
             do {
                 for try await snapshot in stream {
                     guard !Task.isCancelled else { return }
                     let next = String(snapshot.drop { $0.isWhitespace })
                     guard !next.isEmpty else { continue }
+                    guard !documentChanged else {
+                        abandonWriting()
+                        return
+                    }
                     if draft == nil {
                         clear(text, isSelection: isSelection)
                         draft = (text, "")
@@ -474,12 +489,16 @@ final class KeyboardViewController: UIInputViewController {
                 return
             }
             guard !Task.isCancelled else { return }
+            guard !documentChanged else {
+                abandonWriting()
+                return
+            }
 
             let written = (draft?.shown ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !written.isEmpty else {
                 restore()
                 finishWriting()
-                show(hint: "Nothing came back, try again")
+                show(hint: KeyboardText.string("Nothing came back, try again"))
                 return
             }
             write(written)
@@ -494,6 +513,19 @@ final class KeyboardViewController: UIInputViewController {
     private func finishWriting() {
         model.isWriting = false
         model.active = nil
+        writingDocument = nil
+    }
+
+    private var documentChanged: Bool {
+        writingDocument != nil && writingDocument != proxy.documentIdentifier
+    }
+
+    private func abandonWriting() {
+        task?.cancel()
+        task = nil
+        draft = nil
+        finishWriting()
+        show(hint: KeyboardText.string("The text field changed, so the rewrite stopped"))
     }
 
     private func clear(_ text: String, isSelection: Bool) {
@@ -531,6 +563,10 @@ final class KeyboardViewController: UIInputViewController {
 
     private func stopWriting() {
         guard model.isWriting else { return }
+        guard !documentChanged else {
+            abandonWriting()
+            return
+        }
         task?.cancel()
         task = nil
         restore()
@@ -540,8 +576,15 @@ final class KeyboardViewController: UIInputViewController {
 
     private func undo() {
         guard let last else { return }
-        replace(last.written, isSelection: false, with: last.original)
-        forgetUndo()
+        defer { forgetUndo() }
+        guard RewriteUndo.cursorFollows(last.written, before: proxy.documentContextBeforeInput ?? "") else {
+            show(hint: KeyboardText.string("The cursor moved, so undo is off"))
+            return
+        }
+        for _ in 0..<last.written.count {
+            proxy.deleteBackward()
+        }
+        proxy.insertText(last.original)
     }
 
     private func forgetUndo() {
@@ -565,18 +608,5 @@ final class KeyboardViewController: UIInputViewController {
             return (selected, true)
         }
         return ((proxy.documentContextBeforeInput ?? "") + (proxy.documentContextAfterInput ?? ""), false)
-    }
-
-    private func replace(_ old: String, isSelection: Bool, with new: String) {
-        if !isSelection {
-            let after = proxy.documentContextAfterInput ?? ""
-            if !after.isEmpty {
-                proxy.adjustTextPosition(byCharacterOffset: after.count)
-            }
-            for _ in 0..<old.count {
-                proxy.deleteBackward()
-            }
-        }
-        proxy.insertText(new)
     }
 }

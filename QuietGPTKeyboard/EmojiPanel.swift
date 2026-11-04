@@ -105,6 +105,11 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
         grid.showsHorizontalScrollIndicator = false
         grid.alwaysBounceHorizontal = true
         grid.delaysContentTouches = false
+        grid.contentInsetAdjustmentBehavior = .never
+        grid.topEdgeEffect.isHidden = true
+        grid.bottomEdgeEffect.isHidden = true
+        grid.leftEdgeEffect.isHidden = true
+        grid.rightEdgeEffect.isHidden = true
         grid.dataSource = self
         grid.delegate = self
         grid.register(EmojiCell.self, forCellWithReuseIdentifier: "emoji")

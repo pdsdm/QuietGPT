@@ -9,7 +9,7 @@ struct QuietGPTPanel: View {
     private var style: KeyStyle { .current(scheme) }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             header
                 .padding(.horizontal, 12)
             rail
@@ -17,7 +17,6 @@ struct QuietGPTPanel: View {
                 askField
                     .padding(.horizontal, 12)
             }
-            Spacer(minLength: 0)
             settings
                 .padding(.horizontal, 12)
         }

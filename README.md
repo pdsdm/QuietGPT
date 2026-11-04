@@ -121,7 +121,7 @@ Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-Qu
 |---|---|
 | Text that you rewrite | It goes to Apple Foundation Models on the iPhone |
 | Chats | SwiftData in a private app folder, with `NSFileProtectionComplete`. iCloud Backup and computer backups do not include this folder, so chats do not move to a new iPhone |
-| Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card. An iPhone backup can include them |
+| Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card. Backups do not include this settings folder |
 | Style packs | On the iPhone, until you send the file. A pack does not include your people |
 
 QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles.

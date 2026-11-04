@@ -11,8 +11,11 @@ extension StylePack: Transferable {
         FileRepresentation(exportedContentType: .stylePack) { pack in
             let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let file = folder.appending(path: pack.fileName).appendingPathExtension(StylePack.fileExtension)
-            try pack.encoded().write(to: file, options: .atomic)
+            let name = await pack.fileName
+            let fileExtension = await StylePack.fileExtension
+            let data = try await pack.encoded()
+            let file = folder.appending(path: name).appendingPathExtension(fileExtension)
+            try data.write(to: file, options: .atomic)
             return SentTransferredFile(file)
         }
     }

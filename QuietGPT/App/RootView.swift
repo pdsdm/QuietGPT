@@ -199,7 +199,7 @@ private struct MainTabs: View {
             }
         }
         .tint(palette.text)
-        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabBarMinimizeBehavior(tab == .keyboard ? .never : .onScrollDown)
         .sensoryFeedback(.selection, trigger: tab)
     }
 }

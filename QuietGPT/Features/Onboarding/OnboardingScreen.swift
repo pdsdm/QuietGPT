@@ -129,7 +129,7 @@ struct OnboardingScreen: View {
                 ("cloud", "none"),
                 ("tracking", "none"),
                 ("airplane mode", "works"),
-                ("sent", "0 B")
+                ("sent", NetworkMeter.format(NetworkWatch.shared.total.sentBytes))
             ])
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -137,7 +137,7 @@ struct RewriteCard: View {
             .disabled(result.isEmpty || isWriting)
             .opacity(result.isEmpty || isWriting ? 0.4 : 1)
 
-            Text("rewritten on this iPhone · 0 B sent")
+            Text("rewritten on this iPhone · \(NetworkMeter.format(NetworkWatch.shared.total.sentBytes)) sent")
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundStyle(Ink.text3)
                 .frame(maxWidth: .infinity)

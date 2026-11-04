@@ -189,7 +189,7 @@ struct ChatScreen: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: AnyTransition(.blurReplace)))
             }
             if controller.isResponding {
-                Text("thinking on this iPhone · 0 B sent")
+                Text("thinking on this iPhone · \(NetworkMeter.format(NetworkWatch.shared.total.sentBytes)) sent")
                     .font(QuietGPTFont.monoSmall)
                     .foregroundStyle(palette.text3)
                     .transition(.blurReplace)

@@ -99,7 +99,7 @@ struct MonitorPanel: View {
         return MonitorTile(
             label: "network",
             value: "↓\(Self.bytes(received))/s ↑\(Self.bytes(sent))/s",
-            detail: "QuietGPT sends 0 B"
+            detail: "QuietGPT sent \(NetworkMeter.format(NetworkWatch.shared.total.sentBytes))"
         ) {
             Sparkline(
                 series: [

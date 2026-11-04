@@ -128,13 +128,16 @@ QuietGPT has no account, no analytics, no ads and no third-party packages. The k
 
 ### What the Privacy tab measures
 
-| Value | How QuietGPT measures it | Limit |
-|---|---|---|
-| Sent by QuietGPT | Each second, the app looks for its own internet connections and reads the bytes sent on TCP connections | A connection that opens and closes between two checks is not counted. UDP bytes are not available, but the connection is counted |
-| Connections opened by QuietGPT | The same check | The same limit |
-| Sent to Apple, at most | The bytes that the full iPhone sends on Wi-Fi and cellular during each reply and rewrite | iOS does not count bytes for each app, and Apple's writing service runs outside QuietGPT. This value also includes other apps and iOS, so it can be above 0 B when the iPhone is online |
+Each second, the app looks for its own internet connections and reads the bytes sent on TCP connections. The Privacy tab shows these bytes and the number of connections.
 
-The maximum for Apple is 0 B only when no other traffic occurs, for example in Airplane Mode. The keyboard counts its rewrites only if iOS lets it save to the app group.
+| Limit | Effect |
+|---|---|
+| Apple's writing service | It runs outside QuietGPT, and iOS does not count its bytes. The value does not include this service |
+| Short connections | A connection that opens and closes between two checks is not counted |
+| UDP | The connection is counted, but its bytes are not available |
+| Keyboard | Its count is added only if iOS lets it save to the app group |
+
+To check network activity on the iPhone, go to Settings > Privacy & Security > App Privacy Report.
 
 ### Check it yourself
 

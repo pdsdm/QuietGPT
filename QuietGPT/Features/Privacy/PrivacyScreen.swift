@@ -129,14 +129,10 @@ struct PrivacyScreen: View {
 
     private var networkCard: some View {
         card {
-            networkRow("Connections opened by QuietGPT", value: "\(network.total.connections)")
-            Divider().overlay(palette.line)
-            networkRow("Replies measured", value: "\(network.total.replies)")
-            Divider().overlay(palette.line)
-            VStack(alignment: .leading, spacing: 2) {
-                networkRow("Sent to Apple, at most", value: NetworkMeter.format(network.total.deviceBytes))
-                    .padding(.bottom, -13)
-                Text("iOS does not count bytes for each app. This is all that this iPhone sent during your replies, also from other apps. Apple's writing service cannot send more than this. In airplane mode it stays at 0 B.")
+            VStack(alignment: .leading, spacing: 0) {
+                networkRow("Connections opened by QuietGPT", value: "\(network.total.connections)")
+                    .padding(.bottom, -5)
+                Text("iOS does not count the bytes of Apple's writing service. To check network activity on this iPhone, go to Settings > Privacy & Security > App Privacy Report.")
                     .font(QuietGPTFont.footnote)
                     .foregroundStyle(palette.text2)
                     .padding(.horizontal, 16)

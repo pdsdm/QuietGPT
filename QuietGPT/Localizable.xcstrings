@@ -749,13 +749,13 @@
         }
       }
     },
-    "iOS does not count bytes for each app. This is all that this iPhone sent during your replies, also from other apps. Apple's writing service cannot send more than this. In airplane mode it stays at 0 B." : {
+    "iOS does not count the bytes of Apple's writing service. To check network activity on this iPhone, go to Settings > Privacy & Security > App Privacy Report." : {
       "extractionState" : "manual",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS no cuenta los bytes de cada app. Esto es todo lo que este iPhone envió durante tus respuestas, también desde otras apps. El servicio de escritura de Apple no puede enviar más que esto. En modo avión se queda en 0 B."
+            "value" : "iOS no cuenta los bytes del servicio de escritura de Apple. Para comprobar la actividad de red de este iPhone, ve a Ajustes > Privacidad y seguridad > Informe de privacidad de apps."
           }
         }
       }
@@ -1343,17 +1343,6 @@
         }
       }
     },
-    "Replies measured" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Respuestas medidas"
-          }
-        }
-      }
-    },
     "Reset" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1493,17 +1482,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "enviados por QuietGPT. Medido cada segundo en este iPhone."
-          }
-        }
-      }
-    },
-    "Sent to Apple, at most" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviado a Apple, como máximo"
           }
         }
       }

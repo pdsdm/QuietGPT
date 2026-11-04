@@ -23,16 +23,6 @@ struct NetworkMeterTests {
         #expect(NetworkMeter.format(2_000_000).contains("MB"))
     }
 
-    @Test func countsOnlyTheInterfacesInBothReadings() {
-        let sent = NetworkMeter.sent(from: ["en0": 100, "en1": 5], to: ["en0": 160, "pdp_ip0": 999])
-
-        #expect(sent == 60)
-    }
-
-    @Test func counterWrapIsNotAHugeNumber() {
-        #expect(NetworkMeter.sent(from: ["en0": UInt32.max - 9], to: ["en0": 10]) == 20)
-    }
-
     @Test func seesAnInternetSocketOfThisApp() throws {
         let before = NetworkMeter.ownSockets().count
         let descriptor = socket(AF_INET, SOCK_DGRAM, 0)
@@ -92,13 +82,13 @@ struct NetworkMeterTests {
 
     @Test func totalAddsTheExtensionsAndSurvivesARestart() throws {
         let suite = UUID().uuidString
-        let share = try makeWatch(key: "network.share", suite: suite)
-        share.finishWriting(from: ["none": 0])
-        let app = try makeWatch(key: "network.app", suite: suite)
-        app.finishWriting(from: ["none": 0])
+        let descriptor = socket(AF_INET, SOCK_DGRAM, 0)
+        defer { close(descriptor) }
+        try makeWatch(key: "network.share", suite: suite).scan()
+        try makeWatch(key: "network.app", suite: suite).scan()
 
         let reopened = try makeWatch(key: "network.app", suite: suite)
 
-        #expect(reopened.total.replies == 2)
+        #expect(reopened.total.connections >= 2)
     }
 }

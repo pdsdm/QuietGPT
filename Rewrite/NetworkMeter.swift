@@ -11,29 +11,6 @@ struct OwnSocket: Hashable {
 enum NetworkMeter {
     private static let maxDescriptors: Int32 = 4096
 
-    static func deviceSent() -> [String: UInt32]? {
-        var pointer: UnsafeMutablePointer<ifaddrs>?
-        guard getifaddrs(&pointer) == 0, let first = pointer else { return nil }
-        defer { freeifaddrs(pointer) }
-
-        var totals: [String: UInt32] = [:]
-        for entry in sequence(first: first, next: { $0.pointee.ifa_next }) {
-            let address = entry.pointee
-            guard let socket = address.ifa_addr, socket.pointee.sa_family == UInt8(AF_LINK), let data = address.ifa_data else { continue }
-            let name = String(cString: address.ifa_name)
-            guard name.hasPrefix("en") || name.hasPrefix("pdp_ip") else { continue }
-            totals[name] = data.assumingMemoryBound(to: if_data.self).pointee.ifi_obytes
-        }
-        return totals
-    }
-
-    static func sent(from start: [String: UInt32], to end: [String: UInt32]) -> UInt64 {
-        end.reduce(0) { total, entry in
-            guard let first = start[entry.key] else { return total }
-            return total + UInt64(entry.value &- first)
-        }
-    }
-
     static func ownSockets() -> [OwnSocket] {
         (0..<min(getdtablesize(), maxDescriptors)).compactMap { ownSocket($0) }
     }
@@ -101,15 +78,11 @@ enum NetworkMeter {
 struct NetworkLedger: Codable, Equatable {
     var sentBytes: UInt64 = 0
     var connections = 0
-    var replies = 0
-    var deviceBytes: UInt64 = 0
 
     static func + (left: NetworkLedger, right: NetworkLedger) -> NetworkLedger {
         NetworkLedger(
             sentBytes: left.sentBytes + right.sentBytes,
-            connections: left.connections + right.connections,
-            replies: left.replies + right.replies,
-            deviceBytes: left.deviceBytes + right.deviceBytes
+            connections: left.connections + right.connections
         )
     }
 }
@@ -156,18 +129,6 @@ final class NetworkWatch {
             current[identity] = socket.sent
         }
         seen = current
-        save()
-    }
-
-    func startWriting() -> [String: UInt32]? {
-        NetworkMeter.deviceSent()
-    }
-
-    func finishWriting(from start: [String: UInt32]?) {
-        scan()
-        guard let start, let end = NetworkMeter.deviceSent() else { return }
-        own.replies += 1
-        own.deviceBytes += NetworkMeter.sent(from: start, to: end)
         save()
     }
 

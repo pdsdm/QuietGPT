@@ -26,7 +26,6 @@ final class ChatController {
     private var context: ModelContext?
     private var task: Task<Void, Never>?
     private var reply: (token: UUID, conversationID: UUID)?
-    private var meter: [String: UInt32]?
 
     init(engine: ReplyEngine? = nil) {
         self.engine = engine ?? ReplyEngine()
@@ -74,7 +73,6 @@ final class ChatController {
 
         let token = UUID()
         reply = (token, conversation.id)
-        meter = NetworkWatch.shared.startWriting()
         let stream = engine.reply(to: prompt, in: conversation.id, history: history)
         task = Task { [weak self] in
             do {
@@ -172,7 +170,7 @@ final class ChatController {
     private func finishReply(_ token: UUID, in conversation: Conversation, fallback: String? = nil) {
         guard reply?.token == token else { return }
         reply = nil
-        NetworkWatch.shared.finishWriting(from: meter)
+        NetworkWatch.shared.scan()
         let text = streamingText.trimmingCharacters(in: .whitespacesAndNewlines)
         let final = text.isEmpty ? (fallback ?? "") : text
         if !final.isEmpty {

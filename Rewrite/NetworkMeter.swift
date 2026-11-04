@@ -129,6 +129,9 @@ final class NetworkWatch {
         for socket in sockets {
             var identity = socket
             identity.sent = 0
+            if socket.port != 0 {
+                identity.descriptor = -1
+            }
             if let last = seen[identity] {
                 own.sentBytes += socket.sent >= last ? socket.sent - last : 0
             } else {

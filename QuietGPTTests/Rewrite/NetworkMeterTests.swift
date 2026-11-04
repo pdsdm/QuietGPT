@@ -80,6 +80,28 @@ struct NetworkMeterTests {
         #expect(watch.total.connections == start + 1)
     }
 
+    @Test func aDuplicatedSocketCountsOnce() throws {
+        let watch = try makeWatch()
+        watch.scan()
+        let start = watch.total.connections
+        let descriptor = socket(AF_INET, SOCK_DGRAM, 0)
+        var address = loopback()
+        address.sin_addr.s_addr = INADDR_ANY
+        let bound = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(descriptor, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) }
+        }
+        let copy = dup(descriptor)
+        defer {
+            close(descriptor)
+            close(copy)
+        }
+
+        watch.scan()
+
+        #expect(bound == 0)
+        #expect(watch.total.connections == start + 1)
+    }
+
     @Test func totalAddsTheExtensionsAndSurvivesARestart() throws {
         let suite = UUID().uuidString
         let descriptor = socket(AF_INET, SOCK_DGRAM, 0)

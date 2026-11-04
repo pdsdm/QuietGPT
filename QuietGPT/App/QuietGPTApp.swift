@@ -6,6 +6,8 @@ struct QuietGPTApp: App {
     private let container = ChatStore.makeContainer()
 
     init() {
+        let group = StyleStore.group.flatMap { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: $0) }
+        try? StyleStore.excludeFromBackup(preferencesIn: group)
         let bar = UINavigationBar.appearance()
         if let title = BrandFont.uiFont(size: 17, weight: .medium) {
             bar.titleTextAttributes = [.font: UIFontMetrics(forTextStyle: .headline).scaledFont(for: title)]

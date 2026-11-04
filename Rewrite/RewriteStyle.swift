@@ -206,6 +206,14 @@ enum StyleStore {
         }
     }
 
+    static func excludeFromBackup(preferencesIn container: URL?) throws {
+        guard var folder = container?.appending(path: "Library/Preferences", directoryHint: .isDirectory) else { return }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try folder.setResourceValues(values)
+    }
+
     static func reset() {
         shared.removeObject(forKey: stylesKey)
         shared.removeObject(forKey: instructionsKey)

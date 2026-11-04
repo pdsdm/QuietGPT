@@ -40,6 +40,15 @@ struct KeyboardOptionsTests {
         #expect(!RewriteUndo.cursorFollows("new text", before: ""))
     }
 
+    @Test func sharedSettingsStayOutOfBackups() throws {
+        let container = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+
+        try StyleStore.excludeFromBackup(preferencesIn: container)
+
+        let folder = container.appending(path: "Library/Preferences", directoryHint: .isDirectory)
+        #expect(try folder.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup == true)
+    }
+
     @Test func savesLanguage() throws {
         var options = KeyboardOptions()
         options.language = .spanish

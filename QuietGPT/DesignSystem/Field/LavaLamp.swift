@@ -23,6 +23,14 @@ final class LavaLamp {
         static let mergeLimit = 12
         static let pushReach = 1.4
         static let pushForce = 1.0
+        static let cutMinimum = 3
+        static let cutDepth = 0.6
+        static let cutImpulse = 0.22
+        static let rejoinDelay = 2.5
+        static let bladeReach = 0.03
+        static let bladeForce = 1.5
+        static let idleDivideSize = 6
+        static let idleDivideDelay = 45.0
     }
 
     private struct DropPair: Hashable {
@@ -49,11 +57,13 @@ final class LavaLamp {
         var pace: Double
         var phase: Double
         var noMergeUntil = 0.0
+        var lastTouch = 0.0
     }
 
     private enum Touch {
         case idle
         case holding(drop: Int, bead: Int, grip: SIMD2<Double>)
+        case cutting(previous: SIMD2<Double>, entries: [Int: SIMD2<Double>], spent: Set<Int>)
     }
 
     private var beads: [Bead] = []
@@ -136,7 +146,9 @@ final class LavaLamp {
         pull += (magnitude - pull) * (1 - exp(-dt * 3))
 
         updateTouch(finger: finger, pressing: pressing, dt: dt)
+        cut(finger: finger, dt: dt)
         mergeTouchingDrops(dt: dt)
+        divideIdleDrops()
         moveBeads(finger: finger, energy: energy, dt: dt)
         respawnLostDrops()
         pack()
@@ -164,13 +176,121 @@ final class LavaLamp {
                 .index
             if let hit {
                 touch = .holding(drop: beads[hit].drop, bead: hit, grip: beads[hit].position - finger)
+            } else {
+                touch = .cutting(previous: finger, entries: [:], spent: [])
             }
         }
         if !pressing { touch = .idle }
         wasPressing = pressing
         if case .holding(let drop, let bead, let grip) = touch {
             touch = .holding(drop: drop, bead: bead, grip: grip * exp(-dt * 3))
+            drops[drop]?.lastTouch = clock
         }
+    }
+
+    private func cut(finger: SIMD2<Double>, dt: Double) {
+        guard case .cutting(let previous, var entries, var spent) = touch else { return }
+
+        for (id, members) in groups {
+            let count = Double(members.count)
+            for index in members {
+                let away = beads[index].position - finger
+                let distance = simd_length(away)
+                let reach = beads[index].radius + Tuning.bladeReach
+                if distance < reach, distance > 1e-4 {
+                    beads[index].velocity += away / distance * (1 - distance / reach) * Tuning.bladeForce / count * dt
+                    drops[id]?.lastTouch = clock
+                }
+            }
+
+            guard members.count >= Tuning.cutMinimum, !spent.contains(id) else { continue }
+            let hit = members
+                .map { index in
+                    let point = closestPoint(to: beads[index].position, from: previous, to: finger)
+                    return (point: point, gap: simd_length(beads[index].position - point) - beads[index].radius)
+                }
+                .filter { $0.gap < 0 }
+                .min { $0.gap < $1.gap }
+
+            guard let entry = entries[id] else {
+                if let hit { entries[id] = hit.point }
+                continue
+            }
+            let travel = simd_length(finger - entry)
+            guard travel >= Tuning.cutDepth * size(of: members) || hit == nil else { continue }
+            entries[id] = nil
+            guard travel > 1e-3 else { continue }
+            let along = (finger - entry) / travel
+            let parts = divide(id, through: entry, normal: SIMD2(-along.y, along.x))
+            spent.formUnion(parts)
+        }
+
+        touch = .cutting(previous: finger, entries: entries, spent: spent)
+    }
+
+    private func closestPoint(to point: SIMD2<Double>, from start: SIMD2<Double>, to end: SIMD2<Double>) -> SIMD2<Double> {
+        let line = end - start
+        let length = simd_length_squared(line)
+        guard length > 1e-9 else { return end }
+        return start + line * min(1, max(0, simd_dot(point - start, line) / length))
+    }
+
+    private func size(of members: [Int]) -> Double {
+        let middle = center(of: members)
+        return members.map { simd_length(beads[$0].position - middle) + beads[$0].radius }.max() ?? 0
+    }
+
+    private func divideIdleDrops() {
+        var heldDrop: Int?
+        if case .holding(let drop, _, _) = touch { heldDrop = drop }
+        for (id, members) in groups where members.count >= Tuning.idleDivideSize && id != heldDrop {
+            guard let drop = drops[id], clock - drop.lastTouch > Tuning.idleDivideDelay else { continue }
+            let middle = center(of: members)
+            var xx = 0.0
+            var yy = 0.0
+            var xy = 0.0
+            for index in members {
+                let offset = beads[index].position - middle
+                xx += offset.x * offset.x
+                yy += offset.y * offset.y
+                xy += offset.x * offset.y
+            }
+            let angle = 0.5 * atan2(2 * xy, xx - yy)
+            divide(id, through: middle, normal: SIMD2(cos(angle), sin(angle)))
+        }
+    }
+
+    @discardableResult
+    private func divide(_ id: Int, through origin: SIMD2<Double>, normal: SIMD2<Double>) -> [Int] {
+        guard let source = drops[id] else { return [] }
+        let members = groups[id] ?? []
+        let ranked = members
+            .map { (index: $0, side: simd_dot(beads[$0].position - origin, normal)) }
+            .sorted { $0.side < $1.side }
+        var moved = ranked.filter { $0.side < 0 }.map(\.index)
+        if moved.isEmpty || moved.count == members.count {
+            moved = ranked.prefix(members.count / 2).map(\.index)
+        }
+
+        let other = nextDrop
+        nextDrop += 1
+        var part = source
+        part.noMergeUntil = clock + Tuning.rejoinDelay
+        part.lastTouch = clock
+        drops[id] = part
+        drops[other] = part
+        for index in members {
+            if moved.contains(index) {
+                beads[index].drop = other
+                beads[index].velocity -= normal * Tuning.cutImpulse
+            } else {
+                beads[index].velocity += normal * Tuning.cutImpulse
+            }
+        }
+        contacts = contacts.filter { $0.key.low != id && $0.key.high != id }
+        settle(drop: id)
+        settle(drop: other)
+        return [id, other]
     }
 
     private func moveBeads(finger: SIMD2<Double>, energy: Double, dt: Double) {
@@ -280,6 +400,7 @@ final class LavaLamp {
             beads[index].drop = kept
         }
         drops[gone] = nil
+        drops[kept]?.lastTouch = clock
         contacts = contacts.filter { $0.key.low != gone && $0.key.high != gone }
         settle(drop: kept)
     }

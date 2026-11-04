@@ -78,6 +78,45 @@ struct LavaLampTests {
         #expect(driver.lamp.dropSizes == [8, 8])
     }
 
+    private func swiped(beads: Int) -> Driver {
+        var driver = Driver(lamp: LavaLamp(layout: [(center: SIMD2(0.5, 0.5), beads: beads)]))
+        driver.run(seconds: 1.0 / 60)
+        driver.drag(from: SIMD2(0.05, 0.5), to: SIMD2(0.95, 0.5), seconds: 1)
+        return driver
+    }
+
+    @Test func dragFromEmptySpaceDividesLargeDrop() {
+        let driver = swiped(beads: 4)
+        #expect(driver.lamp.dropSizes.count == 2)
+        #expect(driver.lamp.beadCount == 4)
+    }
+
+    @Test func dragFromEmptySpaceDoesNotDivideSmallDrop() {
+        let driver = swiped(beads: 2)
+        #expect(driver.lamp.dropSizes == [2])
+    }
+
+    @Test func dragFromDropDoesNotDivideIt() {
+        var driver = Driver(lamp: LavaLamp(layout: [(center: SIMD2(0.5, 0.5), beads: 4)]))
+        driver.run(seconds: 1.0 / 60)
+        let start = driver.lamp.dropCenters[0]
+        driver.drag(from: start, to: SIMD2(0.95, 0.5), seconds: 1)
+        #expect(driver.lamp.dropSizes == [4])
+    }
+
+    @Test func partsDoNotMergeSoonAfterDivide() {
+        var driver = swiped(beads: 4)
+        driver.run(seconds: 2)
+        #expect(driver.lamp.dropSizes.count == 2)
+    }
+
+    @Test func largeUntouchedDropDividesByItself() {
+        var driver = Driver(lamp: LavaLamp(layout: [(center: SIMD2(0.5, 0.2), beads: 6)]))
+        driver.run(seconds: 46)
+        #expect(driver.lamp.dropSizes.count >= 2)
+        #expect(driver.lamp.beadCount == 6)
+    }
+
     @Test func beadCountStaysTheSame() {
         var driver = Driver(lamp: LavaLamp())
         driver.run(seconds: 10)

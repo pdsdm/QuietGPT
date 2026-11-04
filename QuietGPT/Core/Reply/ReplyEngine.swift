@@ -16,11 +16,16 @@ final class ReplyEngine {
     Never describe yourself as a model or an AI model. You are QuietGPT.
     """
 
-    private static let unavailableReply = """
-    I can't think yet on this iPhone. QuietGPT needs Apple Intelligence. \
-    Turn it on in Settings, then Apple Intelligence & Siri. \
-    Your chats still stay on this device.
-    """
+    private static var unavailableReply: String {
+        switch SystemLanguageModel.default.availability {
+        case .unavailable(.modelNotReady):
+            String(localized: "Apple Intelligence is still getting ready on this iPhone. Try again soon. Your chats stay on this device.")
+        case .unavailable(.deviceNotEligible):
+            String(localized: "This iPhone does not support Apple Intelligence, so I can't answer here. Your chats stay on this device.")
+        default:
+            String(localized: "I can't think yet on this iPhone. QuietGPT needs Apple Intelligence. Turn it on in Settings, then Apple Intelligence & Siri. Your chats still stay on this device.")
+        }
+    }
 
     private static let recallTurns = 8
     private static let retryTurns = 4
@@ -36,13 +41,17 @@ final class ReplyEngine {
     static func message(for error: Error) -> String {
         switch error as? LanguageModelSession.GenerationError {
         case .guardrailViolation, .refusal:
-            "I would rather not answer that one. Try asking in another way."
+            String(localized: "I would rather not answer that one. Try asking in another way.")
         case .unsupportedLanguageOrLocale:
-            "I can't answer in this language yet."
+            String(localized: "I can't answer in this language yet.")
         case .rateLimited, .concurrentRequests:
-            "I need a moment. Please try again."
+            String(localized: "I need a moment. Please try again.")
+        case .exceededContextWindowSize:
+            String(localized: "This chat is too long for me now. Please start a new chat.")
+        case .assetsUnavailable:
+            String(localized: "Apple Intelligence is still getting ready on this iPhone. Try again soon. Your chats stay on this device.")
         default:
-            "I can't think on this iPhone right now. Check that Apple Intelligence is on and ready in Settings, then try again."
+            String(localized: "I can't think on this iPhone right now. Check that Apple Intelligence is on and ready in Settings, then try again.")
         }
     }
 

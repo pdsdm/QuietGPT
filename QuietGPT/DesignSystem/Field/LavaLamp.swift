@@ -20,7 +20,7 @@ final class LavaLamp {
         static let parallax = 0.02
         static let mergeDistance = 0.85
         static let mergeDelay = 0.2
-        static let mergeLimit = 12
+        static let mergeLimit = 5
         static let pushReach = 1.4
         static let pushForce = 1.0
         static let cutMinimum = 3
@@ -29,8 +29,9 @@ final class LavaLamp {
         static let rejoinDelay = 2.5
         static let bladeReach = 0.03
         static let bladeForce = 1.5
-        static let idleDivideSize = 6
+        static let idleDivideSize = 4
         static let idleDivideDelay = 45.0
+        static let tightness = 0.024
     }
 
     private struct DropPair: Hashable {
@@ -82,7 +83,7 @@ final class LavaLamp {
     private(set) var packed: [Float] = []
 
     convenience init() {
-        let sizes = [4, 2, 2, 3, 2, 1, 3, 2]
+        let sizes = [3, 2, 4, 2, 3, 2, 2, 3, 2, 4, 2, 3, 2, 2, 3, 2]
         self.init(layout: sizes.enumerated().map { index, size in
             let fi = Double(index)
             return (
@@ -101,10 +102,10 @@ final class LavaLamp {
             for bead in 0..<item.beads {
                 let seed = Double(beads.count)
                 let angle = seed * 2.399
-                let reach = 0.055 * sqrt(Double(bead)) * (0.8 + 0.5 * (seed * 0.731).truncatingRemainder(dividingBy: 1))
+                let reach = Tuning.tightness * sqrt(Double(bead)) * (0.8 + 0.5 * (seed * 0.731).truncatingRemainder(dividingBy: 1))
                 beads.append(Bead(
                     position: item.center + SIMD2(cos(angle), sin(angle)) * reach,
-                    radius: 0.05 + 0.02 * (seed * 0.618).truncatingRemainder(dividingBy: 1),
+                    radius: 0.032 + 0.014 * (seed * 0.618).truncatingRemainder(dividingBy: 1),
                     phase: seed * 1.3,
                     drop: id
                 ))
@@ -408,7 +409,7 @@ final class LavaLamp {
     private func settle(drop: Int) {
         let members = groups[drop] ?? []
         let middle = center(of: members)
-        let limit = 0.055 * sqrt(Double(members.count)) * 1.2
+        let limit = Tuning.tightness * sqrt(Double(members.count)) * 1.2
         let farthest = members.map { simd_length(beads[$0].position - middle) }.max() ?? 0
         let scale = farthest > limit ? limit / farthest : 1
         for index in members {
@@ -425,7 +426,9 @@ final class LavaLamp {
                 let point = beads[index].position
                 return point.x < -margin || point.y < -margin || point.x > extent.x + margin || point.y > extent.y + margin
             }
-            if lost { respawn(members) }
+            let flow = members.reduce(SIMD2<Double>.zero) { $0 + beads[$1].velocity }
+            let leaving = simd_dot(flow, extent / 2 - center(of: members)) <= 0
+            if lost, leaving { respawn(members) }
         }
     }
 

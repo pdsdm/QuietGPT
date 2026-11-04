@@ -117,9 +117,18 @@ struct LavaLampTests {
         #expect(driver.lamp.beadCount == 6)
     }
 
+    @Test func groupsStayManyAndSmall() {
+        var driver = Driver(lamp: LavaLamp())
+        driver.run(seconds: 120)
+        #expect(driver.lamp.dropSizes.count >= 8)
+        #expect((driver.lamp.dropSizes.max() ?? 0) <= 5)
+        let shown = driver.lamp.dropCenters.filter { $0.x > 0 && $0.x < 1 && $0.y > 0 && $0.y < 2.1 }
+        #expect(shown.count >= driver.lamp.dropCenters.count / 2)
+    }
+
     @Test func beadCountStaysTheSame() {
         var driver = Driver(lamp: LavaLamp())
         driver.run(seconds: 10)
-        #expect(driver.lamp.beadCount == 19)
+        #expect(driver.lamp.beadCount == 41)
     }
 }

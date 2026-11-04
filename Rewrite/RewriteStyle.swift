@@ -87,7 +87,7 @@ struct KeyboardOptions: Codable, Equatable {
     static let defaultKeyHeight = 58.0
     static let keyHeights = 48.0...96.0
     static let defaultTopMargin = 10.0
-    static let topMargins = 0.0...30.0
+    static let topMargins = 0.0...50.0
     static let tuningField = UITextContentType.sublocality
 
     static func clampedKeyHeight(_ height: Double) -> Double {

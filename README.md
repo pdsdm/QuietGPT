@@ -24,7 +24,7 @@ QuietGPT rewrites your messages with your own rules, in one tap, in any app. It 
 
 ## Features
 
-- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard. Its panel rewrites your text in any app.
+- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard, with accent variants, cursor control on the space bar and an emoji page. The lock key opens a panel that rewrites your text in any app. The panel also sets the language: Auto, English or Spanish.
 - **My rules.** Up to 10 short rules that QuietGPT follows in each rewrite. Each style can turn them off. Fix and the translations do not use them by default.
 - **People.** Save how you write to one person. People show first in the panel.
 - **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish, or your own instruction. Edit, add and order them in the Keyboard tab, and change the base instructions.
@@ -35,7 +35,8 @@ QuietGPT rewrites your messages with your own rules, in one tap, in any app. It 
 - **Face ID lock.** QuietGPT locks when it goes to the background.
 - **Privacy screen.** It shows the bytes that your chats send. The value is always `0 B`.
 - **Monitor panel.** Reply speed, CPU, frames, memory, network and thermal state.
-- **Dark and light themes** with a live ASCII background.
+- **Dark and light themes** with a live ASCII lava lamp background. It follows gravity, and you can drag it with your finger.
+- **Voice tab.** A preview only. Voice comes in a future update.
 
 ## Requirements
 
@@ -69,20 +70,21 @@ Go to Settings > General > Keyboard > Keyboards > Add New Keyboard and select Qu
 | `QuietGPT/Features/Chat` | Chat screen, chat controller, composer, streaming text |
 | `QuietGPT/Features/Chat/Messages` | Message boxes, Markdown view, code blocks |
 | `QuietGPT/Features/History` | Chats list |
-| `QuietGPT/Features/Voice` | Voice tab |
+| `QuietGPT/Features/Voice` | Voice tab, a preview of a future feature |
 | `QuietGPT/Features/Privacy` | Privacy tab |
-| `QuietGPT/Features/Keyboard` | Keyboard settings |
+| `QuietGPT/Features/Keyboard` | Keyboard tab: panel preview, rules, people, styles and style packs |
 | `QuietGPT/Features/Onboarding` | First launch screens |
 | `QuietGPT/Features/Lock` | Lock screen |
+| `QuietGPT/Features/Splash` | Launch screen |
 | `QuietGPT/Features/Monitor` | Monitor panel, system sampler, frame meter |
 | `QuietGPT/Core/Reply` | `ReplyEngine`, the on-device reply stream, and reply metrics |
 | `QuietGPT/Core/Persistence` | SwiftData models (`Conversation`, `Message`) |
 | `QuietGPT/Core/Markdown` | Markdown block parser |
 | `QuietGPT/DesignSystem/Theme` | Dark and light palettes, appearance, type styles, motion |
-| `QuietGPT/DesignSystem/Components` | Wordmark, app mark, live dot, button styles, chips |
-| `QuietGPT/DesignSystem/Field` | The live ASCII background (`FieldEngine`, `AsciiField`) |
+| `QuietGPT/DesignSystem/Components` | Wordmark, live dot, button styles, chips |
+| `QuietGPT/DesignSystem/Field` | The live ASCII background (`LavaLamp`, `LiquidField`, `AsciiLock`) |
 | `QuietGPT/Resources` | Asset catalog with the app icon and accent color |
-| `Rewrite` | `Rewriter`, styles and keyboard colors, shared by the app, the keyboard and the share extension |
+| `Rewrite` | `Rewriter`, styles, style packs, brand font and keyboard colors, shared by the app, the keyboard and the share extension |
 | `QuietGPTKeyboard` | The QuietGPT keyboard extension |
 | `QuietGPTShare` | The share extension with the rewrite card |
 | `Config` | Entitlements for all targets, Info.plist files for the extensions |
@@ -94,10 +96,11 @@ Go to Settings > General > Keyboard > Keyboards > Add New Keyboard and select Qu
 
 Debug builds read these launch arguments:
 
-- `-QuietGPTTab chats|voice|privacy` opens a tab.
+- `-QuietGPTTab chat|chats|keyboard|voice|privacy` opens a tab.
 - `-QuietGPTPrompt "text"` sends a message on launch.
 - `-QuietGPTSimulate YES` streams a sample reply, for the simulator.
 - `-QuietGPTMonitor YES` opens the monitor panel.
+- `-QuietGPTFocus YES` puts the cursor in the input box.
 
 ## App icon
 

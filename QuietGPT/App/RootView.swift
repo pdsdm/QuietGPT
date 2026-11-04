@@ -135,6 +135,13 @@ private struct AppFlow: View {
             try? await Task.sleep(for: reduceMotion ? SplashScreen.shortDuration : SplashScreen.duration)
             withAnimation(.easeOut(duration: 0.45)) { loading = false }
         }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            while !Task.isCancelled {
+                NetworkWatch.shared.scan()
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
                 controller.stop()

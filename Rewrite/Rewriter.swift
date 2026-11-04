@@ -25,7 +25,9 @@ struct Rewriter {
         let session = session(usesRules: usesRules)
         let prompt = "\(request)\n\nMessage:\n\(text)"
         return AsyncThrowingStream { continuation in
+            let meter = NetworkWatch.shared.startWriting()
             let task = Task {
+                defer { NetworkWatch.shared.finishWriting(from: meter) }
                 do {
                     for try await snapshot in session.streamResponse(to: prompt) {
                         try Task.checkCancellation()

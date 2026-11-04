@@ -11,6 +11,8 @@ struct PrivacyScreen: View {
     @State private var confirmingDelete = false
     @State private var appeared = false
 
+    private var network: NetworkWatch { .shared }
+
     private static let checks: [(title: String, body: String)] = [
         ("Runs on this iPhone", "QuietGPT answers on the device. No server."),
         ("Encrypted storage", "Chats are locked with your passcode."),
@@ -63,6 +65,9 @@ struct PrivacyScreen: View {
                         }
                     }
 
+                    networkCard
+                        .padding(.top, 12)
+
                     card {
                         Toggle(isOn: $lockEnabled) {
                             Text("Face ID lock")
@@ -110,16 +115,48 @@ struct PrivacyScreen: View {
             .font(QuietGPTFont.footnote)
             .foregroundStyle(palette.local)
 
-            ScrambleText(final: "0 B", active: appeared)
+            ScrambleText(final: NetworkMeter.format(network.total.sentBytes), active: appeared)
                 .font(.system(size: counterSize, weight: .light, design: .monospaced))
                 .tracking(-3)
                 .foregroundStyle(palette.text)
 
-            Text("sent from your chats since you installed QuietGPT.")
+            Text("sent by QuietGPT. Measured each second on this iPhone.")
                 .font(QuietGPTFont.subheadline)
                 .foregroundStyle(palette.text2)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var networkCard: some View {
+        card {
+            networkRow("Connections opened by QuietGPT", value: "\(network.total.connections)")
+            Divider().overlay(palette.line)
+            networkRow("Replies measured", value: "\(network.total.replies)")
+            Divider().overlay(palette.line)
+            VStack(alignment: .leading, spacing: 2) {
+                networkRow("Sent to Apple, at most", value: NetworkMeter.format(network.total.deviceBytes))
+                    .padding(.bottom, -13)
+                Text("iOS does not count bytes for each app. This is all that this iPhone sent during your replies, also from other apps. Apple's writing service cannot send more than this. In airplane mode it stays at 0 B.")
+                    .font(QuietGPTFont.footnote)
+                    .foregroundStyle(palette.text2)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 13)
+            }
+        }
+    }
+
+    private func networkRow(_ title: LocalizedStringKey, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(title)
+                .font(QuietGPTFont.callout)
+                .foregroundStyle(palette.text)
+            Spacer(minLength: 0)
+            Text(value)
+                .font(QuietGPTFont.mono)
+                .foregroundStyle(palette.local)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
     }
 
     private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -148,7 +185,7 @@ struct ScrambleText: View {
     var body: some View {
         Text(shown.isEmpty ? final : shown)
             .accessibilityLabel(final)
-            .task(id: active) {
+            .task(id: "\(active) \(final)") {
                 guard active, !reduceMotion else {
                     shown = final
                     return

@@ -162,11 +162,11 @@ enum KeyLayout {
 
         var bottom: [Item] = []
         let toLetters = state.layer != .letters
-        bottom.append(Item(spec: KeySpec(id: "switch", kind: .layer(toLetters ? .letters : .numbers), title: toLetters ? "ABC" : "123", fontSize: 18.5, label: toLetters ? "Letters" : "Numbers"), units: 1.25))
+        bottom.append(Item(spec: KeySpec(id: "switch", kind: .layer(toLetters ? .letters : .numbers), title: toLetters ? "ABC" : "123", fontSize: toLetters ? 17 : 18.5, label: toLetters ? "Letters" : "Numbers"), units: state.layer == .emoji ? 1.25 : 1.1))
         if state.showsGlobe {
-            bottom.append(Item(spec: KeySpec(id: "globe", kind: .globe, symbol: "globe", label: "Next keyboard"), units: 1.0))
+            bottom.append(Item(spec: KeySpec(id: "globe", kind: .globe, symbol: "globe", label: "Next keyboard"), units: 0.9))
         } else if state.layer != .emoji {
-            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(.emoji), symbol: "face.smiling.inverse", symbolSize: 20, label: "Emoji"), units: 1.0))
+            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(.emoji), symbol: "face.smiling.inverse", symbolSize: 20, label: "Emoji"), units: 0.9))
         }
         if state.layer == .emoji {
             var wide = delete
@@ -176,8 +176,8 @@ enum KeyLayout {
             bottom.append(Item(spec: wide.spec, units: 10 - used, isGap: true))
             bottom.append(wide)
         } else {
-            bottom.append(Item(spec: KeySpec(id: "quietgpt", kind: .quietGPT, label: "QuietGPT"), units: 1.0))
-            bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 4.5))
+            bottom.append(Item(spec: KeySpec(id: "quietgpt", kind: .quietGPT, label: "QuietGPT"), units: 0.9))
+            bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 4.85))
             bottom.append(Item(
                 spec: KeySpec(
                     id: "return",

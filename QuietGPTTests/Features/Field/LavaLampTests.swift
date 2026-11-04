@@ -126,6 +126,14 @@ struct LavaLampTests {
         #expect(shown.count >= driver.lamp.dropCenters.count / 2)
     }
 
+    @Test func beadsInAGroupStayJoined() {
+        var driver = Driver(lamp: LavaLamp())
+        for _ in 0..<12 {
+            driver.run(seconds: 10)
+            #expect((driver.lamp.dropGaps.max() ?? 0) < 0.07)
+        }
+    }
+
     @Test func beadCountStaysTheSame() {
         var driver = Driver(lamp: LavaLamp())
         driver.run(seconds: 10)

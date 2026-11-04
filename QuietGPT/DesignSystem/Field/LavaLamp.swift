@@ -7,9 +7,9 @@ final class LavaLamp {
 
     private enum Tuning {
         static let grabReach = 1.6
-        static let spacing = 0.75
-        static let cohesion = 5.0
-        static let viscosity = 3.0
+        static let spacing = 0.45
+        static let cohesion = 14.0
+        static let viscosity = 8.0
         static let separation = 2.0
         static let drag = 1.0
         static let pull = 6.0
@@ -31,7 +31,7 @@ final class LavaLamp {
         static let bladeForce = 1.5
         static let idleDivideSize = 4
         static let idleDivideDelay = 45.0
-        static let tightness = 0.024
+        static let tightness = 0.017
     }
 
     private struct DropPair: Hashable {
@@ -125,6 +125,26 @@ final class LavaLamp {
 
     var dropSizes: [Int] {
         groups.keys.sorted().compactMap { groups[$0]?.count }
+    }
+
+    var dropGaps: [Double] {
+        groups.values.map { members in
+            var joined = [members[0]]
+            var waiting = Array(members.dropFirst())
+            var widest = 0.0
+            while !waiting.isEmpty {
+                var best = (slot: 0, distance: Double.greatestFiniteMagnitude)
+                for (slot, index) in waiting.enumerated() {
+                    for other in joined {
+                        let distance = simd_length(beads[index].position - beads[other].position)
+                        if distance < best.distance { best = (slot, distance) }
+                    }
+                }
+                widest = max(widest, best.distance)
+                joined.append(waiting.remove(at: best.slot))
+            }
+            return widest
+        }
     }
 
     var dropCenters: [SIMD2<Double>] {
@@ -306,7 +326,7 @@ final class LavaLamp {
 
             for (slot, index) in members.enumerated() {
                 let bead = beads[index]
-                let breathe = 1 + 0.25 * sin(clock * 0.4 + bead.phase)
+                let breathe = 1 + 0.15 * sin(clock * 0.4 + bead.phase)
                 let turn = 0.25 * sin(clock * 0.17 + bead.phase)
                 let rest = bead.rest * breathe
                 let target = middle + SIMD2(rest.x * cos(turn) - rest.y * sin(turn), rest.x * sin(turn) + rest.y * cos(turn))

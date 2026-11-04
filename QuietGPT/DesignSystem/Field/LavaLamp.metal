@@ -5,57 +5,55 @@ using namespace metal;
 constant float threshold = 0.32;
 constant float2 cellSize = float2(4.8, 8.0);
 
-static float wax(float2 p, device const float *blobs, int count, float2 down, float time, thread float &heat) {
+static float surface(float2 p, device const float *beads, int count, float time, thread float2 &slope, thread float &height) {
+    float2 warp = float2(
+        sin(p.y * 9.0 + time * 0.23) + 0.5 * sin(p.y * 17.0 - p.x * 7.0 - time * 0.31),
+        sin(p.x * 11.0 - time * 0.19) + 0.5 * sin(p.x * 19.0 + p.y * 6.0 + time * 0.27)
+    ) * 0.012;
+    float2 q = p + warp;
     float field = 0.0;
-    float warm = 0.0;
+    height = 0.0;
+    slope = float2(0.0);
     for (int i = 0; i + 5 < count; i += 6) {
-        float2 center = float2(blobs[i], blobs[i + 1]);
-        float radius = blobs[i + 2];
-        float2 velocity = float2(blobs[i + 3], blobs[i + 4]);
-        float2 d = p - center;
+        float2 d = q - float2(beads[i], beads[i + 1]);
+        float2 velocity = float2(beads[i + 3], beads[i + 4]);
         float speed = length(velocity);
         float stretch = 1.0 + min(0.9, speed * 4.0);
         float2 along = speed > 1e-4 ? velocity / speed : float2(0.0, 1.0);
         float2 across = float2(-along.y, along.x);
-        float wobble = 1.0 + 0.08 * sin(atan2(d.y, d.x) * 3.0 + time * 0.9 + float(i));
+        float thin = sqrt(stretch);
         float a = dot(d, along) / stretch;
-        float b = dot(d, across) * sqrt(stretch);
-        float reach = radius * 1.8 * wobble;
+        float b = dot(d, across) * thin;
+        float reach = beads[i + 2] * 1.8;
         float u = (a * a + b * b) / (reach * reach);
         if (u < 1.0) {
             float k = 1.0 - u;
-            float contribution = k * k * k;
-            field += contribution;
-            warm += contribution * blobs[i + 5];
+            float k3 = k * k * k;
+            float lobe = 0.55 + 0.45 * beads[i + 5];
+            field += k3;
+            height += lobe * k3 * k3;
+            float2 change = 2.0 * (along * a / stretch + across * b * thin) / (reach * reach);
+            slope -= change * lobe * 6.0 * k3 * k * k;
         }
     }
-
-    heat = field > 1e-4 ? clamp(warm / field, 0.0, 1.0) : 0.0;
     return field;
 }
 
-static float shade(float2 cell, float2 point, float scale, device const float *blobs, int count, float2 down, float time) {
-    float2 p = point / scale;
-    float heat;
-    float field = wax(p, blobs, count, down, time, heat);
+static float shade(float2 cell, float2 point, float scale, device const float *beads, int count, float2 down, float time) {
+    float2 slope;
+    float height;
+    float field = surface(point / scale, beads, count, time, slope, height);
     if (field < threshold) {
         bool grid = fmod(cell.x, 4.0) < 0.5 && fmod(cell.y, 3.0) < 0.5;
         return grid ? 0.1 : 0.0;
     }
-    float e = 0.004;
-    float unused;
-    float2 gradient = float2(
-        wax(p + float2(e, 0.0), blobs, count, down, time, unused) - wax(p - float2(e, 0.0), blobs, count, down, time, unused),
-        wax(p + float2(0.0, e), blobs, count, down, time, unused) - wax(p - float2(0.0, e), blobs, count, down, time, unused)
-    ) / (2.0 * e);
-    float lift = sqrt(field - threshold + 0.015);
-    float3 normal = normalize(float3(-gradient * 0.035 / lift, 1.0));
-    float3 light = normalize(float3(-0.35 - down.x * 0.6, -down.y * 0.6 - 0.2, 0.75));
+    float3 normal = normalize(float3(-slope * 0.022, 1.0));
+    float3 light = normalize(float3(-0.45 - down.x * 0.5, -down.y * 0.55 - 0.25, 0.7));
     float3 halfway = normalize(light + float3(0.0, 0.0, 1.0));
     float diffuse = max(dot(normal, light), 0.0);
-    float spec = pow(max(dot(normal, halfway), 0.0), 36.0);
-    float rim = pow(1.0 - normal.z, 2.0);
-    return clamp(0.16 + 0.4 * diffuse + 0.28 * rim + 0.6 * spec + 0.12 * heat, 0.0, 1.0);
+    float gloss = pow(max(dot(normal, halfway), 0.0), 14.0);
+    float crease = smoothstep(0.08, 0.75, height);
+    return clamp(0.12 + crease * (0.18 + 0.42 * diffuse) + 0.4 * gloss * crease, 0.0, 1.0);
 }
 
 [[ stitchable ]] half4 lavaLamp(
@@ -64,7 +62,7 @@ static float shade(float2 cell, float2 point, float scale, device const float *b
     float2 origin,
     float scale,
     float time,
-    device const float *blobs,
+    device const float *beads,
     int count,
     float2 down,
     float dark,
@@ -76,7 +74,7 @@ static float shade(float2 cell, float2 point, float scale, device const float *b
 
     float2 cell = floor(position / cellSize);
     float2 local = (position - cell * cellSize) / cellSize;
-    float value = shade(cell, (cell + 0.5) * cellSize + origin, scale, blobs, count, down, time);
+    float value = shade(cell, (cell + 0.5) * cellSize + origin, scale, beads, count, down, time);
     int index = clamp(int(value * (glyphs - 0.01)), 0, int(glyphs) - 1);
     if (index == 0) {
         return half4(half3(background), 1.0);

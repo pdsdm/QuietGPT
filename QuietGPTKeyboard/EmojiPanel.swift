@@ -153,6 +153,7 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
             grid.reloadData()
             grid.layoutIfNeeded()
             measure()
+            update(section())
         }
         bar.frame = barFrame
         bar.layoutIfNeeded()
@@ -201,10 +202,15 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
     }
 
     private func measure() {
-        starts = sections.indices.map { index in
-            guard !sections[index].items.isEmpty,
-                  let frame = grid.layoutAttributesForItem(at: IndexPath(item: 0, section: index))?.frame else { return 0 }
-            return frame.minX - Self.inset
+        let size = flow.itemSize
+        guard size.height > 0 else { return }
+        let rows = max(Int(grid.bounds.height / size.height), 1)
+        var x: CGFloat = 0
+        starts = sections.map { section in
+            let start = x
+            let columns = (section.items.count + rows - 1) / rows
+            x += CGFloat(columns) * size.width + Self.inset * 2
+            return start
         }
     }
 

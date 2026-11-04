@@ -49,16 +49,17 @@ All tests ran on an iPhone 16 Pro Max.
 
 | What we measured | Result |
 |---|---|
-| ANE busy while text streams | 87% on average, and 0% before and after |
-| Test replies with ANE events | 12 of 12, with 1,100 events |
+| ANE busy while text streams | 84–87% on average in two tests, and 0% just before the reply |
+| Test replies with ANE events | 14 of 14 |
 | Separate AI process on the GPU | None |
-| Speed of a long reply | About 21 tokens/s |
+| Speed of a long reply | About 21 and about 48 tokens/s in two tests |
+| QuietGPT GPU time when idle | 39–92% on tabs with the animated background, 0% on the Keyboard tab |
 
-**Why it is better.** The GPU stays free for the interface. The app loads no AI weights, so the same system works in the keyboard and the share card. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
+**Why it is better.** The AI work does not take GPU time. The app loads no AI weights, so the same system works in the keyboard and the share card. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
 
-**Tradeoffs.** A long reply runs at about 21 tokens/s. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
+**Tradeoffs.** Reply speed changes between tests. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
 
-**Limits of this data.** We have no power data and no direct comparison with the GPU. We tested one iPhone with a small sample. We recorded chat replies, not keyboard rewrites.
+**Limits of this data.** We have no watt or battery data and no direct comparison with the GPU. We tested one iPhone with a small sample. We recorded chat replies, not keyboard rewrites. iOS can also use the ANE when no reply runs.
 
 **Read the full report:** [method, data, tradeoffs, limits and steps to repeat the tests](docs/neural-engine/README.md).
 

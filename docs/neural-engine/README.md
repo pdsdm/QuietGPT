@@ -77,8 +77,8 @@ The app contains no AI weights. iOS installs them with Apple Intelligence. The d
 The reply had 1,297 characters, about 324 tokens. The first text came after 4.00 s. The total time was 19.26 s, about 21 tokens each second.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/iphone-busy-dark.svg">
-  <img src="charts/iphone-busy-light.svg" alt="Neural Engine busy percent for each second. It is zero until second 9, between 76 and 93 percent from second 13 to second 27, and zero again from second 29.">
+  <source media="(prefers-color-scheme: dark)" srcset="charts/iphone-busy-dark.png">
+  <img src="charts/iphone-busy-light.png" alt="Neural Engine busy percent for each second. It is zero until second 9, between 76 and 93 percent from second 13 to second 27, and zero again from second 29.">
 </picture>
 
 | Phase | Seconds | ANE busy | QuietGPT GPU time, each second | System compositor GPU time, each second |
@@ -121,8 +121,8 @@ Each reply window comes from the time in the QuietGPT log.
 The Mac test gives power data, because `scripts/power-monitor.c` can read energy counters on a Mac. It gives a direct comparison with the GPU on the same M4 Pro chip.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/mac-power-dark.svg">
-  <img src="charts/mac-power-light.svg" alt="Two line charts with the same scale. Apple Foundation Models uses about 3.4 watts on the Neural Engine and no extra GPU power. The llama3.2:3b system uses about 19 watts on the GPU.">
+  <source media="(prefers-color-scheme: dark)" srcset="charts/mac-power-dark.png">
+  <img src="charts/mac-power-light.png" alt="Two line charts with the same scale. Apple Foundation Models uses about 3.4 watts on the Neural Engine and no extra GPU power. The llama3.2:3b system uses about 19 watts on the GPU.">
 </picture>
 
 | Measure | Apple Foundation Models on the ANE | `llama3.2:3b` on the GPU |

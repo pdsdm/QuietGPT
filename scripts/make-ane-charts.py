@@ -68,7 +68,7 @@ def power_chart(data, output, mode, theme):
         axis.set_ylim(0, 23)
         axis.set_xlabel("Seconds", color=theme["muted"], fontsize=9)
     figure.tight_layout()
-    figure.savefig(output / f"mac-power-{mode}.svg", facecolor=theme["surface"])
+    figure.savefig(output / f"mac-power-{mode}.png", facecolor=theme["surface"])
     plt.close(figure)
 
 
@@ -91,15 +91,14 @@ def iphone_chart(data, output, mode, theme):
     axis.set_yticks([0, 25, 50, 75, 100])
     style(axis, theme)
     figure.tight_layout()
-    figure.savefig(output / f"iphone-busy-{mode}.svg", facecolor=theme["surface"])
+    figure.savefig(output / f"iphone-busy-{mode}.png", facecolor=theme["surface"])
     plt.close(figure)
 
 
 def main():
     root = Path(sys.argv[1])
-    plt.rcParams["svg.fonttype"] = "none"
     plt.rcParams["font.family"] = ["Helvetica", "Arial", "DejaVu Sans"]
-    plt.rcParams["svg.hashsalt"] = "quietgpt"
+    plt.rcParams["savefig.dpi"] = 200
     charts = root / "charts"
     charts.mkdir(exist_ok=True)
     for mode, theme in THEMES.items():

@@ -39,8 +39,8 @@ A message to your manager and a message to your best friend need different words
 Most apps that run AI on an iPhone use the GPU. QuietGPT replies come from the Apple Neural Engine (ANE). A hardware recording on an iPhone 16 Pro Max confirms this.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/neural-engine/charts/iphone-busy-dark.svg">
-  <img src="docs/neural-engine/charts/iphone-busy-light.svg" alt="Neural Engine busy percent for each second of one reply. It is zero before the reply, between 76 and 93 percent while the text streams, and zero after the reply.">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/neural-engine/charts/iphone-busy-dark.png">
+  <img src="docs/neural-engine/charts/iphone-busy-light.png" alt="Neural Engine busy percent for each second of one reply. It is zero before the reply, between 76 and 93 percent while the text streams, and zero after the reply.">
 </picture>
 
 **How we do it.** QuietGPT calls Apple Foundation Models with `LanguageModelSession`, and iOS selects the hardware. QuietGPT does not program the ANE directly, and it has no setting to select it. So we measure the result.

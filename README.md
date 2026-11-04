@@ -45,20 +45,20 @@ Most apps that run AI on an iPhone use the GPU. QuietGPT replies come from the A
 
 **How we do it.** QuietGPT calls Apple Foundation Models with `LanguageModelSession`, and iOS selects the hardware. QuietGPT does not program the ANE directly, and it has no setting to select it. So we measure the result.
 
-| What we measured | Result | Device |
-|---|---|---|
-| ANE busy while text streams | 87% on average, and 0% before and after | iPhone 16 Pro Max |
-| Test replies with ANE events | 12 of 12, with 1,100 events | iPhone 16 Pro Max |
-| Separate AI process on the GPU | None | iPhone 16 Pro Max |
-| Power, ANE against a similar open system on the GPU | 3.35 W against 19.14 W | M4 Pro Mac |
-| Energy for each token | At least 2.4 times less | M4 Pro Mac |
-| Speed, ANE against the same GPU test | 80.5 against 113.2 tokens/s. The GPU is faster | M4 Pro Mac |
+All tests ran on an iPhone 16 Pro Max.
 
-**Why it is better.** The ANE uses less power and less energy for each token. The GPU stays free for the interface. The app loads no AI weights, so the same system works in the keyboard and the share card. We expect less heat and more battery life on iPhone, but we did not measure them.
+| What we measured | Result |
+|---|---|
+| ANE busy while text streams | 87% on average, and 0% before and after |
+| Test replies with ANE events | 12 of 12, with 1,100 events |
+| Separate AI process on the GPU | None |
+| Speed of a long reply | About 21 tokens/s |
 
-**Tradeoffs.** The GPU was about 1.4 times faster in our Mac test, and a long iPhone reply ran at about 21 tokens/s. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
+**Why it is better.** The GPU stays free for the interface. The app loads no AI weights, so the same system works in the keyboard and the share card. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
 
-**Limits of this data.** We have no iPhone power data, so the power comparison is from a Mac. It compares two different AI systems, and the sample is small. We recorded chat replies, not keyboard rewrites.
+**Tradeoffs.** A long reply runs at about 21 tokens/s. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
+
+**Limits of this data.** We have no power data and no direct comparison with the GPU. We tested one iPhone with a small sample. We recorded chat replies, not keyboard rewrites.
 
 **Read the full report:** [method, data, tradeoffs, limits and steps to repeat the tests](docs/neural-engine/README.md).
 
@@ -247,7 +247,7 @@ Debug builds read these launch arguments:
 | `-QuietGPTMonitor YES` | Opens the monitor panel |
 | `-QuietGPTFocus YES` | Puts the cursor in the input box |
 
-### Reply speed and power
+### Reply speed
 
 Hold the send button for 10 seconds to open the monitor panel above the input box.
 
@@ -255,13 +255,6 @@ Each reply logs its speed in the `chat` category:
 
 ```sh
 log stream --predicate 'subsystem == "com.pdsdm.hush"' --level info
-```
-
-`scripts/power-monitor.c` shows CPU, GPU and Neural Engine power on an Apple Silicon Mac, without `sudo`. On macOS 27.2 with an M4 Pro, it reads the CPU as `0.00 W`.
-
-```sh
-clang -O2 scripts/power-monitor.c -o power-monitor -framework CoreFoundation -lIOReport
-./power-monitor 30
 ```
 
 `scripts/ane-report.py` reads an Instruments recording from an iPhone. It makes a table of Neural Engine and GPU use for each second. See [Repeat the tests](docs/neural-engine/README.md#repeat-the-tests).
@@ -288,7 +281,7 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 | `QuietGPTShare` | The share extension with the rewrite card |
 | `QuietGPTTests` | Unit tests, in the same folders as the code that they test |
 | `Config` | Build settings, entitlements and Info.plist files |
-| `scripts` | App icon generator, emoji list generator, power monitor, Neural Engine report and charts |
+| `scripts` | App icon generator, emoji list generator, Neural Engine report and charts |
 | `docs/neural-engine` | Neural Engine report, data and charts |
 | `docs/screenshots` | Screenshots for this file |
 

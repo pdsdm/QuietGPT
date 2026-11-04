@@ -15,8 +15,6 @@ THEMES = {
         "grid": "#e4e3df",
         "band": "#efeeea",
         "ane": "#2a78d6",
-        "cpu": "#eb6834",
-        "gpu": "#1baf7a",
     },
     "dark": {
         "surface": "#1a1a19",
@@ -25,8 +23,6 @@ THEMES = {
         "grid": "#33332f",
         "band": "#2a2a27",
         "ane": "#3987e5",
-        "cpu": "#d95926",
-        "gpu": "#199e70",
     },
 }
 
@@ -44,32 +40,6 @@ def style(axis, theme):
     axis.tick_params(colors=theme["muted"], labelsize=9, length=0)
     axis.grid(axis="y", color=theme["grid"], linewidth=0.8)
     axis.set_axisbelow(True)
-
-
-def power_chart(data, output, mode, theme):
-    apple = load(data / "mac-apple-power.csv")
-    gpu = [row for row in load(data / "mac-gpu-baseline-power.csv") if row["seconds"] <= 30]
-    figure, axes = plt.subplots(1, 2, figsize=(9, 3.5), sharey=True, facecolor=theme["surface"])
-    left, right = axes
-    time = [row["seconds"] for row in apple]
-    left.plot(time, [row["ane_w"] for row in apple], color=theme["ane"], linewidth=2, label="Neural Engine")
-    left.plot(time, [row["cpu_w"] for row in apple], color=theme["cpu"], linewidth=2, label="CPU")
-    left.plot(time, [row["gpu_w"] for row in apple], color=theme["gpu"], linewidth=2, label="GPU")
-    right.plot([row["seconds"] for row in gpu], [row["gpu_w"] for row in gpu], color=theme["gpu"], linewidth=2)
-    left.set_title("Apple Foundation Models: 2 replies", color=theme["text"], fontsize=11, loc="left")
-    right.set_title("llama3.2:3b with Ollama: 3 replies", color=theme["text"], fontsize=11, loc="left")
-    left.set_ylabel("Watts", color=theme["muted"], fontsize=9)
-    left.text(15, 4.1, "Neural Engine 3.4 W", color=theme["text"], fontsize=9)
-    right.text(8, 20.6, "GPU 19.1 W (CPU not read)", color=theme["text"], fontsize=9)
-    left.legend(frameon=False, labelcolor=theme["muted"], fontsize=9, loc="upper left", ncols=3)
-    for axis in axes:
-        style(axis, theme)
-        axis.set_xlim(0, 30)
-        axis.set_ylim(0, 23)
-        axis.set_xlabel("Seconds", color=theme["muted"], fontsize=9)
-    figure.tight_layout()
-    figure.savefig(output / f"mac-power-{mode}.png", facecolor=theme["surface"])
-    plt.close(figure)
 
 
 def iphone_chart(data, output, mode, theme):
@@ -102,7 +72,6 @@ def main():
     charts = root / "charts"
     charts.mkdir(exist_ok=True)
     for mode, theme in THEMES.items():
-        power_chart(root / "data", charts, mode, theme)
         iphone_chart(root / "data", charts, mode, theme)
 
 

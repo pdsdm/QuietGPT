@@ -55,6 +55,7 @@ enum KeyLayout {
         var units: CGFloat
         var lead: CGFloat = 0
         var trail: CGFloat = 0
+        var isGap = false
     }
 
     static let variants: [String: [String]] = [
@@ -161,18 +162,19 @@ enum KeyLayout {
         bottom.append(Item(spec: KeySpec(id: "switch", kind: .layer(toLetters ? .letters : .numbers), title: toLetters ? "ABC" : "123", fontSize: 18.5, label: toLetters ? "Letters" : "Numbers"), units: 1.25))
         if state.showsGlobe {
             bottom.append(Item(spec: KeySpec(id: "globe", kind: .globe, symbol: "globe", label: "Next keyboard"), units: 1.0))
-        } else {
-            let inEmoji = state.layer == .emoji
-            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(inEmoji ? .letters : .emoji), symbol: inEmoji ? "keyboard" : "face.smiling.inverse", symbolSize: 20, label: inEmoji ? "Letters" : "Emoji"), units: 1.0))
+        } else if state.layer != .emoji {
+            bottom.append(Item(spec: KeySpec(id: "emoji", kind: .emoji(.emoji), symbol: "face.smiling.inverse", symbolSize: 20, label: "Emoji"), units: 1.0))
         }
-        bottom.append(Item(spec: KeySpec(id: "quietgpt", kind: .quietGPT, label: "QuietGPT"), units: 1.0))
-        bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 4.5))
         if state.layer == .emoji {
             var wide = delete
-            wide.units = 2.25
+            wide.units = 1.25
             wide.lead = 0
+            let used = bottom.reduce(wide.units) { $0 + $1.units }
+            bottom.append(Item(spec: wide.spec, units: 10 - used, isGap: true))
             bottom.append(wide)
         } else {
+            bottom.append(Item(spec: KeySpec(id: "quietgpt", kind: .quietGPT, label: "QuietGPT"), units: 1.0))
+            bottom.append(Item(spec: KeySpec(id: "space", kind: .space, tag: state.isSpanish ? "ES" : "EN", label: KeyboardText.string("space")), units: 4.5))
             bottom.append(Item(
                 spec: KeySpec(
                     id: "return",
@@ -198,6 +200,10 @@ enum KeyLayout {
             var x = margin
             for (position, item) in row.enumerated() {
                 let w = item.units * unit
+                if item.isGap {
+                    x += w
+                    continue
+                }
                 var spec = item.spec
                 let left = position == 0 ? 0 : x
                 let right = position == row.count - 1 ? width : x + w

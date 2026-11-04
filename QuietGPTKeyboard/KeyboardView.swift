@@ -234,31 +234,3 @@ struct BarPressStyle: ButtonStyle {
             .animation(.snappy(duration: 0.18), value: configuration.isPressed)
     }
 }
-
-struct EmojiGrid: View {
-    let onInsert: (String) -> Void
-
-    private static let emojis = Array(
-        "😀😃😄😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳🙂‍↕️😏😒🙂‍↔️😞😔😟😕🙁☹️😣😖😫😩🥺😢😭😮‍💨😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🫣🤗🫡🤔🫢🤭🤫🤥😶😐😑😬🫨🙄😯😦😧😮😲🥱😴🤤😪😵🤐🥴🤢🤮🤧😷🤒🤕🤑🤠😈👿👹👺🤡💩👻💀👽🤖🎃😺😸😹😻😼😽🙀😿😾👋🤚🖐✋🖖👌🤌🤏✌️🤞🫰🤟🤘🤙👈👉👆👇☝️👍👎✊👊🤛🤜👏🙌🫶👐🤲🤝🙏💪❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💝🔥✨🎉🎂🎁⭐️🌟💫☀️🌙⚡️🌈☕️🍕🍔🍟🍣🍷🍺🥂⚽️🏀🎾🚗✈️🏖🏠💼📱💻📷🎵🎶✅❌⚠️💯❓❗️👀💬"
-    ).map(String.init)
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: Array(repeating: GridItem(.fixed(42), spacing: 0), count: 4), spacing: 0) {
-                ForEach(Array(Self.emojis.enumerated()), id: \.offset) { _, emoji in
-                    Button {
-                        UIDevice.current.playInputClick()
-                        onInsert(emoji)
-                    } label: {
-                        Text(emoji)
-                            .font(.system(size: 32))
-                            .frame(width: 44, height: 42)
-                    }
-                    .buttonStyle(BarPressStyle())
-                }
-            }
-            .padding(.horizontal, 4)
-        }
-        .scrollIndicators(.hidden)
-    }
-}

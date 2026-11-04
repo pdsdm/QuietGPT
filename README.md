@@ -24,7 +24,7 @@ QuietGPT rewrites your messages with your own rules, in one tap, in any app. It 
 
 ## Features
 
-- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard, with accent variants, cursor control on the space bar and an emoji page. The lock key opens a panel that rewrites your text in any app. The panel also sets the language: Auto, English or Spanish.
+- **QuietGPT keyboard.** A keyboard that looks and types like the iOS keyboard, with accent variants, cursor control on the space bar and an emoji page with all categories, recent emojis and skin tones. The lock key opens a panel that rewrites your text in any app. The panel also sets the language: Auto, English or Spanish.
 - **My rules.** Up to 10 short rules that QuietGPT follows in each rewrite. Each style can turn them off. Fix and the translations do not use them by default.
 - **People.** Save how you write to one person. People show first in the panel.
 - **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish, or your own instruction. Edit, add and order them in the Keyboard tab, and change the base instructions.
@@ -89,7 +89,7 @@ Go to Settings > General > Keyboard > Keyboards > Add New Keyboard and select Qu
 | `QuietGPTShare` | The share extension with the rewrite card |
 | `Config` | Entitlements for all targets, Info.plist files for the extensions |
 | `QuietGPTTests` | Unit tests, in the same folders as `QuietGPT` |
-| `scripts` | App icon generator and power monitor |
+| `scripts` | App icon generator, emoji list generator and power monitor |
 | `docs/screenshots` | Screenshots for this file |
 
 ## Debug launch options

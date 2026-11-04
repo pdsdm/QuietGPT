@@ -16,7 +16,7 @@ final class KeyboardViewController: UIInputViewController {
     private let rewriter = Rewriter()
     private let keys = KeysView()
     private var bar: UIHostingController<QuietGPTBar>?
-    private var emoji: UIHostingController<EmojiGrid>?
+    private let emoji = EmojiPanel()
     private var panel: UIHostingController<QuietGPTPanel>?
     private var mode = (panel: false, bar: false)
     private var options = KeyboardOptions()
@@ -46,14 +46,9 @@ final class KeyboardViewController: UIInputViewController {
         bar.didMove(toParent: self)
         self.bar = bar
 
-        let emoji = UIHostingController(rootView: EmojiGrid { [weak self] in self?.insert($0) })
-        emoji.view.backgroundColor = .clear
-        emoji.sizingOptions = []
-        emoji.view.isHidden = true
-        addChild(emoji)
-        view.addSubview(emoji.view)
-        emoji.didMove(toParent: self)
-        self.emoji = emoji
+        emoji.onInsert = { [weak self] in self?.insert($0) }
+        emoji.isHidden = true
+        view.addSubview(emoji)
 
         keys.actions = keyActions
         view.addSubview(keys)
@@ -105,15 +100,23 @@ final class KeyboardViewController: UIInputViewController {
         let top = view.bounds.height - keysHeight - KeyLayout.bottomPadding
         bar?.view.frame = CGRect(x: 0, y: top - QuietGPTBar.height, width: width, height: QuietGPTBar.height)
         bar?.view.isHidden = !mode.bar
-        emoji?.view.frame = CGRect(x: 0, y: top + KeyLayout.topPadding, width: width, height: rowHeight * 3)
+        emoji.frame = view.bounds
+        emoji.gridHeight = top + KeyLayout.topPadding + rowHeight * 3
         keys.rowHeight = rowHeight
         keys.topLimit = -top
         keys.frame = CGRect(x: 0, y: top, width: width, height: keysHeight)
-        if let lock = KeyLayout.build(model.keys, width: width, rowHeight: rowHeight).first(where: { $0.kind == .quietGPT }) {
+        var state = model.keys
+        state.layer = .letters
+        if let lock = KeyLayout.build(state, width: width, rowHeight: rowHeight).first(where: { $0.kind == .quietGPT }) {
             let frame = lock.face.offsetBy(dx: 0, dy: top)
             if model.closeFrame != frame {
                 model.closeFrame = frame
             }
+        }
+        state.layer = .emoji
+        let specs = KeyLayout.build(state, width: width, rowHeight: rowHeight)
+        if let delete = specs.first(where: { $0.kind == .delete }), let left = specs.dropLast().map(\.cell.maxX).max() {
+            emoji.barFrame = CGRect(x: left, y: top + delete.face.minY, width: delete.cell.minX - left, height: delete.face.height)
         }
         keys.isHidden = mode.panel
         panel?.view.frame = view.bounds
@@ -132,7 +135,11 @@ final class KeyboardViewController: UIInputViewController {
     private func observe() {
         withObservationTracking {
             keys.state = model.keys
-            emoji?.view.isHidden = model.layer != .emoji || model.showsPanel
+            let showsEmoji = model.layer == .emoji && !model.showsPanel
+            if showsEmoji && emoji.isHidden {
+                emoji.refresh()
+            }
+            emoji.isHidden = !showsEmoji
             apply(panel: model.showsPanel, bar: model.isAsking)
         } onChange: { [weak self] in
             let controller = self

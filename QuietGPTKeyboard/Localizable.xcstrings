@@ -1,259 +1,358 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "%lld rules": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld reglas"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld rules" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld reglas"
           }
         }
       }
     },
-    "1 rule": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 regla"
+    "1 rule" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 regla"
           }
         }
       }
     },
-    "Ask": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pedir"
+    "Activity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actividades"
           }
         }
       }
     },
-    "Ask for any change…": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pide cualquier cambio…"
+    "Animals & Nature" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animales y naturaleza"
           }
         }
       }
     },
-    "Auto": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
+    "Ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pedir"
           }
         }
       }
     },
-    "Back to letters": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volver a las letras"
+    "Ask for any change…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pide cualquier cambio…"
           }
         }
       }
     },
-    "Stop": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parar"
+    "Auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
           }
         }
       }
     },
-    "Stopped, your text is back": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parado, tu texto ha vuelto"
+    "Back to letters" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a las letras"
           }
         }
       }
     },
-    "Undo": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deshacer"
+    "continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "continuar"
           }
         }
       }
     },
-    "Write a message first": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escribe un mensaje primero"
+    "done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }
     },
-    "continue": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "continuar"
+    "Flags" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banderas"
           }
         }
       }
     },
-    "done": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+    "Food & Drink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comida y bebida"
           }
         }
       }
     },
-    "go": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ir"
+    "Frequently Used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usados con frecuencia"
           }
         }
       }
     },
-    "join": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "unirse"
+    "go" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ir"
           }
         }
       }
     },
-    "make it warmer and shorter": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "más cálido y más corto"
+    "join" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unirse"
           }
         }
       }
     },
-    "next": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "siguiente"
+    "make it warmer and shorter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "más cálido y más corto"
           }
         }
       }
     },
-    "on this iPhone": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "en este iPhone"
+    "next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "siguiente"
           }
         }
       }
     },
-    "return": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "intro"
+    "Objects" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objetos"
           }
         }
       }
     },
-    "rewriting…": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "reescribiendo…"
+    "on this iPhone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en este iPhone"
           }
         }
       }
     },
-    "route": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ruta"
+    "return" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "intro"
           }
         }
       }
     },
-    "search": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "buscar"
+    "rewriting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reescribiendo…"
           }
         }
       }
     },
-    "send": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "enviar"
+    "route" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ruta"
           }
         }
       }
     },
-    "space": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "espacio"
+    "search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "buscar"
+          }
+        }
+      }
+    },
+    "send" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "enviar"
+          }
+        }
+      }
+    },
+    "Smileys & People" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emoticonos y personas"
+          }
+        }
+      }
+    },
+    "space" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "espacio"
+          }
+        }
+      }
+    },
+    "Stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parar"
+          }
+        }
+      }
+    },
+    "Stopped, your text is back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parado, tu texto ha vuelto"
+          }
+        }
+      }
+    },
+    "Symbols" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Símbolos"
+          }
+        }
+      }
+    },
+    "Travel & Places" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viajes y lugares"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deshacer"
+          }
+        }
+      }
+    },
+    "Write a message first" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe un mensaje primero"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

@@ -246,7 +246,8 @@ final class KeysView: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        bounds.contains(point) && point.y >= specs.first?.cell.minY ?? 0
+        guard bounds.contains(point) else { return false }
+        return state?.layer != .emoji || specs.contains { $0.cell.contains(point) }
     }
 
     private func spec(_ id: String) -> KeySpec? {

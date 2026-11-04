@@ -79,7 +79,7 @@ private struct AppFlow: View {
     var body: some View {
         ZStack {
             if onboarded {
-                MainTabs(controller: controller, tab: $tab, packRevision: packRevision)
+                MainTabs(controller: controller, tab: $tab, packRevision: $packRevision)
                     .transition(AnyTransition.opacity.combined(with: .scale(scale: 1.04)))
             } else {
                 OnboardingScreen { useLock in
@@ -161,7 +161,7 @@ private struct OpenedPack: Identifiable {
 private struct MainTabs: View {
     var controller: ChatController
     @Binding var tab: AppTab
-    var packRevision: Int
+    @Binding var packRevision: Int
 
     @Environment(\.palette) private var palette
 
@@ -193,7 +193,9 @@ private struct MainTabs: View {
                 VoiceScreen()
             }
             Tab("Privacy", systemImage: "hand.raised", value: AppTab.privacy) {
-                PrivacyScreen(controller: controller)
+                PrivacyScreen(controller: controller) {
+                    packRevision += 1
+                }
             }
         }
         .tint(palette.text)

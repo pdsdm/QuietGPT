@@ -3,9 +3,9 @@ import SwiftUI
 
 struct PrivacyScreen: View {
     var controller: ChatController
+    var onDeleteAll: () -> Void
 
     @Environment(\.palette) private var palette
-    @Environment(\.modelContext) private var context
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
     @ScaledMetric(relativeTo: .largeTitle) private var counterSize: CGFloat = 72
     @State private var confirmingDelete = false
@@ -96,10 +96,10 @@ struct PrivacyScreen: View {
             }
             .scrollIndicators(.hidden)
         }
-        .confirmationDialog("Delete all chats?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+        .confirmationDialog("Delete all data?", isPresented: $confirmingDelete, titleVisibility: .visible) {
             Button("Delete all data", role: .destructive, action: deleteAll)
         } message: {
-            Text("This removes every chat from this iPhone. It cannot be undone.")
+            Text("This removes every chat, rule, person and style from this iPhone. It cannot be undone.")
         }
         .sensoryFeedback(.warning, trigger: confirmingDelete) { _, new in new }
         .onAppear { appeared = true }
@@ -170,6 +170,8 @@ struct PrivacyScreen: View {
 
     private func deleteAll() {
         controller.deleteAll()
+        StyleStore.reset()
+        onDeleteAll()
     }
 }
 

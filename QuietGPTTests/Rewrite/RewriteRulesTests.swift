@@ -39,6 +39,14 @@ struct RewriteRulesTests {
         #expect(decoded == style)
     }
 
+    @Test func promptSaysTheMessageIsNotARequest() {
+        let prompt = Rewriter.prompt(request: "Make it short.", text: "What time is it?")
+
+        #expect(prompt.hasPrefix("Make it short."))
+        #expect(prompt.contains("do not answer it"))
+        #expect(prompt.hasSuffix("Message:\nWhat time is it?"))
+    }
+
     @Test func noRulesKeepsBaseInstructions() {
         #expect(StyleStore.compose(base: "Base", rules: []) == "Base")
         #expect(StyleStore.compose(base: "Base", rules: ["  ", "\n"]) == "Base")

@@ -39,9 +39,9 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
     private static let recentsKey = "emojiRecents"
     private static let recentsLimit = 40
     private static let starters = ["😀", "😂", "🥰", "😊", "😭", "🙏", "👍", "❤️", "🔥", "✨", "🎉", "😘"]
-    private static let rows: CGFloat = 5
+    private static let rows: CGFloat = 4
     private static let columns: CGFloat = 8.5
-    private static let titleHeight: CGFloat = 26
+    private static let titleHeight: CGFloat = 34
     private static let inset: CGFloat = 6
     private static let dot: CGFloat = 30
 
@@ -146,7 +146,7 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        titleLabel.frame = CGRect(x: 12, y: 6, width: bounds.width - 24, height: 18)
+        titleLabel.frame = CGRect(x: 18, y: 12, width: bounds.width - 36, height: 18)
         let frame = CGRect(x: 0, y: Self.titleHeight, width: bounds.width, height: max(gridHeight - Self.titleHeight, 0))
         let height = (frame.height / Self.rows).rounded(.down)
         let size = CGSize(width: (bounds.width / Self.columns).rounded(.down), height: height)

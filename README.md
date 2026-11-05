@@ -217,11 +217,11 @@ The Monitor panel also shows live network use for the full iPhone.
    open QuietGPT.xcodeproj
    ```
 
-2. To use your own team, create `Config/Local.xcconfig`. It overrides `Config/Base.xcconfig`, and git ignores it.
+2. To sign the app, create `Config/Local.xcconfig` with your team and a bundle prefix that you own. It overrides `Config/Base.xcconfig`, and git ignores it.
 
    ```
    DEVELOPMENT_TEAM = YOUR_TEAM_ID
-   QUIETGPT_BUNDLE_PREFIX = com.example.quietgpt
+   QUIETGPT_BUNDLE_PREFIX = com.yourname.quietgpt
    ```
 
 3. Run the `QuietGPT` scheme.
@@ -252,10 +252,10 @@ Debug builds read these launch arguments:
 
 Hold the send button for 10 seconds to open the monitor panel above the input box.
 
-Each reply logs its speed in the `chat` category:
+Each reply logs its speed in the `chat` category. Replace `com.example.quietgpt` with your bundle prefix:
 
 ```sh
-log stream --predicate 'subsystem == "com.pdsdm.hush"' --level info
+log stream --predicate 'subsystem == "com.example.quietgpt"' --level info
 ```
 
 `scripts/ane-report.py` reads an Instruments recording from an iPhone. It makes a table of Neural Engine and GPU use for each second. See [Repeat the tests](docs/neural-engine/README.md#repeat-the-tests).

@@ -104,6 +104,21 @@ struct LavaLampTests {
         #expect(driver.lamp.dropSizes == [4])
     }
 
+    @Test func nearTouchGrabsASmallDrop() {
+        var driver = Driver(lamp: LavaLamp(layout: [(center: SIMD2(0.5, 0.5), beads: 2)]))
+        driver.run(seconds: 1.0 / 60)
+        let start = driver.lamp.dropCenters[0]
+        driver.drag(from: start + SIMD2(0.06, 0), to: SIMD2(0.9, 0.5), seconds: 1)
+        #expect(driver.lamp.dropCenters[0].x > start.x + 0.1)
+    }
+
+    @Test func divideLeavesNoSingleBead() {
+        var driver = Driver(lamp: LavaLamp(layout: [(center: SIMD2(0.5, 0.5), beads: 4)]))
+        driver.run(seconds: 1.0 / 60)
+        driver.drag(from: SIMD2(0.05, 0.47), to: SIMD2(0.95, 0.47), seconds: 1)
+        #expect((driver.lamp.dropSizes.min() ?? 0) >= 2)
+    }
+
     @Test func partsDoNotMergeSoonAfterDivide() {
         var driver = swiped(beads: 4)
         driver.run(seconds: 2)

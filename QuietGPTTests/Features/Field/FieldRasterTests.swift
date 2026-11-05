@@ -81,6 +81,19 @@ struct FieldRasterTests {
         #expect(raster.regions[nearest.region].frame.midX > 100)
     }
 
+    @Test func farRegionsDoNotWaitForeverDuringFocus() {
+        let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
+        _ = update(raster, beads: [])
+        var farArrived = false
+        for frame in 0..<20 {
+            let moving = 0.85 + Float(frame) * 0.002
+            let beads: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, moving, 0.9, 0.03, 0, 0, 0.5]
+            let changes = update(raster, beads: beads, elapsed: 0.016, focus: CGPoint(x: 180, y: 180))
+            if changes.contains(where: { raster.regions[$0.region].frame.midX < 80 }) { farArrived = true }
+        }
+        #expect(farArrived)
+    }
+
     @Test func smallerShareDrainsSlower() {
         let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 0.9, 0.9, 0.03, 0, 0, 0.5]
         func waiting(share: Double) -> Int {

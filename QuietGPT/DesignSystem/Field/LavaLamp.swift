@@ -6,7 +6,7 @@ final class LavaLamp {
     static let stride = 6
 
     private enum Tuning {
-        static let grabReach = 1.6
+        static let grabMargin = 0.05
         static let spacing = 0.45
         static let cohesion = 14.0
         static let viscosity = 8.0
@@ -23,7 +23,8 @@ final class LavaLamp {
         static let mergeLimit = 5
         static let pushReach = 1.4
         static let pushForce = 1.0
-        static let cutMinimum = 3
+        static let cutMinimum = 4
+        static let smallestPart = 2
         static let cutDepth = 0.6
         static let cutImpulse = 0.22
         static let rejoinDelay = 2.5
@@ -191,8 +192,8 @@ final class LavaLamp {
     private func updateTouch(finger: SIMD2<Double>, pressing: Bool, dt: Double) {
         if pressing, !wasPressing {
             let hit = beads.indices
-                .map { (index: $0, distance: simd_length(beads[$0].position - finger) / beads[$0].radius) }
-                .filter { $0.distance < Tuning.grabReach }
+                .map { (index: $0, distance: simd_length(beads[$0].position - finger) - beads[$0].radius) }
+                .filter { $0.distance < Tuning.grabMargin }
                 .min { $0.distance < $1.distance }?
                 .index
             if let hit {
@@ -289,7 +290,7 @@ final class LavaLamp {
             .map { (index: $0, side: simd_dot(beads[$0].position - origin, normal)) }
             .sorted { $0.side < $1.side }
         var moved = ranked.filter { $0.side < 0 }.map(\.index)
-        if moved.isEmpty || moved.count == members.count {
+        if moved.count < Tuning.smallestPart || members.count - moved.count < Tuning.smallestPart {
             moved = ranked.prefix(members.count / 2).map(\.index)
         }
 

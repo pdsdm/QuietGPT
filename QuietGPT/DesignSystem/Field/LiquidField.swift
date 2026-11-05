@@ -63,6 +63,7 @@ private final class FieldCanvasView: UIView {
     private static let framesPerSecond: Float = 60
     private static let lowPowerFramesPerSecond: Float = 30
     private static let physicsStep = 1.0 / 30
+    private static let touchShare = 1.25
     private static let maxPhysicsSteps = 4
 
     private let input = FieldInput.shared
@@ -173,7 +174,7 @@ private final class FieldCanvasView: UIView {
             down: lamp.direction,
             elapsed: elapsed,
             focus: focus,
-            share: share
+            share: input.pressing ? share * Self.touchShare : share
         )
         guard !changes.isEmpty else { return }
         CATransaction.begin()

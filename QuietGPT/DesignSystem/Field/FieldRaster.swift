@@ -27,6 +27,8 @@ final class FieldRaster {
     private static let commitAreaCost = 3.6
     private static let costPerSecond = 75.0
     private static let maxCommitCost = 3.0
+    private static let maxDebt = -6.0
+    private static let maxWaitFrames = 15
     private static let tiles = makeTiles()
 
     let size: CGSize
@@ -167,23 +169,24 @@ final class FieldRaster {
 
     private func pickRegions(focus: CGPoint?) -> [Int] {
         guard let anchor = anchorRegion(focus: focus) else { return [] }
-        var box = regions[anchor].frame
-        guard cost(of: box) <= budget else { return [] }
+        let overdue = waitingSince.filter { frameNumber - $0.value >= Self.maxWaitFrames }.keys.filter { $0 != anchor }
+        var box = overdue.reduce(regions[anchor].frame) { $0.union(regions[$1].frame) }
+        guard !overdue.isEmpty || cost(of: box) <= budget else { return [] }
 
         let center = CGPoint(x: box.midX, y: box.midY)
         let others = waitingSince.keys
-            .filter { $0 != anchor }
+            .filter { $0 != anchor && !overdue.contains($0) }
             .map { (region: $0, distance: distance(from: center, to: regions[$0].frame)) }
             .sorted { ($0.distance, $0.region) < ($1.distance, $1.region) }
 
-        var chosen = [anchor]
+        var chosen = [anchor] + overdue
         for other in others {
             let grown = box.union(regions[other.region].frame)
             guard cost(of: grown) <= budget else { continue }
             box = grown
             chosen.append(other.region)
         }
-        budget -= cost(of: box)
+        budget = max(Self.maxDebt, budget - cost(of: box))
         return chosen
     }
 

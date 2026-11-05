@@ -236,10 +236,10 @@ If the ANE does the work, `ane_busy_percent` goes up during the reply and return
 
 To read the reply time from the app log, add `--instrument "os_log"` to the command in step 4.
 
-To read the power impact, record with the app as the target. One instrument in this template rejects `--all-processes`. For battery use, the iPhone must not charge.
+To read the power impact, record with the app as the target. One instrument in this template rejects `--all-processes`. For battery use, the iPhone must not charge. Replace `com.example.quietgpt` with your bundle prefix.
 
 ```sh
-xcrun xctrace record --device DEVICE_ID --template "Power Profiler" --instrument "Thermal State" --time-limit 45s --output power.trace --launch -- com.pdsdm.hush
+xcrun xctrace record --device DEVICE_ID --template "Power Profiler" --instrument "Thermal State" --time-limit 45s --output power.trace --launch -- com.example.quietgpt
 ```
 
 ### Make the charts again

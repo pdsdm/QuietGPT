@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static let stylePack = UTType(exportedAs: "\(Bundle.main.bundleIdentifier ?? "com.pdsdm.hush").stylepack")
+    static let stylePack = UTType(exportedAs: "\(Bundle.main.bundleIdentifier ?? "quietgpt").stylepack")
 }
 
 extension StylePack: Transferable {

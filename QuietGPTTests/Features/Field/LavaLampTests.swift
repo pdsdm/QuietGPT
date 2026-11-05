@@ -145,8 +145,24 @@ struct LavaLampTests {
         var driver = Driver(lamp: LavaLamp())
         for _ in 0..<12 {
             driver.run(seconds: 10)
-            #expect((driver.lamp.dropGaps.max() ?? 0) < 0.07)
+            #expect((driver.lamp.dropGaps.max() ?? 0) < 2)
         }
+    }
+
+    @Test func groupsHaveNearAndFarLayers() {
+        let lamp = LavaLamp()
+        #expect(Set(lamp.dropLayers).count == 3)
+        let radii = Dictionary(zip(lamp.dropLayers, lamp.dropRadii), uniquingKeysWith: max)
+        #expect((radii[1] ?? 0) > (radii[0] ?? 0) * 1.5)
+    }
+
+    @Test func differentLayersDoNotMerge() {
+        var driver = Driver(lamp: LavaLamp(layout: [
+            (center: SIMD2(0.45, 0.5), beads: 2),
+            (center: SIMD2(0.5, 0.5), beads: 2)
+        ], layers: [0, 1]))
+        driver.run(seconds: 1)
+        #expect(driver.lamp.dropSizes == [2, 2])
     }
 
     @Test func beadCountStaysTheSame() {

@@ -3,7 +3,7 @@ import simd
 
 final class LavaLamp {
     static let shared = LavaLamp()
-    static let stride = 6
+    static let stride = 7
 
     private enum Tuning {
         static let grabMargin = 0.05
@@ -33,6 +33,13 @@ final class LavaLamp {
         static let idleDivideSize = 4
         static let idleDivideDelay = 45.0
         static let tightness = 0.017
+        static let meanRadius = 0.039
+        static let layers = [0.0, 0.5, 1.0]
+        static let farScale = 0.8
+        static let nearScale = 1.35
+        static let farPace = 0.55
+        static let nearPace = 1.3
+        static let layerParallax = 0.06
     }
 
     private struct DropPair: Hashable {
@@ -60,6 +67,7 @@ final class LavaLamp {
         var phase: Double
         var noMergeUntil = 0.0
         var lastTouch = 0.0
+        var layer = 0.5
     }
 
     private enum Touch {
@@ -91,22 +99,24 @@ final class LavaLamp {
                 center: SIMD2(0.15 + 0.7 * (fi * 0.618).truncatingRemainder(dividingBy: 1), 0.1 + 2 * (fi * 0.382).truncatingRemainder(dividingBy: 1)),
                 beads: size
             )
-        })
+        }, layers: sizes.indices.map { Tuning.layers[Int((Double($0) * 0.618).truncatingRemainder(dividingBy: 1) * Double(Tuning.layers.count))] })
     }
 
-    init(layout: [(center: SIMD2<Double>, beads: Int)]) {
+    init(layout: [(center: SIMD2<Double>, beads: Int)], layers: [Double] = []) {
         for (index, item) in layout.enumerated() {
             let fi = Double(index)
             let id = nextDrop
             nextDrop += 1
-            drops[id] = Drop(pace: 0.6 + 0.8 * (fi * 0.447).truncatingRemainder(dividingBy: 1), phase: fi * 1.7)
+            let layer = index < layers.count ? layers[index] : 0.5
+            let scale = Self.scale(forLayer: layer)
+            drops[id] = Drop(pace: 0.6 + 0.8 * (fi * 0.447).truncatingRemainder(dividingBy: 1), phase: fi * 1.7, layer: layer)
             for bead in 0..<item.beads {
                 let seed = Double(beads.count)
                 let angle = seed * 2.399
-                let reach = Tuning.tightness * sqrt(Double(bead)) * (0.8 + 0.5 * (seed * 0.731).truncatingRemainder(dividingBy: 1))
+                let reach = Tuning.tightness * scale * sqrt(Double(bead)) * (0.8 + 0.5 * (seed * 0.731).truncatingRemainder(dividingBy: 1))
                 beads.append(Bead(
                     position: item.center + SIMD2(cos(angle), sin(angle)) * reach,
-                    radius: 0.032 + 0.014 * (seed * 0.618).truncatingRemainder(dividingBy: 1),
+                    radius: (0.032 + 0.014 * (seed * 0.618).truncatingRemainder(dividingBy: 1)) * scale,
                     phase: seed * 1.3,
                     drop: id
                 ))
@@ -128,6 +138,17 @@ final class LavaLamp {
         groups.keys.sorted().compactMap { groups[$0]?.count }
     }
 
+    var dropLayers: [Double] {
+        groups.keys.sorted().compactMap { drops[$0]?.layer }
+    }
+
+    var dropRadii: [Double] {
+        groups.keys.sorted().map { id in
+            let members = groups[id] ?? []
+            return members.reduce(0) { $0 + beads[$1].radius } / Double(members.count)
+        }
+    }
+
     var dropGaps: [Double] {
         groups.values.map { members in
             var joined = [members[0]]
@@ -144,7 +165,7 @@ final class LavaLamp {
                 widest = max(widest, best.distance)
                 joined.append(waiting.remove(at: best.slot))
             }
-            return widest
+            return widest / (members.reduce(0) { $0 + beads[$1].radius } / Double(members.count))
         }
     }
 
@@ -174,6 +195,10 @@ final class LavaLamp {
         moveBeads(finger: finger, energy: energy, dt: dt)
         respawnLostDrops()
         pack()
+    }
+
+    private static func scale(forLayer layer: Double) -> Double {
+        Tuning.farScale + (Tuning.nearScale - Tuning.farScale) * layer
     }
 
     private var groups: [Int: [Int]] {
@@ -361,9 +386,10 @@ final class LavaLamp {
                 }
                 damping = 2 * Tuning.holdDamping * sqrt(Tuning.pull / count)
             } else if let drop = drops[id] {
-                var drift = down * 0.05 * drop.pace * energy * (0.3 + 0.7 * pull)
-                drift += side * 0.025 * sin(clock * 0.31 + drop.phase)
-                drift -= down * 0.03 * sin(clock * 0.43 * drop.pace + drop.phase * 1.3)
+                let pace = Tuning.farPace + (Tuning.nearPace - Tuning.farPace) * drop.layer
+                var drift = down * 0.05 * drop.pace * pace * energy * (0.3 + 0.7 * pull)
+                drift += side * 0.025 * pace * sin(clock * 0.31 + drop.phase)
+                drift -= down * 0.03 * pace * sin(clock * 0.43 * drop.pace + drop.phase * 1.3)
                 for index in members { acceleration[index] += drift }
             }
 
@@ -391,6 +417,7 @@ final class LavaLamp {
                 let reach = beads[first].radius + beads[second].radius
                 guard distance > 1e-4 else { continue }
                 let pair = DropPair(beads[first].drop, beads[second].drop)
+                guard drops[pair.low]?.layer == drops[pair.high]?.layer else { continue }
                 if canMerge(pair, sizes: sizes) {
                     if distance < reach * Tuning.mergeDistance { touching.insert(pair) }
                 } else if distance < reach * Tuning.pushReach {
@@ -430,7 +457,8 @@ final class LavaLamp {
     private func settle(drop: Int) {
         let members = groups[drop] ?? []
         let middle = center(of: members)
-        let limit = Tuning.tightness * sqrt(Double(members.count)) * 1.2
+        let radius = members.reduce(0) { $0 + beads[$1].radius } / Double(max(1, members.count))
+        let limit = Tuning.tightness * (radius / Tuning.meanRadius) * sqrt(Double(members.count)) * 1.2
         let farthest = members.map { simd_length(beads[$0].position - middle) }.max() ?? 0
         let scale = farthest > limit ? limit / farthest : 1
         for index in members {
@@ -478,9 +506,12 @@ final class LavaLamp {
         let tilt = (down - SIMD2(0, 1)) * Tuning.parallax
         var values: [Float] = []
         values.reserveCapacity(beads.count * Self.stride)
-        for bead in beads {
-            let point = bead.position + tilt * bead.depth
-            values += [Float(point.x), Float(point.y), Float(bead.radius), Float(bead.velocity.x), Float(bead.velocity.y), Float(bead.depth)]
+        let ordered = beads
+            .map { (bead: $0, layer: drops[$0.drop]?.layer ?? 0.5) }
+            .sorted { $0.layer < $1.layer }
+        for (bead, layer) in ordered {
+            let point = bead.position + tilt * bead.depth + (down - SIMD2(0, 1)) * Tuning.layerParallax * layer
+            values += [Float(point.x), Float(point.y), Float(bead.radius), Float(bead.velocity.x), Float(bead.velocity.y), Float(bead.depth), Float(layer)]
         }
         packed = values
     }

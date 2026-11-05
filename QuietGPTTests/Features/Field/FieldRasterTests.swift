@@ -4,7 +4,7 @@ import Testing
 
 struct FieldRasterTests {
     private let size = CGSize(width: 200, height: 200)
-    private let bead: [Float] = [0.5, 0.5, 0.15, 0, 0, 0.5]
+    private let bead: [Float] = [0.5, 0.5, 0.15, 0, 0, 0.5, 1]
 
     private func update(_ raster: FieldRaster, beads: [Float], time: Float = 0, elapsed: Double = 1, focus: CGPoint? = nil) -> [(region: Int, image: CGImage)] {
         raster.update(beads: beads, unit: 200, origin: .zero, time: time, down: SIMD2(0, 1), elapsed: elapsed, focus: focus)
@@ -45,9 +45,9 @@ struct FieldRasterTests {
 
     @Test func smallMoveChangesOnlyNearbyRegions() {
         let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
-        let small: [Float] = [0.2, 0.2, 0.03, 0, 0, 0.5]
+        let small: [Float] = [0.2, 0.2, 0.03, 0, 0, 0.5, 1]
         _ = update(raster, beads: small)
-        let moved: [Float] = [0.21, 0.2, 0.03, 0, 0, 0.5]
+        let moved: [Float] = [0.21, 0.2, 0.03, 0, 0, 0.5, 1]
         let changes = update(raster, beads: moved)
         #expect(!changes.isEmpty)
         #expect(changes.count < raster.regions.count / 2)
@@ -55,7 +55,7 @@ struct FieldRasterTests {
 
     @Test func farChangesWaitForTheBudget() {
         let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
-        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 0.9, 0.9, 0.03, 0, 0, 0.5]
+        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 1, 0.9, 0.9, 0.03, 0, 0, 0.5, 1]
         _ = update(raster, beads: [])
         let first = update(raster, beads: corners, elapsed: 0.05)
         #expect(!first.isEmpty)
@@ -64,7 +64,7 @@ struct FieldRasterTests {
 
     @Test func waitingRegionsAllArrive() {
         let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
-        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 0.9, 0.9, 0.03, 0, 0, 0.5]
+        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 1, 0.9, 0.9, 0.03, 0, 0, 0.5, 1]
         _ = update(raster, beads: [])
         for _ in 0..<40 {
             _ = update(raster, beads: corners, elapsed: 0.05)
@@ -74,7 +74,7 @@ struct FieldRasterTests {
 
     @Test func focusUpdatesTheNearbyRegionFirst() throws {
         let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
-        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 0.9, 0.9, 0.03, 0, 0, 0.5]
+        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 1, 0.9, 0.9, 0.03, 0, 0, 0.5, 1]
         _ = update(raster, beads: [])
         let changes = update(raster, beads: corners, elapsed: 0.05, focus: CGPoint(x: 180, y: 180))
         let nearest = try #require(changes.first)
@@ -87,7 +87,7 @@ struct FieldRasterTests {
         var farArrived = false
         for frame in 0..<20 {
             let moving = 0.85 + Float(frame) * 0.002
-            let beads: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, moving, 0.9, 0.03, 0, 0, 0.5]
+            let beads: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 1, moving, 0.9, 0.03, 0, 0, 0.5, 1]
             let changes = update(raster, beads: beads, elapsed: 0.016, focus: CGPoint(x: 180, y: 180))
             if changes.contains(where: { raster.regions[$0.region].frame.midX < 80 }) { farArrived = true }
         }
@@ -95,7 +95,7 @@ struct FieldRasterTests {
     }
 
     @Test func smallerShareDrainsSlower() {
-        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 0.9, 0.9, 0.03, 0, 0, 0.5]
+        let corners: [Float] = [0.1, 0.1, 0.03, 0, 0, 0.5, 1, 0.9, 0.9, 0.03, 0, 0, 0.5, 1]
         func waiting(share: Double) -> Int {
             let raster = FieldRaster(size: size, screen: size, mask: .none, dark: true)
             _ = raster.update(beads: [], unit: 200, origin: .zero, time: 0, down: SIMD2(0, 1), elapsed: 1, focus: nil)
@@ -112,7 +112,13 @@ struct FieldRasterTests {
     }
 
     @Test func beadOffScreenDrawsOnlyTheGrid() {
-        #expect(totalAlpha(beads: [9, 9, 0.15, 0, 0, 0.5]) == totalAlpha(beads: []))
+        #expect(totalAlpha(beads: [9, 9, 0.15, 0, 0, 0.5, 1]) == totalAlpha(beads: []))
+    }
+
+    @Test func farLayerDrawsLessInk() {
+        let far: [Float] = [0.5, 0.5, 0.15, 0, 0, 0.5, 0]
+        let near: [Float] = [0.5, 0.5, 0.15, 0, 0, 0.5, 1]
+        #expect(totalAlpha(beads: far) < totalAlpha(beads: near))
     }
 
     @Test func fadeLowersInk() {

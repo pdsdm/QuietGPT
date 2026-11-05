@@ -21,6 +21,8 @@ final class FieldRaster {
 
     private static let threshold: Float = 0.32
     private static let gridValue: Float = 0.1
+    private static let smallestInk: Float = 0.12
+    private static let farInk: Float = 0.5
     private static let warpReach: Float = 0.03
     private static let regionCells = 12
     private static let commitBaseCost = 1.3
@@ -48,6 +50,7 @@ final class FieldRaster {
     private let height: UnsafeMutablePointer<Float>
     private let slopeX: UnsafeMutablePointer<Float>
     private let slopeY: UnsafeMutablePointer<Float>
+    private let layerOfCell: UnsafeMutablePointer<Float>
     private let screenArea: CGFloat
     private var firstFrame = true
     private var budget = FieldRaster.maxCommitCost
@@ -134,6 +137,7 @@ final class FieldRaster {
         height = .allocate(capacity: count)
         slopeX = .allocate(capacity: count)
         slopeY = .allocate(capacity: count)
+        layerOfCell = .allocate(capacity: count)
     }
 
     deinit {
@@ -142,6 +146,7 @@ final class FieldRaster {
         height.deallocate()
         slopeX.deallocate()
         slopeY.deallocate()
+        layerOfCell.deallocate()
     }
 
     func update(beads: [Float], unit: Float, origin: CGPoint, time: Float, down: SIMD2<Float>, elapsed: Double, focus: CGPoint?, share: Double = 1) -> [(region: Int, image: CGImage)] {
@@ -217,15 +222,17 @@ final class FieldRaster {
         height.update(repeating: 0, count: count)
         slopeX.update(repeating: 0, count: count)
         slopeY.update(repeating: 0, count: count)
+        layerOfCell.update(repeating: 0, count: count)
 
         var index = 0
-        while index + 5 < beads.count {
+        while index + LavaLamp.stride - 1 < beads.count {
             let beadX = beads[index]
             let beadY = beads[index + 1]
             let reach = beads[index + 2] * 1.8
             let velocityX = beads[index + 3]
             let velocityY = beads[index + 4]
             let lobe = 0.55 + 0.45 * beads[index + 5]
+            let layer = beads[index + 6]
             index += LavaLamp.stride
 
             let inverse = 1 / (reach * reach)
@@ -257,6 +264,14 @@ final class FieldRaster {
                     let k = 1 - u
                     let k3 = k * k * k
                     let cell = row * columns + column
+                    if layerOfCell[cell] != layer {
+                        guard field[cell] == 0 || k3 >= field[cell] else { continue }
+                        field[cell] = 0
+                        height[cell] = 0
+                        slopeX[cell] = 0
+                        slopeY[cell] = 0
+                        layerOfCell[cell] = layer
+                    }
                     field[cell] += k3
                     height[cell] += lobe * k3 * k3
                     let weight = 2 * inverse * lobe * 6 * k3 * k * k
@@ -279,7 +294,7 @@ final class FieldRaster {
                 let cell = row * columns + column
                 let value: Float
                 if field[cell] >= Self.threshold {
-                    value = shade(cell: cell, light: light, halfway: halfway)
+                    value = max(Self.smallestInk, shade(cell: cell, light: light, halfway: halfway) * (Self.farInk + (1 - Self.farInk) * layerOfCell[cell]))
                 } else if column % 4 == 0, row % 3 == 0 {
                     value = Self.gridValue
                 } else {

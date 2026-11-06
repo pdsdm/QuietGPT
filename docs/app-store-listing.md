@@ -142,6 +142,12 @@ NOTA: Los textos de IA pueden contener errores. Lee cada reescritura y respuesta
 Política de privacidad: https://github.com/pdsdm/QuietGPT/blob/main/PRIVACY.md
 ```
 
+## Screenshots
+
+Upload the files in [screenshots/en](app-store/screenshots/en) and [screenshots/es](app-store/screenshots/es) to the 6.9-inch display slot. Each file is 1320 x 2868 pixels, has no alpha channel, and has a number that gives its order.
+
+The chat image shows a sample reply, because the simulator has no Apple Intelligence. The people and rules are sample data. The "To:" field had a simulator loading shape, which was painted out.
+
 ## Other values
 
 | Field | Value |

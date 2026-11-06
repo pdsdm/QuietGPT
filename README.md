@@ -156,7 +156,7 @@ Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-Qu
 | Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card. Backups do not include this settings folder |
 | Style packs | On the iPhone, until you send the file. A pack does not include your people |
 
-QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles.
+QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles. Read the [privacy policy](PRIVACY.md).
 
 ### What the Privacy tab measures
 

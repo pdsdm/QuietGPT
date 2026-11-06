@@ -204,7 +204,7 @@ struct ChatScreen: View {
             }
             Composer(
                 text: $controller.draft,
-                placeholder: controller.hasConversation ? "Reply" : "Ask anything. It stays here.",
+                placeholder: controller.hasConversation ? String(localized: "Reply") : String(localized: "Ask anything. It stays here."),
                 isResponding: controller.isResponding,
                 canSend: controller.canSend,
                 onSend: { controller.send() },

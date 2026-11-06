@@ -188,6 +188,17 @@
         }
       }
     },
+    "Ask anything. It stays here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta lo que quieras. Se queda aquí."
+          }
+        }
+      }
+    },
     "Ask for any change…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1416,6 +1427,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Renombrar chat"
+          }
+        }
+      }
+    },
+    "Reply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder"
           }
         }
       }

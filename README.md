@@ -16,12 +16,12 @@ A keyboard, a share card and a private chat for iPhone, powered by the Apple Neu
 ![Runs on device](https://img.shields.io/badge/runs-on%20device-2ea44f)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-<img src="docs/screenshots/keyboard-letters.png" width="200" alt="QuietGPT keyboard in Messages with a draft, and rewrite styles in the top row">
-<img src="docs/screenshots/keyboard-panel.png" width="200" alt="QuietGPT rewrite panel in the keyboard, in Messages with a draft">
-<img src="docs/screenshots/keyboard.png" width="200" alt="Keyboard tab with the panel preview, rules and people">
-<br>
 <img src="docs/screenshots/onboarding.png" width="200" alt="Onboarding">
 <img src="docs/screenshots/chat.png" width="200" alt="Chat">
+<img src="docs/screenshots/keyboard.png" width="200" alt="Keyboard tab with the panel preview, rules and people">
+<br>
+<img src="docs/screenshots/keyboard-letters.png" width="200" alt="QuietGPT keyboard in Messages with a draft, and rewrite styles in the top row">
+<img src="docs/screenshots/keyboard-panel.png" width="200" alt="QuietGPT rewrite panel in the keyboard, in Messages with a draft">
 <img src="docs/screenshots/privacy.png" width="200" alt="Privacy">
 
 </div>

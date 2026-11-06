@@ -273,6 +273,8 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 
 `scripts/make-screenshot-frames.py <input folder> docs/screenshots` puts each simulator screenshot in a phone frame with the island. It needs Pillow.
 
+`scripts/make-store-screenshots.py <input folder> <en|es> <output folder>` adds a caption and makes the 1320 x 2868 images for the App Store. The input folder needs `panel.png`, `letters.png`, `rules.png`, `chat.png`, `privacy.png` and `onboarding.png`. The images are in `docs/app-store/screenshots`.
+
 ## Project structure
 
 | Folder | Content |

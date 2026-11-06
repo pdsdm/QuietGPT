@@ -1200,6 +1200,17 @@
         }
       }
     },
+    "Privacy policy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        }
+      }
+    },
     "QuietGPT answers on the device. No server." : {
       "extractionState" : "manual",
       "localizations" : {

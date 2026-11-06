@@ -4,6 +4,8 @@
 <dict>
 	<key>QuietGPTAppGroup</key>
 	<string>$(QUIETGPT_APP_GROUP)</string>
+	<key>QuietGPTPrivacyPolicyURL</key>
+	<string>https://github.com/pdsdm/QuietGPT/blob/main/PRIVACY.md</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
 	<key>CFBundleDocumentTypes</key>

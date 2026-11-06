@@ -19,6 +19,9 @@ struct PrivacyScreen: View {
         ("No account, no analytics", "No tracking, no crash reports, no ads.")
     ]
 
+    private static let policyURL = (Bundle.main.object(forInfoDictionaryKey: "QuietGPTPrivacyPolicyURL") as? String)
+        .flatMap { URL(string: $0) }
+
     var body: some View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
@@ -84,6 +87,12 @@ struct PrivacyScreen: View {
                         .font(QuietGPTFont.footnote)
                         .foregroundStyle(palette.text2)
                         .padding(.top, 20)
+
+                    if let policyURL = Self.policyURL {
+                        Link("Privacy policy", destination: policyURL)
+                            .buttonStyle(QuietButtonStyle())
+                            .padding(.top, 12)
+                    }
 
                     Button("Delete all data", role: .destructive) {
                         confirmingDelete = true

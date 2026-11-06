@@ -12,7 +12,7 @@ enum DebugLaunch {
     And the line of Swift you asked for:
 
     ```swift
-    let bedtime = Calendar.current.date(bySettingHour: 23, minute: 0, second: 0, of: .now)
+    let sleep = DateComponents(hour: 23)
     ```
     """
 

@@ -387,9 +387,10 @@ final class LavaLamp {
                 damping = 2 * Tuning.holdDamping * sqrt(Tuning.pull / count)
             } else if let drop = drops[id] {
                 let pace = Tuning.farPace + (Tuning.nearPace - Tuning.farPace) * drop.layer
-                var drift = down * 0.05 * drop.pace * pace * energy * (0.3 + 0.7 * pull)
-                drift += side * 0.025 * pace * sin(clock * 0.31 + drop.phase)
-                drift -= down * 0.03 * pace * sin(clock * 0.43 * drop.pace + drop.phase * 1.3)
+                let fall: Double = 0.05 * drop.pace * pace * energy * (0.3 + 0.7 * pull)
+                let sway: Double = 0.025 * pace * sin(clock * 0.31 + drop.phase)
+                let wobble: Double = 0.03 * pace * sin(clock * 0.43 * drop.pace + drop.phase * 1.3)
+                let drift: SIMD2<Double> = down * (fall - wobble) + side * sway
                 for index in members { acceleration[index] += drift }
             }
 

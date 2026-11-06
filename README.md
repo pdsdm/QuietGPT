@@ -273,7 +273,7 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 | Folder | Content |
 |---|---|
 | `QuietGPT/App` | App entry, root view, tab bar, lock flow, settings keys, debug launch options |
-| `QuietGPT/Features` | One folder for each screen: `Chat`, `History`, `Keyboard`, `Voice`, `Privacy`, `Onboarding`, `Lock`, `Splash`, `Monitor` |
+| `QuietGPT/Features` | One folder for each screen: `Chat`, `History`, `Keyboard`, `Voice`, `Privacy`, `Onboarding`, `Lock`, `Splash`, `Monitor`, `StoreFailure` |
 | `QuietGPT/Core` | `ReplyEngine` and reply metrics, SwiftData objects, Markdown parser |
 | `QuietGPT/DesignSystem` | Palettes, type styles, motion, components, the live ASCII background |
 | `QuietGPT/Resources` | Asset catalog with the app icon and accent color |

@@ -287,6 +287,17 @@
         }
       }
     },
+    "Chats are not saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los chats no se guardan"
+          }
+        }
+      }
+    },
     "Chats are locked with your passcode." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1222,6 +1233,28 @@
         }
       }
     },
+    "QuietGPT can't open its storage on this iPhone. You can chat, but your chats go away when QuietGPT closes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede abrir su almacenamiento en este iPhone. Puedes chatear, pero tus chats desaparecen al cerrar QuietGPT."
+          }
+        }
+      }
+    },
+    "QuietGPT can't open your chats" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede abrir tus chats"
+          }
+        }
+      }
+    },
     "QuietGPT can't read this file." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1405,6 +1438,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Restablecer el teclado?"
+          }
+        }
+      }
+    },
+    "Restart your iPhone and make sure that it has free storage. Then open QuietGPT again. The keyboard and the share card still work." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicia el iPhone y comprueba que tiene espacio libre. Después abre QuietGPT otra vez. El teclado y la tarjeta para compartir siguen funcionando."
           }
         }
       }

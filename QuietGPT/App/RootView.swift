@@ -9,18 +9,22 @@ enum AppTab: String, Hashable {
 }
 
 struct RootView: View {
+    var chatsAreTemporary: Bool
+
     var body: some View {
-        ThemedContent()
+        ThemedContent(chatsAreTemporary: chatsAreTemporary)
             .background(TouchCatcher())
     }
 }
 
 private struct ThemedContent: View {
+    var chatsAreTemporary: Bool
+
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let palette = Palette.forScheme(colorScheme)
-        AppFlow()
+        AppFlow(chatsAreTemporary: chatsAreTemporary)
             .environment(\.palette, palette)
             .tint(palette.accent)
             .font(QuietGPTFont.body)
@@ -29,6 +33,8 @@ private struct ThemedContent: View {
 }
 
 private struct AppFlow: View {
+    var chatsAreTemporary: Bool
+
     @AppStorage(SettingsKey.onboarded) private var onboarded = false
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
 
@@ -45,6 +51,14 @@ private struct AppFlow: View {
     @State private var openedPack: OpenedPack?
     @State private var packFailure: String?
     @State private var packRevision = 0
+    @State private var temporaryNoticeClosed = false
+
+    private var visibleTemporaryNotice: Binding<Bool> {
+        Binding(
+            get: { chatsAreTemporary && canShowPack && !temporaryNoticeClosed },
+            set: { if !$0 { temporaryNoticeClosed = true } }
+        )
+    }
 
     private var canShowPack: Bool {
         onboarded && !loading && !(lockEnabled && locked)
@@ -123,6 +137,11 @@ private struct AppFlow: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(packFailure ?? "")
+        }
+        .alert("Chats are not saved", isPresented: visibleTemporaryNotice) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("QuietGPT can't open its storage on this iPhone. You can chat, but your chats go away when QuietGPT closes.")
         }
         .onAppear {
             controller.attach(modelContext)

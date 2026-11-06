@@ -23,6 +23,42 @@ struct ChatStoreTests {
         FileManager.default.fileExists(atPath: folder.appending(path: name).path)
     }
 
+    private struct StoreError: Error {}
+
+    private func memoryContainer() throws -> ModelContainer {
+        let schema = Schema([Conversation.self, Message.self])
+        return try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true))
+    }
+
+    @Test func usesSavedStoreWhenItOpens() throws {
+        let container = try memoryContainer()
+        let result = ChatStore.resolve(saved: { container }, temporary: { throw StoreError() })
+
+        guard case .saved = result else {
+            Issue.record("Expected the saved store")
+            return
+        }
+    }
+
+    @Test func usesTemporaryStoreWhenSavedStoreFails() throws {
+        let container = try memoryContainer()
+        let result = ChatStore.resolve(saved: { throw StoreError() }, temporary: { container })
+
+        guard case .temporary = result else {
+            Issue.record("Expected the temporary store")
+            return
+        }
+    }
+
+    @Test func reportsFailureWhenNoStoreOpens() {
+        let result = ChatStore.resolve(saved: { throw StoreError() }, temporary: { throw StoreError() })
+
+        guard case .failed = result else {
+            Issue.record("Expected a failure")
+            return
+        }
+    }
+
     @Test func folderStaysOutOfBackups() throws {
         try ChatStore.prepare(folder: folder, legacyFolder: nil)
 

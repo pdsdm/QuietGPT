@@ -2,24 +2,45 @@ import Foundation
 import OSLog
 import SwiftData
 
+enum ChatStoreResult {
+    case saved(ModelContainer)
+    case temporary(ModelContainer)
+    case failed
+}
+
 enum ChatStore {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "quietgpt", category: "store")
     private static let fileName = "default.store"
     private static let folderName = "Chats"
 
-    static func makeContainer() -> ModelContainer {
+    static func open() -> ChatStoreResult {
         let schema = Schema([Conversation.self, Message.self])
+        return resolve(
+            saved: {
+                let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                let url = try prepare(folder: support.appending(path: folderName, directoryHint: .isDirectory), legacyFolder: legacyFolder)
+                return try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none))
+            },
+            temporary: {
+                try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true))
+            }
+        )
+    }
+
+    static func resolve(
+        saved: () throws -> ModelContainer,
+        temporary: () throws -> ModelContainer
+    ) -> ChatStoreResult {
         do {
-            let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let url = try prepare(folder: support.appending(path: folderName, directoryHint: .isDirectory), legacyFolder: legacyFolder)
-            return try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none))
+            return .saved(try saved())
         } catch {
             logger.error("Chat store failed: \(String(describing: error), privacy: .public)")
         }
         do {
-            return try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true))
+            return .temporary(try temporary())
         } catch {
-            fatalError("Chat store failed: \(error)")
+            logger.error("Temporary chat store failed: \(String(describing: error), privacy: .public)")
+            return .failed
         }
     }
 

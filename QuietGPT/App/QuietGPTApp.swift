@@ -3,7 +3,7 @@ import SwiftUI
 
 @main
 struct QuietGPTApp: App {
-    private let container = ChatStore.makeContainer()
+    private let store = ChatStore.open()
 
     init() {
         let group = StyleStore.group.flatMap { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: $0) }
@@ -20,8 +20,16 @@ struct QuietGPTApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            switch store {
+            case .saved(let container):
+                RootView(chatsAreTemporary: false)
+                    .modelContainer(container)
+            case .temporary(let container):
+                RootView(chatsAreTemporary: true)
+                    .modelContainer(container)
+            case .failed:
+                StoreFailureScreen()
+            }
         }
-        .modelContainer(container)
     }
 }

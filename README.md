@@ -306,4 +306,5 @@ QuietGPT is available under the MIT License. See [LICENSE](LICENSE).
 ## Acknowledgments
 
 - [Geist](https://github.com/vercel/geist-font), the brand font, under the [SIL Open Font License](Rewrite/Fonts/Geist-OFL.txt).
+- [Unicode emoji data](https://www.unicode.org/Public/emoji/), the source of the emoji list in the keyboard, under the [Unicode License](docs/licenses/Unicode-LICENSE.txt).
 - [Apple Foundation Models](https://developer.apple.com/foundation-models-framework/), which does the work on the iPhone.

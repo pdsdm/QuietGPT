@@ -31,8 +31,9 @@ enum NetworkMeter {
     }
 
     private static func ownSocket(_ descriptor: Int32) -> OwnSocket? {
-        var stats = Darwin.stat()
-        guard fstat(descriptor, &stats) == 0, stats.st_mode & S_IFMT == S_IFSOCK else { return nil }
+        var kind: Int32 = 0
+        var kindSize = socklen_t(MemoryLayout<Int32>.size)
+        guard getsockopt(descriptor, SOL_SOCKET, SO_TYPE, &kind, &kindSize) == 0 else { return nil }
         guard let local = address(of: descriptor, using: getsockname), !isLoopback(local) else { return nil }
         guard local.ss_family == UInt8(AF_INET) || local.ss_family == UInt8(AF_INET6) else { return nil }
         if let peer = address(of: descriptor, using: getpeername), isLoopback(peer) { return nil }

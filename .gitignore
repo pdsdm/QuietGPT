@@ -1,6 +1,13 @@
 .DS_Store
 build/
 DerivedData/
+*.xcresult
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.trace
+.claude/settings.local.json
 xcuserdata/
 *.xcuserstate
 *.xcscmblueprint

@@ -16,7 +16,7 @@ struct QuietGPTPanel: View {
             header
                 .padding(.leading, 13)
                 .padding(.trailing, 12)
-                .padding(.top, (CGFloat(model.options.topMargin) - Self.headerHeight) / 2)
+                .padding(.top, (CGFloat(KeyboardOptions.topMargin) - Self.headerHeight) / 2)
             if model.showsAsk {
                 askField
                     .padding(.horizontal, 12)

@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 struct RewriteStyle: Codable, Identifiable, Hashable {
     var id: UUID
@@ -79,16 +78,12 @@ enum KeyboardLanguage: String, Codable, CaseIterable, Identifiable {
 }
 
 struct KeyboardLayoutChoice: Codable, Equatable {
-    var keyHeight: Double
-    var topMargin: Double
     var topRow: [String]?
 }
 
 struct KeyboardOptions: Codable, Equatable {
-    static let defaultKeyHeight = 58.0
-    static let keyHeights = 48.0...96.0
-    static let defaultTopMargin = 36.0
-    static let topRowMinimumMargin = 26.0
+    static let keyHeight = 58.0
+    static let topMargin = 36.0
     static let topRowAsk = "ask"
     static let defaultTopRow = [
         "6B0F7C1E-0001-4000-8000-000000000005",
@@ -96,16 +91,6 @@ struct KeyboardOptions: Codable, Equatable {
         "6B0F7C1E-0001-4000-8000-000000000001",
         topRowAsk
     ]
-    static let topMargins = 0.0...50.0
-    static let tuningField = UITextContentType.sublocality
-
-    static func clampedKeyHeight(_ height: Double) -> Double {
-        min(max(height, keyHeights.lowerBound), keyHeights.upperBound)
-    }
-
-    static func clampedTopMargin(_ margin: Double) -> Double {
-        min(max(margin, topMargins.lowerBound), topMargins.upperBound)
-    }
 
     var autoCapitalize = true
     var periodShortcut = true
@@ -114,17 +99,11 @@ struct KeyboardOptions: Codable, Equatable {
         didSet { languageDate = .now }
     }
     var languageDate: Date?
-    var keyHeight = KeyboardOptions.defaultKeyHeight
-    var topMargin = KeyboardOptions.defaultTopMargin
     var topRow = KeyboardOptions.defaultTopRow
 
     var layoutChoice: KeyboardLayoutChoice {
-        get { KeyboardLayoutChoice(keyHeight: keyHeight, topMargin: topMargin, topRow: topRow) }
-        set {
-            keyHeight = Self.clampedKeyHeight(newValue.keyHeight)
-            topMargin = Self.clampedTopMargin(newValue.topMargin)
-            topRow = newValue.topRow ?? topRow
-        }
+        get { KeyboardLayoutChoice(topRow: topRow) }
+        set { topRow = newValue.topRow ?? topRow }
     }
 
     init() {}
@@ -142,8 +121,6 @@ struct KeyboardOptions: Codable, Equatable {
         showsAsk = try container.decodeIfPresent(Bool.self, forKey: .showsAsk) ?? showsAsk
         language = (try? container.decodeIfPresent(KeyboardLanguage.self, forKey: .language)) ?? language
         languageDate = try container.decodeIfPresent(Date.self, forKey: .languageDate)
-        keyHeight = Self.clampedKeyHeight(try container.decodeIfPresent(Double.self, forKey: .keyHeight) ?? keyHeight)
-        topMargin = Self.clampedTopMargin(try container.decodeIfPresent(Double.self, forKey: .topMargin) ?? topMargin)
         topRow = try container.decodeIfPresent([String].self, forKey: .topRow) ?? topRow
     }
 }

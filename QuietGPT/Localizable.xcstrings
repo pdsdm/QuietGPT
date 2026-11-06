@@ -793,17 +793,6 @@
         }
       }
     },
-    "Key height" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altura de las teclas"
-          }
-        }
-      }
-    },
     "Keyboard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1662,17 +1651,6 @@
         }
       }
     },
-    "Size" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamaño"
-          }
-        }
-      }
-    },
     "soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1761,17 +1739,6 @@
         }
       }
     },
-    "Tap here to try the keyboard" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toca aquí para probar el teclado"
-          }
-        }
-      }
-    },
     "Test it: turn on airplane mode and keep chatting." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1783,24 +1750,13 @@
         }
       }
     },
-    "The keyboard changes while you move the slider. It takes at most half of the screen." : {
+    "These show next to the QuietGPT logo, above the keys. The logo opens the panel." : {
       "extractionState" : "manual",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El teclado cambia mientras mueves el control. Ocupa como máximo la mitad de la pantalla."
-          }
-        }
-      }
-    },
-    "These show next to the QuietGPT logo, above the keys. The logo opens the panel. The row needs a top margin of 26 pt or more." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aparecen junto al logo de QuietGPT, encima de las teclas. El logo abre el panel. La fila necesita un margen superior de 26 pt o más."
+            "value" : "Aparecen junto al logo de QuietGPT, encima de las teclas. El logo abre el panel."
           }
         }
       }
@@ -1988,17 +1944,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hoy"
-          }
-        }
-      }
-    },
-    "Top margin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Margen superior"
           }
         }
       }

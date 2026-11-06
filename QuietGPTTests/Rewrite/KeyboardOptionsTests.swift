@@ -12,37 +12,15 @@ struct KeyboardOptionsTests {
         #expect(options.language == .automatic)
     }
 
-    @Test func oldOptionsGetTheDefaultKeyHeight() throws {
-        let data = Data(#"{"autoCapitalize":false}"#.utf8)
-        let options = try JSONDecoder().decode(KeyboardOptions.self, from: data)
-
-        #expect(options.keyHeight == KeyboardOptions.defaultKeyHeight)
+    @Test func keyboardSizeIsFixed() {
+        #expect(KeyboardOptions.keyHeight == 58)
+        #expect(KeyboardOptions.topMargin == 36)
     }
 
-    @Test func savedKeyHeightStaysInTheRange() throws {
-        let low = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":10}"#.utf8))
-        let high = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":500}"#.utf8))
-        let kept = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":64}"#.utf8))
+    @Test func oldOptionsWithASizeStillLoad() throws {
+        let options = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":64,"topMargin":10,"showsAsk":false}"#.utf8))
 
-        #expect(low.keyHeight == KeyboardOptions.keyHeights.lowerBound)
-        #expect(high.keyHeight == KeyboardOptions.keyHeights.upperBound)
-        #expect(kept.keyHeight == 64)
-    }
-
-    @Test func oldOptionsGetTheDefaultTopMargin() throws {
-        let options = try JSONDecoder().decode(KeyboardOptions.self, from: Data(#"{"keyHeight":64}"#.utf8))
-
-        #expect(options.topMargin == KeyboardOptions.defaultTopMargin)
-    }
-
-    @Test func savedSizeStaysInTheRange() {
-        var options = KeyboardOptions()
-
-        options.layoutChoice = KeyboardLayoutChoice(keyHeight: 500, topMargin: -5, topRow: nil)
-
-        #expect(options.keyHeight == KeyboardOptions.keyHeights.upperBound)
-        #expect(options.topMargin == KeyboardOptions.topMargins.lowerBound)
-        #expect(options.topRow == KeyboardOptions.defaultTopRow)
+        #expect(options.showsAsk == false)
     }
 
     @Test func oldLayoutFileKeepsTheTopRow() throws {
@@ -52,7 +30,6 @@ struct KeyboardOptionsTests {
 
         options.layoutChoice = choice
 
-        #expect(options.keyHeight == 58)
         #expect(options.topRow == ["ask"])
     }
 

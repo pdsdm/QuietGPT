@@ -29,7 +29,6 @@ final class KeyboardViewController: UIInputViewController {
     private var lastSpace: ContinuousClock.Instant?
     private var lastShiftTap: ContinuousClock.Instant?
     private var height: NSLayoutConstraint?
-    private var tuningTimer: Timer?
     private var asksFromPanel = false
 
     override func loadView() {
@@ -109,7 +108,6 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        updateTuning()
         for recognizer in view.window?.gestureRecognizers ?? [] {
             recognizer.delaysTouchesBegan = false
             recognizer.delaysTouchesEnded = false
@@ -118,8 +116,6 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        tuningTimer?.invalidate()
-        tuningTimer = nil
         stopWriting()
     }
 
@@ -170,7 +166,6 @@ final class KeyboardViewController: UIInputViewController {
             abandonWriting()
         }
         refresh()
-        updateTuning()
     }
 
     private func observe() {
@@ -182,7 +177,6 @@ final class KeyboardViewController: UIInputViewController {
             }
             emoji.isHidden = !showsEmoji
             topRow?.view.isHidden = showsEmoji || model.showsPanel || model.isAsking
-                || model.options.topMargin < KeyboardOptions.topRowMinimumMargin
             updateHeight()
             apply(panel: model.showsPanel, bar: model.isAsking)
         } onChange: { [weak self] in
@@ -191,28 +185,8 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    private var keyHeight: CGFloat { CGFloat(options.keyHeight) }
-    private var topMargin: CGFloat { CGFloat(options.topMargin) }
-
-    private func updateTuning() {
-        guard proxy.textContentType == KeyboardOptions.tuningField else {
-            tuningTimer?.invalidate()
-            tuningTimer = nil
-            return
-        }
-        guard tuningTimer == nil else { return }
-        tuningTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.followSavedLayout() }
-        }
-    }
-
-    private func followSavedLayout() {
-        guard let saved = StyleStore.savedLayout, saved != options.layoutChoice else { return }
-        options.layoutChoice = saved
-        model.options = options
-        updateHeight()
-        view.setNeedsLayout()
-    }
+    private var keyHeight: CGFloat { CGFloat(KeyboardOptions.keyHeight) }
+    private var topMargin: CGFloat { CGFloat(KeyboardOptions.topMargin) }
 
     private func updateHeight() {
         let base = KeyLayout.height(rowHeight: keyHeight) + KeyLayout.bottomPadding + topArea(asking: model.isAsking)

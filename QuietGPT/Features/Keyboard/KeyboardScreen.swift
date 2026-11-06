@@ -15,236 +15,205 @@ struct KeyboardScreen: View {
     @State private var sharesPack = false
     @State private var confirmingReset = false
     @State private var editMode = EditMode.inactive
-    @State private var keyboardTest = ""
-    @FocusState private var testsKeyboard: Bool
-
-    private static let keyHeightRow = "keyHeightRow"
 
     var body: some View {
         NavigationStack {
-            ScrollViewReader { proxy in
-                List {
-                    Text("Keyboard")
-                        .font(QuietGPTFont.largeTitle)
-                        .foregroundStyle(palette.text)
-                        .listRowInsets(EdgeInsets(top: 24, leading: 4, bottom: 0, trailing: 0))
+            List {
+                Text("Keyboard")
+                    .font(QuietGPTFont.largeTitle)
+                    .foregroundStyle(palette.text)
+                    .listRowInsets(EdgeInsets(top: 24, leading: 4, bottom: 0, trailing: 0))
+                    .listRowBackground(Color.clear)
+
+                Section {
+                    PanelPreview(people: people.filter(\.isOn), styles: styles.filter(\.isOn), ruleCount: rules.count, showsAsk: options.showsAsk)
+                        .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
+                } footer: {
+                    Text("This is the panel in your keyboard. Tap a person or a style to rewrite what you wrote.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
 
-                    Section {
-                        PanelPreview(people: people.filter(\.isOn), styles: styles.filter(\.isOn), ruleCount: rules.count, showsAsk: options.showsAsk)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                    } footer: {
-                        Text("This is the panel in your keyboard. Tap a person or a style to rewrite what you wrote.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
-                    }
+                RulesSection(rules: $rules) { editingRule = $0 }
 
-                    RulesSection(rules: $rules) { editingRule = $0 }
-
-                    Section {
-                        ForEach($people) { $person in
-                            StyleRow(style: $person) {
-                                editingPerson = person
-                            }
-                            .listRowBackground(palette.surface)
-                        }
-                        .onMove { people.move(fromOffsets: $0, toOffset: $1) }
-                        .onDelete { people.remove(atOffsets: $0) }
-
-                        Button {
-                            editingPerson = RewriteStyle(title: "", prompt: "")
-                        } label: {
-                            Label("Add person", systemImage: "plus")
-                                .font(QuietGPTFont.callout)
-                                .foregroundStyle(palette.accent)
+                Section {
+                    ForEach($people) { $person in
+                        StyleRow(style: $person) {
+                            editingPerson = person
                         }
                         .listRowBackground(palette.surface)
-                    } header: {
-                        Text("People")
-                    } footer: {
-                        Text("Save how you write to one person. They show first in the keyboard.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
                     }
+                    .onMove { people.move(fromOffsets: $0, toOffset: $1) }
+                    .onDelete { people.remove(atOffsets: $0) }
 
-                    Section {
-                        ForEach($styles) { $style in
-                            StyleRow(style: $style) {
-                                editing = style
-                            }
-                            .listRowBackground(palette.surface)
-                        }
-                        .onMove { styles.move(fromOffsets: $0, toOffset: $1) }
-                        .onDelete { styles.remove(atOffsets: $0) }
-
-                        Button {
-                            editing = RewriteStyle(title: "", prompt: "")
-                        } label: {
-                            Label("Add style", systemImage: "plus")
-                                .font(QuietGPTFont.callout)
-                                .foregroundStyle(palette.accent)
-                        }
-                        .listRowBackground(palette.surface)
-                    } header: {
-                        HStack {
-                            Text("Styles")
-                            Spacer()
-                            Button(editMode.isEditing ? "Done" : "Order") {
-                                withAnimation(Motion.snappy) {
-                                    editMode = editMode.isEditing ? .inactive : .active
-                                }
-                            }
-                            .font(QuietGPTFont.footnote)
+                    Button {
+                        editingPerson = RewriteStyle(title: "", prompt: "")
+                    } label: {
+                        Label("Add person", systemImage: "plus")
+                            .font(QuietGPTFont.callout)
                             .foregroundStyle(palette.accent)
-                        }
-                    } footer: {
-                        Text("Turn styles on or off, drag to change the order, or swipe to delete.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
                     }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("People")
+                } footer: {
+                    Text("Save how you write to one person. They show first in the keyboard.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
 
-                    Section {
-                        Button {
-                            sharesPack = true
-                        } label: {
-                            Label("Share styles", systemImage: "square.and.arrow.up")
-                                .font(QuietGPTFont.callout)
-                                .foregroundStyle(palette.accent)
+                Section {
+                    ForEach($styles) { $style in
+                        StyleRow(style: $style) {
+                            editing = style
                         }
                         .listRowBackground(palette.surface)
-                    } header: {
-                        Text("Share")
-                    } footer: {
-                        Text("Send your rules and styles as a file. To add a pack from another person, open the file on this iPhone.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
                     }
+                    .onMove { styles.move(fromOffsets: $0, toOffset: $1) }
+                    .onDelete { styles.remove(atOffsets: $0) }
 
-                    Section("Typing") {
-                        Picker(selection: $options.language) {
-                            ForEach(KeyboardLanguage.allCases) { language in
-                                Text(language.title).tag(language)
+                    Button {
+                        editing = RewriteStyle(title: "", prompt: "")
+                    } label: {
+                        Label("Add style", systemImage: "plus")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.accent)
+                    }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    HStack {
+                        Text("Styles")
+                        Spacer()
+                        Button(editMode.isEditing ? "Done" : "Order") {
+                            withAnimation(Motion.snappy) {
+                                editMode = editMode.isEditing ? .inactive : .active
                             }
-                        } label: {
-                            Text("Language")
-                                .font(QuietGPTFont.callout)
+                        }
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.accent)
+                    }
+                } footer: {
+                    Text("Turn styles on or off, drag to change the order, or swipe to delete.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
+
+                Section {
+                    Button {
+                        sharesPack = true
+                    } label: {
+                        Label("Share styles", systemImage: "square.and.arrow.up")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.accent)
+                    }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("Share")
+                } footer: {
+                    Text("Send your rules and styles as a file. To add a pack from another person, open the file on this iPhone.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
+
+                Section("Typing") {
+                    Picker(selection: $options.language) {
+                        ForEach(KeyboardLanguage.allCases) { language in
+                            Text(language.title).tag(language)
+                        }
+                    } label: {
+                        Text("Language")
+                            .font(QuietGPTFont.callout)
+                            .foregroundStyle(palette.text)
+                    }
+                    .tint(palette.accent)
+                    .listRowBackground(palette.surface)
+                    toggle("Auto capitals", isOn: $options.autoCapitalize)
+                    toggle("Double space adds a period", isOn: $options.periodShortcut)
+                    toggle("Show Ask in the panel", isOn: $options.showsAsk)
+                }
+
+                Section {
+                    ForEach(people.filter(\.isOn)) { person in
+                        topRowToggle(person.title, id: person.id.uuidString) {
+                            StyleGlyph(value: person, isPerson: true, color: palette.text)
+                        }
+                    }
+                    ForEach(styles.filter(\.isOn)) { style in
+                        topRowToggle(style.title, id: style.id.uuidString) {
+                            StyleGlyph(value: style, color: palette.text)
+                        }
+                    }
+                    if options.showsAsk {
+                        topRowToggle(String(localized: "Ask"), id: KeyboardOptions.topRowAsk) {
+                            Image(systemName: "text.bubble")
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundStyle(palette.text)
                         }
-                        .tint(palette.accent)
-                        .listRowBackground(palette.surface)
-                        toggle("Auto capitals", isOn: $options.autoCapitalize)
-                        toggle("Double space adds a period", isOn: $options.periodShortcut)
-                        toggle("Show Ask in the panel", isOn: $options.showsAsk)
                     }
-
-                    Section {
-                        sizeRow("Key height", value: $options.keyHeight, in: KeyboardOptions.keyHeights)
-                            .id(Self.keyHeightRow)
-                        sizeRow("Top margin", value: $options.topMargin, in: KeyboardOptions.topMargins)
-                        TextField("Tap here to try the keyboard", text: $keyboardTest)
-                            .focused($testsKeyboard)
-                            .textContentType(KeyboardOptions.tuningField)
-                            .font(QuietGPTFont.callout)
-                            .listRowBackground(palette.surface)
-                    } header: {
-                        Text("Size")
-                    } footer: {
-                        Text("The keyboard changes while you move the slider. It takes at most half of the screen.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
-                    }
-
-                    Section {
-                        ForEach(people.filter(\.isOn)) { person in
-                            topRowToggle(person.title, id: person.id.uuidString) {
-                                StyleGlyph(value: person, isPerson: true, color: palette.text)
-                            }
-                        }
-                        ForEach(styles.filter(\.isOn)) { style in
-                            topRowToggle(style.title, id: style.id.uuidString) {
-                                StyleGlyph(value: style, color: palette.text)
-                            }
-                        }
-                        if options.showsAsk {
-                            topRowToggle(String(localized: "Ask"), id: KeyboardOptions.topRowAsk) {
-                                Image(systemName: "text.bubble")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(palette.text)
-                            }
-                        }
-                    } header: {
-                        Text("Top row")
-                    } footer: {
-                        Text("These show next to the QuietGPT logo, above the keys. The logo opens the panel. The row needs a top margin of 26 pt or more.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
-                    }
-
-                    Section {
-                        Button {
-                            editsInstructions = true
-                        } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Base instructions")
-                                    .font(QuietGPTFont.callout)
-                                    .foregroundStyle(palette.text)
-                                Text(instructions)
-                                    .font(QuietGPTFont.footnote)
-                                    .foregroundStyle(palette.text2)
-                                    .lineLimit(3)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .listRowBackground(palette.surface)
-                    } header: {
-                        Text("Advanced")
-                    } footer: {
-                        Text("QuietGPT reads these before your rules. Most people do not need to change them.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
-                    }
-
-                    Section {
-                        Button("Open Settings to add the keyboard") {
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
-                            }
-                        }
-                        .font(QuietGPTFont.callout)
-                        .foregroundStyle(palette.accent)
-                        .listRowBackground(palette.surface)
-
-                        Button("Reset rules, people and styles", role: .destructive) {
-                            confirmingReset = true
-                        }
-                        .font(QuietGPTFont.callout)
-                        .foregroundStyle(palette.danger)
-                        .listRowBackground(palette.surface)
-                    } footer: {
-                        Text("Settings > General > Keyboard > Keyboards > Add New Keyboard > QuietGPT. Full access is not needed.")
-                            .font(QuietGPTFont.footnote)
-                            .foregroundStyle(palette.text2)
-                    }
+                } header: {
+                    Text("Top row")
+                } footer: {
+                    Text("These show next to the QuietGPT logo, above the keys. The logo opens the panel.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
                 }
-                .environment(\.editMode, $editMode)
-                .background(KeyboardTapCatcher())
-                .scrollContentBackground(.hidden)
-                .background(palette.background.ignoresSafeArea())
-                .toolbar(.hidden, for: .navigationBar)
-                .animation(Motion.snappy, value: styles)
-                .animation(Motion.snappy, value: options)
-                .animation(Motion.snappy, value: rules)
-                .animation(Motion.snappy, value: people)
-                .onChange(of: testsKeyboard) { _, focused in
-                    guard focused else { return }
-                    Task {
-                        try? await Task.sleep(for: .milliseconds(350))
-                        withAnimation(Motion.snappy) { proxy.scrollTo(Self.keyHeightRow, anchor: .top) }
+
+                Section {
+                    Button {
+                        editsInstructions = true
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Base instructions")
+                                .font(QuietGPTFont.callout)
+                                .foregroundStyle(palette.text)
+                            Text(instructions)
+                                .font(QuietGPTFont.footnote)
+                                .foregroundStyle(palette.text2)
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding(.vertical, 4)
                     }
+                    .listRowBackground(palette.surface)
+                } header: {
+                    Text("Advanced")
+                } footer: {
+                    Text("QuietGPT reads these before your rules. Most people do not need to change them.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
+                }
+
+                Section {
+                    Button("Open Settings to add the keyboard") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(QuietGPTFont.callout)
+                    .foregroundStyle(palette.accent)
+                    .listRowBackground(palette.surface)
+
+                    Button("Reset rules, people and styles", role: .destructive) {
+                        confirmingReset = true
+                    }
+                    .font(QuietGPTFont.callout)
+                    .foregroundStyle(palette.danger)
+                    .listRowBackground(palette.surface)
+                } footer: {
+                    Text("Settings > General > Keyboard > Keyboards > Add New Keyboard > QuietGPT. Full access is not needed.")
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text2)
                 }
             }
+            .environment(\.editMode, $editMode)
+            .scrollContentBackground(.hidden)
+            .background(palette.background.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+            .animation(Motion.snappy, value: styles)
+            .animation(Motion.snappy, value: options)
+            .animation(Motion.snappy, value: rules)
+            .animation(Motion.snappy, value: people)
         }
         .sheet(item: $editingPerson) { person in
             StyleEditor(style: person, kind: .person, isNew: !people.contains { $0.id == person.id }) { saved in
@@ -311,25 +280,6 @@ struct KeyboardScreen: View {
         .onChange(of: instructions) { _, value in StyleStore.instructions = value }
         .sensoryFeedback(.selection, trigger: styles.map(\.isOn))
         .sensoryFeedback(.selection, trigger: options.layoutChoice)
-    }
-
-    private func sizeRow(_ title: LocalizedStringKey, value: Binding<Double>, in range: ClosedRange<Double>) -> some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text(title)
-                    .font(QuietGPTFont.callout)
-                    .foregroundStyle(palette.text)
-                Spacer()
-                Text("\(Int(value.wrappedValue)) pt")
-                    .font(QuietGPTFont.callout)
-                    .foregroundStyle(palette.text2)
-                    .monospacedDigit()
-            }
-            Slider(value: value, in: range, step: 2)
-                .tint(palette.accent)
-                .accessibilityLabel(title)
-        }
-        .listRowBackground(palette.surface)
     }
 
     private func topRowToggle(_ title: String, id: String, @ViewBuilder icon: () -> some View) -> some View {

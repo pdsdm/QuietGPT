@@ -42,7 +42,7 @@ struct KeySpec {
 }
 
 enum KeyLayout {
-    static let rowHeight = CGFloat(KeyboardOptions.defaultKeyHeight)
+    static let rowHeight = CGFloat(KeyboardOptions.keyHeight)
     static let maxScreenShare: CGFloat = 0.5
     static let panelHeight: CGFloat = 244
     static let topPadding: CGFloat = 2.5

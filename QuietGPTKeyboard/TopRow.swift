@@ -24,7 +24,7 @@ struct TopRow: View {
     private var style: KeyStyle { .current(scheme) }
 
     private var tagHeight: CGFloat {
-        min(30, CGFloat(model.options.topMargin) - 6)
+        min(30, CGFloat(KeyboardOptions.topMargin) - 6)
     }
 
     private var items: [Item] {

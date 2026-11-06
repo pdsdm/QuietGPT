@@ -12,7 +12,7 @@ struct QuietGPTPanel: View {
     private var style: KeyStyle { .current(scheme) }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 9) {
             header
                 .padding(.leading, 13)
                 .padding(.trailing, 12)

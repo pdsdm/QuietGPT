@@ -268,6 +268,8 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 
 `scripts/make-emoji.py` makes `QuietGPTKeyboard/EmojiData.swift` from the Unicode emoji list.
 
+`scripts/make-screenshot-frames.py <input folder> docs/screenshots` puts each simulator screenshot in a phone frame with the island. It needs Pillow.
+
 ## Project structure
 
 | Folder | Content |

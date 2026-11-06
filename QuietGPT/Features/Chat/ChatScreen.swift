@@ -30,12 +30,12 @@ struct ChatScreen: View {
                 if controller.hasConversation {
                     conversation
                         .contentShape(.rect)
-                        .onTapGesture(perform: KeyboardDismissal.hide)
+                        .onTapGesture { KeyboardDismissal.hide() }
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 } else {
                     welcome
                         .contentShape(.rect)
-                        .onTapGesture(perform: KeyboardDismissal.hide)
+                        .onTapGesture { KeyboardDismissal.hide() }
                         .transition(.blurReplace)
                 }
                 footer

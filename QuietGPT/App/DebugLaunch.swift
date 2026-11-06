@@ -9,11 +9,7 @@ enum DebugLaunch {
     - Dim the lights and put the phone away an hour before bed.
     - Keep the room cool, dark and quiet.
 
-    And the line of Swift you asked for:
-
-    ```swift
-    let sleep = DateComponents(hour: 23)
-    ```
+    Give it two weeks. Most people notice a change by then.
     """
 
     private enum Key: String {

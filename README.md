@@ -242,7 +242,7 @@ Debug builds read these launch arguments:
 
 | Argument | Result |
 |---|---|
-| `-QuietGPTTab chat\|chats\|keyboard\|voice\|privacy` | Opens a tab |
+| `-QuietGPTTab chat\|chats\|keyboard\|privacy` | Opens a tab |
 | `-QuietGPTPrompt "text"` | Sends a message on launch |
 | `-QuietGPTSimulate YES` | Streams a sample reply, for the simulator |
 | `-QuietGPTMonitor YES` | Opens the monitor panel |
@@ -288,7 +288,7 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 
 ## Roadmap
 
-- **Voice.** The Voice tab is a preview only. Voice comes in a future update.
+- **Voice.** Voice comes in a future update. `VoiceScreen` is in the source, but the app does not show it.
 
 ## Contributing
 

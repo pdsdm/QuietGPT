@@ -5,7 +5,6 @@ enum AppTab: String, Hashable {
     case chat
     case chats
     case keyboard
-    case voice
     case privacy
 }
 
@@ -189,9 +188,6 @@ private struct MainTabs: View {
             Tab("Keyboard", systemImage: "keyboard", value: AppTab.keyboard) {
                 KeyboardScreen()
                     .id(packRevision)
-            }
-            Tab("Voice", systemImage: "waveform", value: AppTab.voice) {
-                VoiceScreen()
             }
             Tab("Privacy", systemImage: "hand.raised", value: AppTab.privacy) {
                 PrivacyScreen(controller: controller) {

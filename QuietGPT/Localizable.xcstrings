@@ -1156,6 +1156,17 @@
         }
       }
     },
+    "Open source project" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyecto de código abierto"
+          }
+        }
+      }
+    },
     "Order" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2197,6 +2208,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escríbelo como una orden. Por ejemplo: Escribe a mi jefa. Sé educado y directo. No uses emojis."
+          }
+        }
+      }
+    },
+    "Write to the developer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribir al desarrollador"
           }
         }
       }

@@ -22,6 +22,10 @@ struct PrivacyScreen: View {
     private static let policyURL = (Bundle.main.object(forInfoDictionaryKey: "QuietGPTPrivacyPolicyURL") as? String)
         .flatMap { URL(string: $0) }
 
+    private static let sourceURL = URL(string: "https://github.com/pdsdm/QuietGPT")
+
+    private static let mailURL = URL(string: "mailto:pepmoyanofont@gmail.com")
+
     var body: some View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
@@ -90,6 +94,18 @@ struct PrivacyScreen: View {
 
                     if let policyURL = Self.policyURL {
                         Link("Privacy policy", destination: policyURL)
+                            .buttonStyle(QuietButtonStyle())
+                            .padding(.top, 12)
+                    }
+
+                    if let sourceURL = Self.sourceURL {
+                        Link("Open source project", destination: sourceURL)
+                            .buttonStyle(QuietButtonStyle())
+                            .padding(.top, 12)
+                    }
+
+                    if let mailURL = Self.mailURL {
+                        Link("Write to the developer", destination: mailURL)
                             .buttonStyle(QuietButtonStyle())
                             .padding(.top, 12)
                     }

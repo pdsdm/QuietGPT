@@ -82,7 +82,7 @@ struct KeyboardLayoutChoice: Codable, Equatable {
 }
 
 struct KeyboardOptions: Codable, Equatable {
-    static let keyHeight = 58.0
+    static let keyHeight = 54.0
     static let topMargin = 36.0
     static let topRowAsk = "ask"
     static let defaultTopRow = [

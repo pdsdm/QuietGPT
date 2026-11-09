@@ -13,7 +13,7 @@ struct KeyboardOptionsTests {
     }
 
     @Test func keyboardSizeIsFixed() {
-        #expect(KeyboardOptions.keyHeight == 58)
+        #expect(KeyboardOptions.keyHeight == 54)
         #expect(KeyboardOptions.topMargin == 36)
     }
 

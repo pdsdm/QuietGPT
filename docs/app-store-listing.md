@@ -7,7 +7,7 @@ Paste each block into App Store Connect. The review notes and the other values a
 ### Name
 
 ```
-QuietGPT - AI Writing Keyboard
+QuietGPT - Private AI
 ```
 
 ### Subtitle
@@ -77,7 +77,7 @@ Privacy policy: https://github.com/pdsdm/QuietGPT/blob/main/PRIVACY.md
 ### Name
 
 ```
-QuietGPT - Teclado IA privado
+QuietGPT - IA privada
 ```
 
 ### Subtitle

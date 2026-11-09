@@ -35,7 +35,7 @@ A message to your manager and a message to your best friend need different words
 - **Your rules, each time.** You write the rules once. QuietGPT follows them in each rewrite.
 - **In all apps.** Use the keyboard or the share sheet. You do not copy and paste between apps.
 - **Works offline.** QuietGPT works in Airplane Mode.
-- **Free and open source.** No account and no subscription. MIT license.
+- **Free and open source.** No account and no subscription. MIT license for the code.
 
 ## Runs on the Apple Neural Engine
 
@@ -299,17 +299,29 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 
 ## Contributing
 
-- **Bugs and ideas.** Open an [issue](https://github.com/pdsdm/QuietGPT/issues). For a bug, give your iPhone, your iOS version and the steps.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. In short:
+
+- **Bugs and ideas.** Open an [issue](https://github.com/pdsdm/QuietGPT/issues) with the template. For a bug, give your iPhone, your iOS version and the steps. Do not paste private messages.
 - **Code.** Open an issue before a large change. Add tests in `QuietGPTTests`, and make sure that all tests pass before you open a pull request.
 - **Translations.** Each target has a `Localizable.xcstrings` file: `QuietGPT`, `QuietGPTKeyboard` and `QuietGPTShare`. They have English and Spanish now. The Monitor panel stays in English.
 - **Privacy.** Do not add network code, analytics or third-party packages.
 
 ## License
 
-QuietGPT is available under the MIT License. See [LICENSE](LICENSE).
+The code is available under the MIT License. The QuietGPT name and icon are not. Forks and copies need their own name, icon and bundle identifier. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
 - [Geist](https://github.com/vercel/geist-font), the brand font, under the [SIL Open Font License](Rewrite/Fonts/Geist-OFL.txt).
 - [Unicode emoji data](https://www.unicode.org/Public/emoji/), the source of the emoji list in the keyboard, under the [Unicode License](docs/licenses/Unicode-LICENSE.txt).
 - [Apple Foundation Models](https://developer.apple.com/foundation-models-framework/), which does the work on the iPhone.
+
+<br>
+
+<p align="center">
+  <img src="QuietGPT/Resources/Assets.xcassets/AppIcon.appiconset/icon.png" width="64" height="64" alt="">
+  <br>
+  <sub>The code has the MIT License. The QuietGPT name and icon do not, so forks need their own. See <a href="LICENSE">LICENSE</a>.</sub>
+  <br>
+  <sub>Designed and built by <a href="https://github.com/pdsdm">pdsdm</a>.</sub>
+</p>

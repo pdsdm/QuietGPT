@@ -70,13 +70,13 @@ def compose(lang):
     canvas = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(canvas)
 
-    icon_size = 260
+    icon_size = 420
     icon, mask = rounded_icon(icon_size)
-    top = 400
+    top = 330
     canvas.paste(icon, (LEFT, top), mask)
-    d.text((LEFT + icon_size + 70, top + icon_size / 2), "QuietGPT", font=font(150, "Bold"), fill=INK, anchor="lm")
+    d.text((LEFT + icon_size + 90, top + icon_size / 2), "QuietGPT", font=font(240, "Bold"), fill=INK, anchor="lm")
 
-    y = top + icon_size + 440
+    y = top + icon_size + 380
     title_font = font(330, "Bold")
     for line in t["title"]:
         d.text((LEFT - 12, y), line, font=title_font, fill=INK, anchor="ls")

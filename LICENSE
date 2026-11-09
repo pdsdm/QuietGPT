@@ -19,3 +19,21 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Name and icon
+
+The MIT License above covers the source code. It does not grant any rights
+to the QuietGPT name or the QuietGPT icon. This includes the icon artwork
+drawn by scripts/make-icon.swift, the images in the app asset catalog, and the
+screenshots and charts in the docs folder.
+
+You may build and use the app as published, and you may refer to QuietGPT
+to say where your work comes from. Modified or redistributed versions must
+use a different name, a different icon and a different bundle identifier, and
+must not suggest that they are QuietGPT or are endorsed by its author. Do not
+publish a copy of QuietGPT on the App Store.
+
+The Geist font in Rewrite/Fonts and the Unicode emoji data keep their own
+licenses. See Rewrite/Fonts/Geist-OFL.txt and docs/licenses.

@@ -44,6 +44,7 @@ struct RewriteRulesTests {
 
         #expect(prompt.hasPrefix("Make it short."))
         #expect(prompt.contains("do not answer it"))
+        #expect(prompt.contains("Do not add names, facts or details that are not in the message."))
         #expect(prompt.hasSuffix("Message:\nWhat time is it?"))
     }
 

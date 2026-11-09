@@ -4,9 +4,9 @@
 
 # QuietGPT
 
-**Rewrite your messages with your own rules, in one tap, in any app.**
+**Private AI for iPhone. Your words stay on your iPhone.**
 
-A keyboard, a share card and a private chat for iPhone, powered by the Apple Neural Engine. All text stays on your iPhone. No account, no cloud, no tracking.
+A chat, a keyboard and a share card that run on the Apple Neural Engine. Rewrite any message with your own rules, in one tap, in any app. No account, no cloud, no tracking.
 
 [Neural Engine](#runs-on-the-apple-neural-engine) · [Get the app](#get-the-app) · [Features](#features) · [Privacy](#privacy) · [Build from source](#build-from-source) · [Contributing](#contributing)
 
@@ -28,10 +28,10 @@ A keyboard, a share card and a private chat for iPhone, powered by the Apple Neu
 
 ## Why QuietGPT?
 
-A message to your manager and a message to your best friend need different words. Most AI writing tools send both messages to a server, and they do not know how you write.
+Most AI apps send your words to a server. QuietGPT does not. The AI runs on your iPhone, so your chats and your messages do not leave it.
 
-- **Runs on the Neural Engine.** Replies come from the part of the chip made for AI work, not from the GPU. [We measured it](#runs-on-the-apple-neural-engine).
 - **Private by default.** Apple Foundation Models does the work on your iPhone. QuietGPT has no server.
+- **Runs on the Neural Engine.** Replies come from the part of the chip made for AI work, not from the GPU. [We measured it](#runs-on-the-apple-neural-engine).
 - **Your rules, each time.** You write the rules once. QuietGPT follows them in each rewrite.
 - **In all apps.** Use the keyboard or the share sheet. You do not copy and paste between apps.
 - **Works offline.** QuietGPT works in Airplane Mode.

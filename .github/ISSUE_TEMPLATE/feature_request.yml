@@ -1,0 +1,19 @@
+name: Idea
+description: Something you want QuietGPT to do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: QuietGPT tries to stay small and private. Start from the problem. Then it is easier to see if an idea fits.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you try to do?
+      description: The message or the situation where QuietGPT does not help you today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: How you see it work.

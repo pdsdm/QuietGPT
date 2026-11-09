@@ -1,0 +1,67 @@
+name: Bug report
+description: Something in QuietGPT does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Issues are public. Do not paste private messages, names or other personal data. Use sample text.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Messages and write a draft
+        2. Switch to the QuietGPT keyboard and tap the lock key
+        3. ...
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Keyboard
+        - Share card
+        - Chat
+        - Keyboard tab or other app screen
+        - Build or tests
+    validations:
+      required: true
+  - type: input
+    id: iphone
+    attributes:
+      label: iPhone
+      placeholder: iPhone 16 Pro Max
+    validations:
+      required: true
+  - type: input
+    id: ios
+    attributes:
+      label: iOS version
+      placeholder: iOS 27.0.1
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: QuietGPT version
+      description: The version you installed, or the commit if you built it from source.
+      placeholder: "1.0.0"
+  - type: dropdown
+    id: language
+    attributes:
+      label: Device and Siri language
+      options:
+        - English
+        - Spanish
+        - Other
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: The message that QuietGPT showed, and a screenshot or a short recording, help a lot.

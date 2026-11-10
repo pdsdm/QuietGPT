@@ -3,7 +3,7 @@
 Paste the text below into App Store Connect > App Review Information > Notes.
 
 ```
-QuietGPT is a keyboard, a share card and a private chat. It rewrites and answers text with the on-device Apple Foundation Models framework. It has no account, no server, no ads, no in-app purchases and no third-party packages. No demo account is necessary.
+QuietGPT is a private AI chat that runs on the iPhone. It answers with the on-device Apple Foundation Models framework and it works in Airplane Mode. In our recorded tests on iPhone 16 Pro Max, chat replies ran on the Apple Neural Engine. iOS selects the hardware. The app also has a keyboard and a share card that use the same on-device AI to rewrite text in other apps. It has no account, no server, no ads, no in-app purchases and no third-party packages. No demo account is necessary.
 
 DEVICE REQUIREMENT
 Please test on an iPhone with Apple Intelligence: iPhone 15 Pro, iPhone 15 Pro Max, iPhone Air, iPhone 16 or later, with iOS 26 or later. Turn on Apple Intelligence in Settings > Apple Intelligence & Siri and wait for its download to finish. The device and Siri must use the same supported language.

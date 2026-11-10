@@ -60,11 +60,13 @@ private struct FieldCanvas: UIViewRepresentable {
 }
 
 private final class FieldCanvasView: UIView {
-    private static let framesPerSecond: Float = 60
+    private static let restingFramesPerSecond: Float = 30
+    private static let touchFramesPerSecond: Float = 60
     private static let lowPowerFramesPerSecond: Float = 30
+    private static let slowestFramesPerSecond: Float = 15
     private static let physicsStep = 1.0 / 30
-    private static let touchShare = 1.25
     private static let maxPhysicsSteps = 4
+    private static let renderQueue = DispatchQueue(label: "com.pdsdm.quietgpt.field", qos: .userInitiated)
 
     private let input = FieldInput.shared
     private let lamp = LavaLamp.shared
@@ -77,7 +79,10 @@ private final class FieldCanvasView: UIView {
     private var raster: FieldRaster?
     private var regionLayers: [CALayer] = []
     private var link: CADisplayLink?
+    private var rate: Float = 0
     private var lastFrame: Date?
+    private var rendering = false
+    private var needsFrame = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -122,28 +127,33 @@ private final class FieldCanvasView: UIView {
         guard window != nil, !paused else {
             link?.invalidate()
             link = nil
+            rate = 0
             lastFrame = nil
             return
         }
-        let rate = ProcessInfo.processInfo.isLowPowerModeEnabled ? Self.lowPowerFramesPerSecond : Self.framesPerSecond
+        var wanted = input.pressing
+            ? Self.touchFramesPerSecond
+            : min(Self.restingFramesPerSecond, max(Self.slowestFramesPerSecond, Self.restingFramesPerSecond * Float(share)))
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            wanted = min(wanted, Self.lowPowerFramesPerSecond)
+        }
         if link == nil {
             let created = CADisplayLink(target: self, selector: #selector(tick))
             created.add(to: .main, forMode: .common)
             link = created
         }
-        link?.preferredFrameRateRange = CAFrameRateRange(minimum: rate, maximum: rate, preferred: rate)
+        guard wanted != rate else { return }
+        rate = wanted
+        link?.preferredFrameRateRange = CAFrameRateRange(minimum: wanted, maximum: wanted, preferred: wanted)
     }
 
-    @objc private func tick() {
+    @objc private func tick(_ link: CADisplayLink) {
+        updateLink()
         draw(at: .now)
     }
 
     private func draw(at date: Date) {
         guard let window, bounds.width > 0, bounds.height > 0 else { return }
-        if raster?.size != bounds.size {
-            rebuildRaster()
-        }
-        guard let raster else { return }
 
         let screen = window.screen.bounds.size
         let scale = max(1, min(screen.width, screen.height))
@@ -164,29 +174,47 @@ private final class FieldCanvasView: UIView {
         }
         lastFrame = date
 
-        let origin = convert(bounds.origin, to: nil)
-        let focus = input.pressing ? CGPoint(x: input.point.x - origin.x, y: input.point.y - origin.y) : nil
-        let changes = raster.update(
-            beads: lamp.packed,
-            unit: Float(scale),
-            origin: origin,
-            time: Float(date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600)),
-            down: lamp.direction,
-            elapsed: elapsed,
-            focus: focus,
-            share: input.pressing ? share * Self.touchShare : share
-        )
-        guard !changes.isEmpty else { return }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        for change in changes {
-            regionLayers[change.region].contents = change.image
+        guard !rendering else {
+            needsFrame = true
+            return
         }
-        CATransaction.commit()
+        if raster?.size != bounds.size {
+            rebuildRaster()
+        }
+        guard let raster else { return }
+
+        rendering = true
+        needsFrame = false
+        let beads = lamp.packed
+        let unit = Float(scale)
+        let origin = convert(bounds.origin, to: nil)
+        let time = Float(date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600))
+        let down = lamp.direction
+        Self.renderQueue.async { [weak self] in
+            let changes = raster.update(beads: beads, unit: unit, origin: origin, time: time, down: down)
+            DispatchQueue.main.async {
+                self?.show(changes, from: raster)
+            }
+        }
+    }
+
+    private func show(_ changes: [(region: Int, image: CGImage)], from source: FieldRaster) {
+        rendering = false
+        if source === raster, !changes.isEmpty {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            for change in changes {
+                regionLayers[change.region].contents = change.image
+            }
+            CATransaction.commit()
+        }
+        if needsFrame, link == nil {
+            draw(at: .now)
+        }
     }
 
     private func rebuildRaster() {
-        let created = FieldRaster(size: bounds.size, screen: window?.screen.bounds.size ?? bounds.size, mask: fieldMask, dark: dark)
+        let created = FieldRaster(size: bounds.size, mask: fieldMask, dark: dark)
         raster = created
         regionLayers.forEach { $0.removeFromSuperlayer() }
         regionLayers = created.regions.map { region in

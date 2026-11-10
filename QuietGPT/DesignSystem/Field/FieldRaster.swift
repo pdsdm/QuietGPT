@@ -3,7 +3,7 @@ import simd
 import Foundation
 import UIKit
 
-final class FieldRaster {
+nonisolated final class FieldRaster: @unchecked Sendable {
     static let scale: CGFloat = 2
 
     struct Region {
@@ -25,12 +25,6 @@ final class FieldRaster {
     private static let farInk: Float = 0.5
     private static let warpReach: Float = 0.03
     private static let regionCells = 12
-    private static let commitBaseCost = 1.3
-    private static let commitAreaCost = 3.6
-    private static let costPerSecond = 75.0
-    private static let maxCommitCost = 3.0
-    private static let maxDebt = -6.0
-    private static let maxWaitFrames = 15
     private static let tiles = makeTiles()
 
     let size: CGSize
@@ -51,20 +45,10 @@ final class FieldRaster {
     private let slopeX: UnsafeMutablePointer<Float>
     private let slopeY: UnsafeMutablePointer<Float>
     private let layerOfCell: UnsafeMutablePointer<Float>
-    private let screenArea: CGFloat
-    private var firstFrame = true
-    private var budget = FieldRaster.maxCommitCost
-    private var frameNumber = 0
-    private var waitingSince: [Int: Int] = [:]
 
-    var waitingCount: Int {
-        waitingSince.count
-    }
-
-    init(size: CGSize, screen: CGSize, mask: FieldMask, dark: Bool) {
+    init(size: CGSize, mask: FieldMask, dark: Bool) {
         self.size = size
         self.dark = dark
-        screenArea = max(1, screen.width * screen.height)
         let cell = AsciiGlyphs.cell
         let columns = max(1, Int((size.width / cell.width).rounded(.up)))
         let rows = max(1, Int((size.height / cell.height).rounded(.up)))
@@ -149,69 +133,18 @@ final class FieldRaster {
         layerOfCell.deallocate()
     }
 
-    func update(beads: [Float], unit: Float, origin: CGPoint, time: Float, down: SIMD2<Float>, elapsed: Double, focus: CGPoint?, share: Double = 1) -> [(region: Int, image: CGImage)] {
-        accumulate(beads: beads, unit: unit, originX: Float(origin.x), originY: Float(origin.y), time: time)
-        frameNumber += 1
-        for region in classify(down: down) where waitingSince[region] == nil {
-            waitingSince[region] = frameNumber
-        }
-        budget = min(Self.maxCommitCost, budget + elapsed * Self.costPerSecond * share)
+    private var firstFrame = true
 
-        let chosen: [Int]
+    func update(beads: [Float], unit: Float, origin: CGPoint, time: Float, down: SIMD2<Float>) -> [(region: Int, image: CGImage)] {
+        accumulate(beads: beads, unit: unit, originX: Float(origin.x), originY: Float(origin.y), time: time)
+        var chosen = classify(down: down)
         if firstFrame {
             firstFrame = false
-            chosen = Array(regions.indices)
-        } else {
-            chosen = pickRegions(focus: focus)
+            chosen = Set(regions.indices)
         }
-        for region in chosen {
-            waitingSince[region] = nil
-        }
-        return chosen.compactMap { index in
+        return chosen.sorted().compactMap { index in
             render(region: index).map { (index, $0) }
         }
-    }
-
-    private func pickRegions(focus: CGPoint?) -> [Int] {
-        guard let anchor = anchorRegion(focus: focus) else { return [] }
-        let overdue = waitingSince.filter { frameNumber - $0.value >= Self.maxWaitFrames }.keys.filter { $0 != anchor }
-        var box = overdue.reduce(regions[anchor].frame) { $0.union(regions[$1].frame) }
-        guard !overdue.isEmpty || cost(of: box) <= budget else { return [] }
-
-        let center = CGPoint(x: box.midX, y: box.midY)
-        let others = waitingSince.keys
-            .filter { $0 != anchor && !overdue.contains($0) }
-            .map { (region: $0, distance: distance(from: center, to: regions[$0].frame)) }
-            .sorted { ($0.distance, $0.region) < ($1.distance, $1.region) }
-
-        var chosen = [anchor] + overdue
-        for other in others {
-            let grown = box.union(regions[other.region].frame)
-            guard cost(of: grown) <= budget else { continue }
-            box = grown
-            chosen.append(other.region)
-        }
-        budget = max(Self.maxDebt, budget - cost(of: box))
-        return chosen
-    }
-
-    private func anchorRegion(focus: CGPoint?) -> Int? {
-        if let focus {
-            return waitingSince.keys.min { first, second in
-                let a = distance(from: focus, to: regions[first].frame)
-                let b = distance(from: focus, to: regions[second].frame)
-                return (a, first) < (b, second)
-            }
-        }
-        return waitingSince.min { ($0.value, $0.key) < ($1.value, $1.key) }?.key
-    }
-
-    private func distance(from point: CGPoint, to frame: CGRect) -> CGFloat {
-        hypot(frame.midX - point.x, frame.midY - point.y)
-    }
-
-    private func cost(of box: CGRect) -> Double {
-        Self.commitBaseCost + Self.commitAreaCost * Double(box.width * box.height / screenArea)
     }
 
     private func accumulate(beads: [Float], unit: Float, originX: Float, originY: Float, time: Float) {

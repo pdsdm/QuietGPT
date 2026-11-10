@@ -3,7 +3,7 @@ import simd
 
 final class LavaLamp {
     static let shared = LavaLamp()
-    static let stride = 7
+    nonisolated static let stride = 7
 
     private enum Tuning {
         static let grabMargin = 0.05

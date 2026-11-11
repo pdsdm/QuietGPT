@@ -38,11 +38,24 @@ struct RewriteStyle: Codable, Identifiable, Hashable {
         UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!
     ]
 
+    private static let retiredPrompts: [UUID: String] = [
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000002")!: "Make this message shorter. Keep the same meaning.",
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000003")!: "Make this message a little longer and more complete. Keep the same meaning.",
+        UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000004")!: "Make this message polite and formal."
+    ]
+
+    var refreshed: RewriteStyle {
+        guard Self.retiredPrompts[id] == prompt, let fresh = Self.builtIn.first(where: { $0.id == id }) else { return self }
+        var copy = self
+        copy.prompt = fresh.prompt
+        return copy
+    }
+
     static var builtIn: [RewriteStyle] { [
         RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000001")!, title: String(localized: "Kinder", bundle: Rewriter.bundle), prompt: "Make this message kinder and warmer. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000002")!, title: String(localized: "Shorter", bundle: Rewriter.bundle), prompt: "Make this message shorter. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000003")!, title: String(localized: "Longer", bundle: Rewriter.bundle), prompt: "Make this message a little longer and more complete. Keep the same meaning."),
-        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000004")!, title: String(localized: "Formal", bundle: Rewriter.bundle), prompt: "Make this message polite and formal."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000002")!, title: String(localized: "Shorter", bundle: Rewriter.bundle), prompt: "Shorten this message to about half the words. Drop details that are not needed."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000003")!, title: String(localized: "Longer", bundle: Rewriter.bundle), prompt: "Make this message longer. Use about twice as many words to say the same things. Do not add new facts."),
+        RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000004")!, title: String(localized: "Formal", bundle: Rewriter.bundle), prompt: "Make this message more polite and formal. Do not add a greeting or a signature."),
         RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000005")!, title: String(localized: "Fix", bundle: Rewriter.bundle), prompt: "Fix the spelling, grammar and punctuation. Change nothing else."),
         RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000006")!, title: String(localized: "English", bundle: Rewriter.bundle), prompt: "Translate this message into natural English."),
         RewriteStyle(id: UUID(uuidString: "6B0F7C1E-0001-4000-8000-000000000007")!, title: String(localized: "Spanish", bundle: Rewriter.bundle), prompt: "Translate this message into natural Spanish.")
@@ -161,7 +174,7 @@ enum StyleStore {
     }
 
     static var styles: [RewriteStyle] {
-        get { decode([RewriteStyle].self, stylesKey) ?? RewriteStyle.builtIn }
+        get { (decode([RewriteStyle].self, stylesKey) ?? RewriteStyle.builtIn).map(\.refreshed) }
         set { encode(newValue, stylesKey) }
     }
 

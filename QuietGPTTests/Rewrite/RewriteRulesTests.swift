@@ -40,12 +40,44 @@ struct RewriteRulesTests {
     }
 
     @Test func promptSaysTheMessageIsNotARequest() {
-        let prompt = Rewriter.prompt(request: "Make it short.", text: "What time is it?")
+        let prompt = Rewriter.prompt(request: "Make it short.", text: "What time is it today?")
 
         #expect(prompt.hasPrefix("Make it short."))
         #expect(prompt.contains("do not answer it"))
-        #expect(prompt.contains("Do not add names, facts or details that are not in the message."))
-        #expect(prompt.hasSuffix("Message:\nWhat time is it?"))
+        #expect(prompt.hasSuffix("Message (in English):\nWhat time is it today?"))
+    }
+
+    @Test func promptDoesNotSpeakAboutNames() {
+        let prompt = Rewriter.prompt(request: "Make it short.", text: "Hola Marta, mañana no puedo venir a cenar")
+
+        #expect(!prompt.lowercased().contains("names"))
+        #expect(prompt.contains("Message (in Spanish):"))
+    }
+
+    @Test func oldBuiltInPromptsGetTheNewText() throws {
+        let json = #"{"id":"6B0F7C1E-0001-4000-8000-000000000003","title":"Longer","prompt":"Make this message a little longer and more complete. Keep the same meaning.","isOn":false}"#
+        let style = try JSONDecoder().decode(RewriteStyle.self, from: Data(json.utf8)).refreshed
+
+        #expect(style.prompt == RewriteStyle.builtIn[2].prompt)
+        #expect(!style.isOn)
+    }
+
+    @Test func editedBuiltInPromptStays() throws {
+        let json = #"{"id":"6B0F7C1E-0001-4000-8000-000000000003","title":"Longer","prompt":"My own text.","isOn":true}"#
+        let style = try JSONDecoder().decode(RewriteStyle.self, from: Data(json.utf8)).refreshed
+
+        #expect(style.prompt == "My own text.")
+    }
+
+    @Test func stopsEndlessOutput() {
+        #expect(Rewriter.isRunaway(String(repeating: "bueno, ", count: 100), from: "Bueno pues nada"))
+        #expect(!Rewriter.isRunaway(String(repeating: "a", count: 500), from: "ok"))
+    }
+
+    @Test func refusesNewPlaceholders() {
+        #expect(Rewriter.hasPlaceholder("Estimado/a [Nombre], nos vemos a las 8", from: "ok nos vemos a las 8"))
+        #expect(!Rewriter.hasPlaceholder("Hola Marta, nos vemos a las 8", from: "ok nos vemos a las 8"))
+        #expect(!Rewriter.hasPlaceholder("See the list [1]", from: "look at the list [1]"))
     }
 
     @Test func noRulesKeepsBaseInstructions() {

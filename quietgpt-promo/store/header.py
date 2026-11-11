@@ -18,9 +18,9 @@ PHONE_W, PHONE_H = 1200, 2200
 POSE = {"yaw": -16, "tilt": 4, "roll": 2, "fill": 0.97, "island": True}
 
 SPECS = {
-    "header": {"size": (3840, 1646), "safe": 0.58, "band": (0.13, 0.95), "body": 1, "chips": False},
-    "search": {"size": (3840, 2560), "safe": 0.9, "band": (0.07, 0.95), "body": 2, "chips": True},
-    "universal": {"size": (5244, 2950), "safe": 0.47, "band": (0.14, 0.86), "body": 1, "chips": False},
+    "header": {"size": (3840, 1646), "safe": 0.58, "band": (0.13, 0.95), "body": 1, "chips": False, "drop": 0.07},
+    "search": {"size": (3840, 2560), "safe": 0.9, "band": (0.07, 0.95), "body": 2, "chips": True, "drop": 0.0},
+    "universal": {"size": (5244, 2950), "safe": 0.47, "band": (0.14, 0.86), "body": 1, "chips": False, "drop": 0.1},
 }
 
 TEXT = {
@@ -49,7 +49,7 @@ def render_phones(jobs):
     path = PROMO / "build" / "store-header-jobs.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps([{**POSE, **j, "width": PHONE_W, "height": PHONE_H} for j in jobs]))
-    subprocess.run(["node", str(PROMO / "render3d" / "still.mjs"), str(path)], check=True, cwd=PROMO,
+    subprocess.run(["node", str(PROMO / "promo-39s" / "render3d" / "still.mjs"), str(path)], check=True, cwd=PROMO,
                    stdout=subprocess.DEVNULL)
 
 
@@ -74,7 +74,7 @@ class Layout:
         body = t["body"] if spec["body"] == 2 else [t["short"]]
         probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
         size = band * 0.2
-        while max(probe.textlength(l, font=font(size, "Bold")) for l in lines) > text_w:
+        while max(probe.textlength(l, font=font(size, "Bold")) for v in TEXT.values() for l in v["title"]) > text_w:
             size -= 2
         body_size = size * 0.4
         chip_size = size * 0.3
@@ -84,7 +84,7 @@ class Layout:
         block = title_lh * len(lines) + size * 0.35 + body_lh * len(body)
         if spec["chips"]:
             block += size * 0.45 + chip_size * 2
-        y = y0 + (band - block) / 2 + size * 0.9
+        y = y0 + (band - block) / 2 + size * 0.9 + self.h * spec["drop"]
 
         self.base = Image.new("RGB", (self.w, self.h), BG)
         d = ImageDraw.Draw(self.base)

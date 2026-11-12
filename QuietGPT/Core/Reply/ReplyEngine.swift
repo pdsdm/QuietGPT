@@ -32,6 +32,7 @@ final class ReplyEngine {
 
     private static let recallTurns = 8
     private static let retryTurns = 4
+    private static let languageTurns = 3
     private static let recallCharacters = 600
     private static let simulatedWordDelay = Duration.milliseconds(45)
 
@@ -85,15 +86,16 @@ final class ReplyEngine {
             return Self.simulatedStream(Self.unavailableReply)
         }
 
+        let expected = Self.language(of: prompt, after: history)
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    try await self.stream(prompt, conversationID: conversationID, history: history, into: continuation)
+                    try await self.answer(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation)
                     continuation.finish()
                 } catch LanguageModelSession.GenerationError.exceededContextWindowSize {
                     self.sessions[conversationID] = nil
                     do {
-                        try await self.stream(prompt, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), into: continuation)
+                        try await self.answer(prompt, expected: expected, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), into: continuation)
                         continuation.finish()
                     } catch {
                         continuation.finish(throwing: error)
@@ -106,17 +108,65 @@ final class ReplyEngine {
         }
     }
 
-    private func stream(
+    static func language(of prompt: String, after history: [ChatTurn], likely: [String] = TextLanguage.likely) -> String? {
+        let earlier = history.filter { $0.role == .user }.suffix(languageTurns).map(\.text)
+        guard !(earlier + [prompt]).contains(where: { TextLanguage.namesLanguage($0, likely: likely) }) else { return nil }
+        if TextLanguage.code(of: prompt, likely: likely) != nil {
+            return TextLanguage.single(of: prompt, likely: likely)
+        }
+        return earlier.reversed().lazy.compactMap { TextLanguage.single(of: $0, likely: likely) }.first
+    }
+
+    static func firm(_ prompt: String, in language: String) -> String {
+        guard let name = TextLanguage.name(of: language) else { return prompt }
+        return "\(prompt)\n\nReply in \(name)."
+    }
+
+    private func answer(
         _ prompt: String,
+        expected: String?,
         conversationID: UUID,
         history: [ChatTurn],
         into continuation: AsyncThrowingStream<String, Error>.Continuation
     ) async throws {
+        guard let expected else {
+            _ = try await stream(prompt, expected: nil, conversationID: conversationID, history: history, into: continuation)
+            return
+        }
+        if try await stream(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation) {
+            return
+        }
+        sessions[conversationID] = nil
+        _ = try await stream(Self.firm(prompt, in: expected), expected: nil, conversationID: conversationID, history: history, into: continuation)
+    }
+
+    private func stream(
+        _ prompt: String,
+        expected: String?,
+        conversationID: UUID,
+        history: [ChatTurn],
+        into continuation: AsyncThrowingStream<String, Error>.Continuation
+    ) async throws -> Bool {
         let session = session(for: conversationID, history: history)
+        var output = ""
+        var isSettled = expected == nil
         for try await snapshot in session.streamResponse(to: prompt) {
             try Task.checkCancellation()
-            continuation.yield(snapshot.content)
+            output = snapshot.content
+            if !isSettled, let expected {
+                guard TextLanguage.letters(in: output) >= TextLanguage.settledLetters else { continue }
+                guard !TextLanguage.differs(output, from: expected) else { return false }
+                isSettled = true
+            }
+            continuation.yield(output)
         }
+        if !isSettled {
+            if let expected, TextLanguage.differs(output, from: expected) {
+                return false
+            }
+            continuation.yield(output)
+        }
+        return true
     }
 
     private func session(for conversationID: UUID, history: [ChatTurn]) -> LanguageModelSession {

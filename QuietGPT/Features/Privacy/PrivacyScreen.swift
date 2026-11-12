@@ -192,6 +192,8 @@ struct PrivacyScreen: View {
     private func deleteAll() {
         controller.deleteAll()
         StyleStore.reset()
+        UserDefaults.standard.removeObject(forKey: SettingsKey.agentOnline)
+        Task { await AgentBrowser.clearData() }
         onDeleteAll()
     }
 }

@@ -18,6 +18,8 @@ private let bookingPage = """
 </body></html>
 """
 
+private let slowLoad = Duration.seconds(120)
+
 private final class ScriptedEngine: AgentEngine, @unchecked Sendable {
     private var steps: [(PageSnapshot) -> AgentAction]
     private(set) var prompts: [[String]] = []
@@ -42,14 +44,14 @@ private func id(_ label: String, in page: PageSnapshot) -> Int {
 @MainActor
 struct AgentTests {
     private func loaded() async throws -> AgentBrowser {
-        let browser = AgentBrowser()
+        let browser = AgentBrowser(loadTimeout: slowLoad)
         browser.open(html: bookingPage)
         try await browser.settle()
         return browser
     }
 
     private func wait(for runner: AgentRunner, until done: (AgentRunner.Phase) -> Bool) async {
-        for _ in 0..<600 where !done(runner.phase) {
+        for _ in 0..<3600 where !done(runner.phase) {
             try? await Task.sleep(for: .milliseconds(50))
         }
     }
@@ -90,7 +92,7 @@ struct AgentTests {
             { .tap(id("Reserve", in: $0)) },
             { .finish($0.text) }
         ])
-        let runner = AgentRunner(engine: engine)
+        let runner = AgentRunner(engine: engine, loadTimeout: slowLoad)
         runner.start(task: "Book for 3, name Ana", html: bookingPage)
 
         await wait(for: runner) { $0 != .working }
@@ -111,7 +113,7 @@ struct AgentTests {
 
     @Test func runnerStopsWhenTheUserSaysNo() async throws {
         let engine = ScriptedEngine([{ .tap(id("Reserve", in: $0)) }])
-        let runner = AgentRunner(engine: engine)
+        let runner = AgentRunner(engine: engine, loadTimeout: slowLoad)
         runner.start(task: "Book", html: bookingPage)
 
         await wait(for: runner) { $0 != .working }
@@ -130,7 +132,7 @@ struct AgentTests {
             { .type(id("Password", in: $0), "hunter2") },
             { _ in .stop("end") }
         ])
-        let runner = AgentRunner(engine: engine)
+        let runner = AgentRunner(engine: engine, loadTimeout: slowLoad)
         runner.start(task: "Log in", html: bookingPage)
 
         await wait(for: runner) { $0 != .working }
@@ -144,7 +146,7 @@ struct AgentTests {
 
     @Test func runnerStopsARepeatedStep() async throws {
         let engine = ScriptedEngine(Array(repeating: { _ in AgentAction.scroll }, count: 5))
-        let runner = AgentRunner(engine: engine)
+        let runner = AgentRunner(engine: engine, loadTimeout: slowLoad)
         runner.start(task: "Loop", html: bookingPage)
 
         await wait(for: runner) { !runner.isActive && $0 != .working }

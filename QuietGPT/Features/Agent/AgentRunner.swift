@@ -31,9 +31,9 @@ final class AgentRunner {
     @ObservationIgnored private var job: Task<Void, Never>?
     @ObservationIgnored private var waiting: CheckedContinuation<Bool, Never>?
 
-    init(engine: any AgentEngine = AppleAgentEngine()) {
+    init(engine: any AgentEngine = AppleAgentEngine(), loadTimeout: Duration = .seconds(15)) {
         self.engine = engine
-        browser = AgentBrowser()
+        browser = AgentBrowser(loadTimeout: loadTimeout)
     }
 
     var isActive: Bool {

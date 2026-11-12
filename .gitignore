@@ -14,3 +14,4 @@ xcuserdata/
 .swiftpm/
 Config/Local.xcconfig
 *.xcodeproj
+__pycache__/

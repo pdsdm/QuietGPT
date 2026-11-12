@@ -26,7 +26,6 @@ body:
       label: Where
       options:
         - Keyboard
-        - Share card
         - Chat
         - Keyboard tab or other app screen
         - Build or tests

@@ -40,7 +40,7 @@ Most apps that run a language system on an iPhone use the GPU. These tools inclu
 
 ```mermaid
 flowchart TD
-    A[Chat, keyboard or share card] --> B[ReplyEngine or Rewriter]
+    A[Chat or keyboard] --> B[ReplyEngine or Rewriter]
     B --> C[LanguageModelSession]
     C --> D[Apple Foundation Models in iOS]
     D --> E[Apple Neural Engine]
@@ -179,7 +179,7 @@ Impact scores have no unit in Instruments. They are not watts. These scores do n
 | Benefit | Status | Evidence |
 |---|---|---|
 | The AI work does not take GPU time | **Measured** | No AI process appears on the GPU. The GPU time of QuietGPT comes from its interface, mainly the animated background |
-| Works in the keyboard and the share card | **By design** | These extensions have low memory limits, and QuietGPT loads no weights in them |
+| Works in the keyboard | **By design** | This extension has a low memory limit, and QuietGPT loads no weights in it |
 | No large download in the app | **By design** | iOS installs the weights. Other apps can use the same copy |
 | Low power | **Reported by Apple, not measured in QuietGPT** | Apple's 2022 study measured 3.47 ms at 0.454 W on the iPhone 13 ANE, with a small text network |
 | Less heat and more battery life | **Expected, not measured** | Low power suggests this, but we have no battery test. The animated background can also use more power than the ANE saves. We did not measure this |
@@ -200,7 +200,7 @@ Impact scores have no unit in Instruments. They are not watts. These scores do n
 ## What this data does not prove
 
 - **The events have no process name.** The ANE table does not name a process. We connect events to replies by their time.
-- **We recorded chat replies only.** Keyboard and share card rewrites use the same system framework, but we did not record them.
+- **We recorded chat replies only.** Keyboard rewrites use the same system framework, but we did not record them.
 - **We tested one iPhone and one iOS version.** Other iPhones and iOS 26 are not tested.
 - **We have no watt or battery data.** The iPhone was charging, and impact scores have no unit. We also did not compare the ANE with the GPU on an iPhone, so the report gives no number for how much better the ANE is.
 - **The thermal state was `Serious` in the power recording.** The GPU and ANE can run slower at this state. We recorded the thermal state only in that recording.

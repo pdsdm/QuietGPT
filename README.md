@@ -6,7 +6,7 @@
 
 **Private AI for iPhone. Your words stay on your iPhone.**
 
-A chat, a keyboard and a share card that run on the Apple Neural Engine. Rewrite any message with your own rules, in one tap, in any app. No account, no cloud, no tracking.
+A chat and a keyboard that run on the Apple Neural Engine. Rewrite any message with your own rules, in one tap, in any app. No account, no cloud, no tracking.
 
 [Neural Engine](#runs-on-the-apple-neural-engine) · [Get the app](#get-the-app) · [Features](#features) · [Privacy](#privacy) · [Build from source](#build-from-source) · [Contributing](#contributing)
 
@@ -33,7 +33,7 @@ Most AI apps send your words to a server. QuietGPT does not. The AI runs on your
 - **Private by default.** Apple Foundation Models does the work on your iPhone. QuietGPT has no server.
 - **Runs on the Neural Engine.** Replies come from the part of the chip made for AI work, not from the GPU. [We measured it](#runs-on-the-apple-neural-engine).
 - **Your rules, each time.** You write the rules once. QuietGPT follows them in each rewrite.
-- **In all apps.** Use the keyboard or the share sheet. You do not copy and paste between apps.
+- **In all apps.** Use the keyboard. You do not copy and paste between apps.
 - **Works offline.** QuietGPT works in Airplane Mode.
 - **Free and open source.** No account and no subscription. MIT license for the code.
 
@@ -58,7 +58,7 @@ All tests ran on an iPhone 16 Pro Max.
 | Speed of a long reply | About 21 and about 48 tokens/s in two tests |
 | QuietGPT GPU time when idle | 39–92% on tabs with the animated background, 0% on the Keyboard tab |
 
-**Why it is better.** The AI work does not take GPU time. The app loads no AI weights, so the same system works in the keyboard and the share card. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
+**Why it is better.** The AI work does not take GPU time. The app loads no AI weights, so the same system works in the keyboard. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
 
 **Tradeoffs.** Reply speed changes between tests. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
 
@@ -89,7 +89,6 @@ All tests ran on an iPhone 16 Pro Max.
 ### Rewrite
 
 - **QuietGPT keyboard.** It looks and types like the iOS keyboard. It has accent variants, cursor control on the space bar and an emoji page with all categories, recent emojis and skin tones. The lock key opens the rewrite panel. The top row shows the logo, which opens the panel, and the functions that you choose in the Keyboard tab.
-- **Share card.** Share text from any app to QuietGPT and get a rewrite.
 - **Styles.** Kinder, Shorter, Longer, Formal, Fix, English, Spanish or your own instruction. Edit, add and order styles in the Keyboard tab. You can also change the base instructions.
 - **My rules.** Up to 10 short rules that QuietGPT follows in each rewrite. Each style can turn them off. Fix and the translations do not use them by default.
 - **People.** Save how you write to one person. People show first in the panel.
@@ -156,7 +155,7 @@ Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-Qu
 |---|---|
 | Text that you rewrite | It goes to Apple Foundation Models on the iPhone |
 | Chats | SwiftData in a private app folder, with `NSFileProtectionComplete`. iCloud Backup and computer backups do not include this folder, so chats do not move to a new iPhone |
-| Rules, styles and people | The app group on the iPhone, shared with the keyboard and the share card. Backups do not include this settings folder |
+| Rules, styles and people | The app group on the iPhone, shared with the keyboard. Backups do not include this settings folder |
 | Style packs | On the iPhone, until you send the file. A pack does not include your people |
 
 QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles. Read the [privacy policy](PRIVACY.md).
@@ -179,7 +178,7 @@ To check network activity on the iPhone, go to Settings > Privacy & Security > A
 Turn on Airplane Mode and send a message. Or search the source for network code. This command prints nothing:
 
 ```sh
-grep -rE 'URLSession|import Network|https?://' QuietGPT QuietGPTKeyboard QuietGPTShare Rewrite --include='*.swift'
+grep -rE 'URLSession|import Network|https?://' QuietGPT QuietGPTKeyboard Rewrite --include='*.swift'
 ```
 
 The Monitor panel also shows live network use for the full iPhone.
@@ -188,7 +187,7 @@ The Monitor panel also shows live network use for the full iPhone.
 
 | Layer | What it does |
 |---|---|
-| **Keyboard and share card** | `QuietGPTKeyboard` reads the text in the field. `QuietGPTShare` receives the text that you share. |
+| **Keyboard** | `QuietGPTKeyboard` reads the text in the field. |
 | **Rewrite** | `Rewriter` adds your style, rules and base instructions to the text. It streams the result. All targets use this shared code. |
 | **Chat** | `ReplyEngine` streams each reply to the chat screen. SwiftData keeps the chat. |
 | **Apple Foundation Models** | The system framework. It runs on the iPhone, and iOS manages the download. |
@@ -284,9 +283,8 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 | `QuietGPT/Core` | `ReplyEngine` and reply metrics, SwiftData objects, Markdown parser |
 | `QuietGPT/DesignSystem` | Palettes, type styles, motion, components, the live ASCII background |
 | `QuietGPT/Resources` | Asset catalog with the app icon and accent color |
-| `Rewrite` | `Rewriter`, styles, style packs, brand font and keyboard colors. The app, the keyboard and the share card use this code |
+| `Rewrite` | `Rewriter`, styles, style packs, brand font and keyboard colors. The app and the keyboard use this code |
 | `QuietGPTKeyboard` | The keyboard extension |
-| `QuietGPTShare` | The share extension with the rewrite card |
 | `QuietGPTTests` | Unit tests, in the same folders as the code that they test |
 | `Config` | Build settings, entitlements and Info.plist files |
 | `scripts` | App icon generator, emoji list generator, Neural Engine report and charts |
@@ -303,7 +301,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first. In short:
 
 - **Bugs and ideas.** Open an [issue](https://github.com/pdsdm/QuietGPT/issues) with the template. For a bug, give your iPhone, your iOS version and the steps. Do not paste private messages.
 - **Code.** Open an issue before a large change. Add tests in `QuietGPTTests`, and make sure that all tests pass before you open a pull request.
-- **Translations.** Each target has a `Localizable.xcstrings` file: `QuietGPT`, `QuietGPTKeyboard` and `QuietGPTShare`. They have English and Spanish now. The Monitor panel stays in English.
+- **Translations.** Each target has a `Localizable.xcstrings` file: `QuietGPT` and `QuietGPTKeyboard`. They have English and Spanish now. The Monitor panel stays in English.
 - **Privacy.** Do not add network code, analytics or third-party packages.
 
 ## License

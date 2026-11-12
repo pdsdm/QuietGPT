@@ -53,7 +53,6 @@ PRIVATE CHAT
 AI IN ANY APP
 - Keyboard: It types like the iOS keyboard, with accents, cursor control and all emoji. It does not ask for full access.
 - One tap: Make any message kinder, shorter, longer or more formal, fix it, or translate it to English or Spanish.
-- Share card: Share text from any app and get a new version.
 - My rules: Up to 10 short rules that QuietGPT follows each time, for example "Use short sentences."
 - People: Save how you write to one person.
 - Style packs: Send your rules and styles to other people as a file. Your people stay on your iPhone.
@@ -124,7 +123,6 @@ CHAT PRIVADO
 IA EN CUALQUIER APP
 - Teclado: Escribe como el teclado de iOS, con acentos, control del cursor y todos los emojis. No pide acceso total.
 - Un toque: Haz cualquier mensaje más amable, más corto, más largo o más formal, corrígelo o tradúcelo al inglés o al español.
-- Tarjeta para compartir: Comparte texto desde cualquier app y recibe una nueva versión.
 - Mis reglas: Hasta 10 reglas cortas que QuietGPT sigue siempre, por ejemplo "Usa frases cortas".
 - Personas: Guarda cómo le escribes a cada persona.
 - Paquetes de estilos: Envía tus reglas y estilos a otras personas en un archivo. Tus personas se quedan en tu iPhone.

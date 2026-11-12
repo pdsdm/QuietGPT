@@ -60,7 +60,7 @@ Do not use the QuietGPT bundle prefix. Real replies need an iPhone with Apple In
 
 ## Text and languages
 
-Each target has a `Localizable.xcstrings` file: `QuietGPT`, `QuietGPTKeyboard` and `QuietGPTShare`. The app speaks English and Spanish now. The Monitor panel stays in English.
+Each target has a `Localizable.xcstrings` file: `QuietGPT` and `QuietGPTKeyboard`. The app speaks English and Spanish now. The Monitor panel stays in English.
 
 - When you add text, add it in all languages. A rough translation is better than none. Say which ones need a review by a native speaker.
 - Write short, plain sentences. The app does not use the word "model" in its text.
@@ -70,12 +70,12 @@ Each target has a `Localizable.xcstrings` file: `QuietGPT`, `QuietGPTKeyboard` a
 
 - Match the code around your change: its names and its structure.
 - No new dependencies. The project has no third-party packages.
-- The shared rewrite code is in `Rewrite`. The app, the keyboard and the share card all use it. A change there affects all three.
+- The shared rewrite code is in `Rewrite`. The app and the keyboard use it. A change there affects the two.
 - Keep the app quiet: no logs of personal data or of the text that people write, and no background work that is not necessary.
 - After your change, this command must print nothing:
 
   ```sh
-  grep -rE 'URLSession|import Network|https?://' QuietGPT QuietGPTKeyboard QuietGPTShare Rewrite --include='*.swift'
+  grep -rE 'URLSession|import Network|https?://' QuietGPT QuietGPTKeyboard Rewrite --include='*.swift'
   ```
 
 ## Ports and forks

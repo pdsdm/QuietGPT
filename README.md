@@ -211,13 +211,17 @@ The Monitor panel also shows live network use for the full iPhone.
 
 ## Build from source
 
-1. Clone the repository and open `QuietGPT.xcodeproj`.
+1. Clone the repository and generate the Xcode project. The repository does not contain `QuietGPT.xcodeproj`. [XcodeGen](https://github.com/yonaskolb/XcodeGen) makes it from `project.yml`.
 
    ```sh
    git clone https://github.com/pdsdm/QuietGPT.git
    cd QuietGPT
+   brew install xcodegen
+   xcodegen generate
    open QuietGPT.xcodeproj
    ```
+
+   Run `xcodegen generate` again after you change `project.yml`. New files in the source folders do not need it.
 
 2. To sign the app, create `Config/Local.xcconfig` with your team and a bundle prefix that you own. It overrides `Config/Base.xcconfig`, and git ignores it.
 
@@ -226,7 +230,11 @@ The Monitor panel also shows live network use for the full iPhone.
    QUIETGPT_BUNDLE_PREFIX = com.yourname.quietgpt
    ```
 
-3. Run the `QuietGPT` scheme.
+3. Run the `QuietGPT` scheme in Xcode, or build from the command line:
+
+   ```sh
+   xcodebuild build -project QuietGPT.xcodeproj -scheme QuietGPT -destination 'platform=iOS Simulator,name=iPhone 17 Pro' CODE_SIGNING_ALLOWED=NO
+   ```
 
 ### Tests
 
@@ -286,6 +294,7 @@ swift scripts/make-icon.swift QuietGPT/Resources/Assets.xcassets/AppIcon.appicon
 | `Rewrite` | `Rewriter`, styles, style packs, brand font and keyboard colors. The app and the keyboard use this code |
 | `QuietGPTKeyboard` | The keyboard extension |
 | `QuietGPTTests` | Unit tests, in the same folders as the code that they test |
+| `project.yml` | The targets and build settings. XcodeGen makes `QuietGPT.xcodeproj` from this file |
 | `Config` | Build settings, entitlements and Info.plist files |
 | `scripts` | App icon generator, emoji list generator, Neural Engine report and charts |
 | `docs/neural-engine` | Neural Engine report, data and charts |

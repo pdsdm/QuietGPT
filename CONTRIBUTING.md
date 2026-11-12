@@ -35,10 +35,12 @@ When many people ask for something, the answer is usually a more general change 
 ```sh
 git clone https://github.com/pdsdm/QuietGPT.git
 cd QuietGPT
+brew install xcodegen
+xcodegen generate
 open QuietGPT.xcodeproj
 ```
 
-You need Xcode 26 or later. To run on an iPhone, create `Config/Local.xcconfig` with your team and a bundle prefix that you own. Git ignores this file.
+You need Xcode 26 or later. Git does not track `QuietGPT.xcodeproj`. To change a target or a build setting, edit `project.yml` and run `xcodegen generate` again. To run on an iPhone, create `Config/Local.xcconfig` with your team and a bundle prefix that you own. Git ignores this file.
 
 ```
 DEVELOPMENT_TEAM = YOUR_TEAM_ID

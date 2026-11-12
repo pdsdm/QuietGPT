@@ -56,6 +56,10 @@ struct AgentTests {
         }
     }
 
+    private func result(on runner: AgentRunner) async throws -> String? {
+        try await runner.browser.webView.evaluateJavaScript("document.getElementById('result').innerText") as? String
+    }
+
     @Test func snapshotListsWhatTheUserCanUse() async throws {
         let page = try await loaded().snapshot()
 
@@ -97,7 +101,7 @@ struct AgentTests {
 
         await wait(for: runner) { $0 != .working }
         #expect(runner.phase == .approval("Reserve"))
-        #expect(try await runner.browser.snapshot().text.contains("Booked") == false)
+        #expect(try await result(on: runner) == "")
 
         runner.answer(true)
         await wait(for: runner) { !runner.isActive && $0 != .working }
@@ -124,7 +128,7 @@ struct AgentTests {
             Issue.record("phase is \(runner.phase)")
             return
         }
-        #expect(try await runner.browser.snapshot().text.contains("Booked") == false)
+        #expect(try await result(on: runner) == "")
     }
 
     @Test func runnerNeverTypesASecret() async throws {

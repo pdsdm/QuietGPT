@@ -107,7 +107,7 @@ struct NetworkMeterTests {
         let suite = UUID().uuidString
         let descriptor = socket(AF_INET, SOCK_DGRAM, 0)
         defer { close(descriptor) }
-        try makeWatch(key: "network.share", suite: suite).scan()
+        try makeWatch(key: "network.keyboard", suite: suite).scan()
         try makeWatch(key: "network.app", suite: suite).scan()
 
         let reopened = try makeWatch(key: "network.app", suite: suite)

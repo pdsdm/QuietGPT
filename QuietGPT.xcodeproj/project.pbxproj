@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA0000000000000000000048 /* QuietGPTShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000041 /* QuietGPTShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA0000000000000000000058 /* QuietGPTKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000051 /* QuietGPTKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -18,13 +17,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = AA0000000000000000000006;
 			remoteInfo = QuietGPT;
-		};
-		AA000000000000000000004B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AA0000000000000000000009 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = AA0000000000000000000040;
-			remoteInfo = QuietGPTShare;
 		};
 		AA000000000000000000005B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -42,7 +34,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				AA0000000000000000000048 /* QuietGPTShare.appex in Embed Foundation Extensions */,
 				AA0000000000000000000058 /* QuietGPTKeyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -51,11 +42,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AA0000000000000000000060 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Base.xcconfig; path = Config/Base.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000001 /* QuietGPT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuietGPT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000021 /* QuietGPTTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuietGPTTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA0000000000000000000041 /* QuietGPTShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuietGPTShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000051 /* QuietGPTKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuietGPTKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000060 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Base.xcconfig; path = Config/Base.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -67,11 +57,6 @@
 		AA0000000000000000000022 /* QuietGPTTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = QuietGPTTests;
-			sourceTree = "<group>";
-		};
-		AA0000000000000000000042 /* QuietGPTShare */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = QuietGPTShare;
 			sourceTree = "<group>";
 		};
 		AA0000000000000000000043 /* Rewrite */ = {
@@ -101,13 +86,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA0000000000000000000045 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AA0000000000000000000055 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -123,7 +101,6 @@
 			children = (
 				AA0000000000000000000002 /* QuietGPT */,
 				AA0000000000000000000022 /* QuietGPTTests */,
-				AA0000000000000000000042 /* QuietGPTShare */,
 				AA0000000000000000000052 /* QuietGPTKeyboard */,
 				AA0000000000000000000043 /* Rewrite */,
 				AA0000000000000000000060 /* Base.xcconfig */,
@@ -136,7 +113,6 @@
 			children = (
 				AA0000000000000000000001 /* QuietGPT.app */,
 				AA0000000000000000000021 /* QuietGPTTests.xctest */,
-				AA0000000000000000000041 /* QuietGPTShare.appex */,
 				AA0000000000000000000051 /* QuietGPTKeyboard.appex */,
 			);
 			name = Products;
@@ -157,7 +133,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				AA0000000000000000000049 /* PBXTargetDependency */,
 				AA0000000000000000000059 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -193,29 +168,6 @@
 			productName = QuietGPTTests;
 			productReference = AA0000000000000000000021 /* QuietGPTTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		AA0000000000000000000040 /* QuietGPTShare */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA000000000000000000004C /* Build configuration list for PBXNativeTarget "QuietGPTShare" */;
-			buildPhases = (
-				AA0000000000000000000044 /* Sources */,
-				AA0000000000000000000045 /* Frameworks */,
-				AA0000000000000000000046 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				AA0000000000000000000042 /* QuietGPTShare */,
-				AA0000000000000000000043 /* Rewrite */,
-			);
-			name = QuietGPTShare;
-			packageProductDependencies = (
-			);
-			productName = QuietGPTShare;
-			productReference = AA0000000000000000000041 /* QuietGPTShare.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 		AA0000000000000000000050 /* QuietGPTKeyboard */ = {
 			isa = PBXNativeTarget;
@@ -257,9 +209,6 @@
 						CreatedOnToolsVersion = 26.0;
 						TestTargetID = AA0000000000000000000006;
 					};
-					AA0000000000000000000040 = {
-						CreatedOnToolsVersion = 26.0;
-					};
 					AA0000000000000000000050 = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -282,7 +231,6 @@
 			targets = (
 				AA0000000000000000000006 /* QuietGPT */,
 				AA0000000000000000000020 /* QuietGPTTests */,
-				AA0000000000000000000040 /* QuietGPTShare */,
 				AA0000000000000000000050 /* QuietGPTKeyboard */,
 			);
 		};
@@ -297,13 +245,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AA0000000000000000000025 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0000000000000000000046 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -334,13 +275,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA0000000000000000000044 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AA0000000000000000000054 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -355,11 +289,6 @@
 			isa = PBXTargetDependency;
 			target = AA0000000000000000000006 /* QuietGPT */;
 			targetProxy = AA0000000000000000000026 /* PBXContainerItemProxy */;
-		};
-		AA0000000000000000000049 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = AA0000000000000000000040 /* QuietGPTShare */;
-			targetProxy = AA000000000000000000004B /* PBXContainerItemProxy */;
 		};
 		AA0000000000000000000059 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -536,60 +465,6 @@
 			};
 			name = Release;
 		};
-		AA000000000000000000004D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Config/QuietGPTShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Config/QuietGPTShare-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = QuietGPT;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(QUIETGPT_BUNDLE_PREFIX).share";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		AA000000000000000000004E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Config/QuietGPTShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Config/QuietGPTShare-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = QuietGPT;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(QUIETGPT_BUNDLE_PREFIX).share";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Release;
-		};
 		AA000000000000000000005D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -670,15 +545,6 @@
 			buildConfigurations = (
 				AA0000000000000000000031 /* Debug */,
 				AA0000000000000000000032 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AA000000000000000000004C /* Build configuration list for PBXNativeTarget "QuietGPTShare" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA000000000000000000004D /* Debug */,
-				AA000000000000000000004E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -101,11 +101,10 @@ final class NetworkWatch {
         return StyleStore.shared
     }
 
-    private static let keys = ["network.app", "network.share", "network.keyboard"]
+    private static let keys = ["network.app", "network.keyboard"]
 
     private static var ownKey: String {
         let identifier = Bundle.main.bundleIdentifier ?? ""
-        if identifier.hasSuffix(".share") { return "network.share" }
         if identifier.hasSuffix(".keyboard") { return "network.keyboard" }
         return "network.app"
     }

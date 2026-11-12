@@ -1464,13 +1464,13 @@
         }
       }
     },
-    "Restart your iPhone and make sure that it has free storage. Then open QuietGPT again. The keyboard and the share card still work." : {
+    "Restart your iPhone and make sure that it has free storage. Then open QuietGPT again. The keyboard still works." : {
       "extractionState" : "manual",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reinicia el iPhone y comprueba que tiene espacio libre. Después abre QuietGPT otra vez. El teclado y la tarjeta para compartir siguen funcionando."
+            "value" : "Reinicia el iPhone y comprueba que tiene espacio libre. Después abre QuietGPT otra vez. El teclado sigue funcionando."
           }
         }
       }

@@ -12,7 +12,7 @@ struct StoreFailureScreen: View {
                 Text("QuietGPT can't open your chats")
                     .font(QuietGPTFont.title)
                     .foregroundStyle(palette.text)
-                Text("Restart your iPhone and make sure that it has free storage. Then open QuietGPT again. The keyboard and the share card still work.")
+                Text("Restart your iPhone and make sure that it has free storage. Then open QuietGPT again. The keyboard still works.")
                     .font(QuietGPTFont.subheadline)
                     .foregroundStyle(palette.text2)
             }

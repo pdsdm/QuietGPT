@@ -10,6 +10,15 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - name: Cache llama.cpp
+        uses: actions/cache@v4
+        with:
+          path: Vendor/llama.xcframework
+          key: llama-${{ hashFiles('scripts/build-llama.sh') }}
+      - name: Build llama.cpp
+        run: |
+          brew install cmake
+          ./scripts/build-llama.sh
       - name: Generate the Xcode project
         run: |
           brew install xcodegen

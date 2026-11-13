@@ -137,7 +137,7 @@ QuietGPT runs only on iPhone. It does not have an iPad version.
 | Mac | A Mac that runs Xcode 26 or later |
 | Xcode | 26 or later, with the iOS 26 SDK or later |
 | Apple account | Necessary to run on an iPhone. Not necessary for the simulator |
-| Packages | None. The project has no third-party packages |
+| Packages | No Swift packages. [llama.cpp](https://github.com/ggml-org/llama.cpp) is built from source with `scripts/build-llama.sh` (needs CMake) |
 
 Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-QuietGPTSimulate YES`](#debug-launch-options) to get a sample reply.
 
@@ -211,12 +211,13 @@ The Monitor panel also shows live network use for the full iPhone.
 
 ## Build from source
 
-1. Clone the repository and generate the Xcode project. The repository does not contain `QuietGPT.xcodeproj`. [XcodeGen](https://github.com/yonaskolb/XcodeGen) makes it from `project.yml`.
+1. Clone the repository, build llama.cpp and generate the Xcode project. The repository does not contain `QuietGPT.xcodeproj`. [XcodeGen](https://github.com/yonaskolb/XcodeGen) makes it from `project.yml`. `scripts/build-llama.sh` builds a fixed llama.cpp release into `Vendor/llama.xcframework`. The first build takes some minutes.
 
    ```sh
    git clone https://github.com/pdsdm/QuietGPT.git
    cd QuietGPT
-   brew install xcodegen
+   brew install xcodegen cmake
+   ./scripts/build-llama.sh
    xcodegen generate
    open QuietGPT.xcodeproj
    ```

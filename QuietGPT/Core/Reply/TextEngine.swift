@@ -25,6 +25,7 @@ protocol TextEngine: AnyObject {
 
 enum TextEngineKind: String, CaseIterable {
     case apple
+    case lfm3
 
     static var selected: TextEngineKind {
         #if DEBUG
@@ -38,11 +39,22 @@ enum TextEngineKind: String, CaseIterable {
         return .apple
     }
 
+    private static var weights: Weights {
+        #if DEBUG
+        if DebugLaunch.weights == "q4" {
+            return .q4
+        }
+        #endif
+        return .q8
+    }
+
     @MainActor
     func make() -> any TextEngine {
         switch self {
         case .apple:
             AppleTextEngine()
+        case .lfm3:
+            LlamaTextEngine(weights: Self.weights)
         }
     }
 }

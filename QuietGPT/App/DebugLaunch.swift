@@ -19,6 +19,12 @@ enum DebugLaunch {
         case simulate = "QuietGPTSimulate"
         case prompt = "QuietGPTPrompt"
         case engine = "QuietGPTEngine"
+        case weights = "QuietGPTWeights"
+        case prompts = "QuietGPTPrompts"
+    }
+
+    static var weights: String? {
+        UserDefaults.standard.string(forKey: Key.weights.rawValue)
     }
 
     static var engine: TextEngineKind? {
@@ -43,6 +49,18 @@ enum DebugLaunch {
         }
         if let prompt = defaults.string(forKey: Key.prompt.rawValue), !prompt.isEmpty {
             controller.send(prompt)
+        }
+        if let script = defaults.string(forKey: Key.prompts.rawValue), !script.isEmpty {
+            let prompts = script.components(separatedBy: "||")
+            Task {
+                for prompt in prompts {
+                    while controller.isResponding {
+                        try? await Task.sleep(for: .milliseconds(250))
+                    }
+                    controller.send(prompt)
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
+            }
         }
     }
 }

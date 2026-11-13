@@ -124,6 +124,6 @@ struct ReplyEngineTests {
 struct TextEngineKindTests {
     @Test func usesTheAppleEngineByDefault() {
         #expect(TextEngineKind.selected == .apple)
-        #expect(TextEngineKind.allCases == [.apple])
+        #expect(TextEngineKind.allCases == [.apple, .lfm3])
     }
 }

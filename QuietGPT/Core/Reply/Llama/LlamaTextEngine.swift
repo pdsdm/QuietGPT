@@ -17,7 +17,11 @@ final class LlamaTextEngine: TextEngine {
         for name in [UIApplication.didReceiveMemoryWarningNotification, UIApplication.didEnterBackgroundNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
-                    self?.release(because: notification.name == UIApplication.didEnterBackgroundNotification ? "background" : "memory warning")
+                    if notification.name == UIApplication.didEnterBackgroundNotification {
+                        self?.release(because: "background", cancelling: true)
+                    } else {
+                        self?.release(because: "memory warning", cancelling: false)
+                    }
                 }
             })
         }
@@ -120,12 +124,14 @@ final class LlamaTextEngine: TextEngine {
     }
     #endif
 
-    private func release(because reason: String) {
-        running?.withLock { $0 = true }
+    private func release(because reason: String, cancelling: Bool) {
+        if cancelling {
+            running?.withLock { $0 = true }
+        }
         guard let core else { return }
         core.queue.async {
             core.unload()
+            Self.logger.notice("LFM3 weights unloaded: \(reason, privacy: .public)")
         }
-        Self.logger.notice("LFM3 weights unloaded: \(reason, privacy: .public)")
     }
 }

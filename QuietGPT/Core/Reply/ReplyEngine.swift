@@ -1,5 +1,4 @@
 import Foundation
-import FoundationModels
 
 struct ChatTurn {
     let role: MessageRole
@@ -19,40 +18,33 @@ final class ReplyEngine {
     Never describe yourself as a model or an AI model. You are QuietGPT.
     """
 
-    private static var unavailableReply: String {
-        switch SystemLanguageModel.default.availability {
-        case .unavailable(.modelNotReady):
-            String(localized: "Apple Intelligence is still getting ready on this iPhone. Try again soon. Your chats stay on this device.")
-        case .unavailable(.deviceNotEligible):
-            String(localized: "This iPhone does not support Apple Intelligence, so I can't answer here. Your chats stay on this device.")
-        default:
-            String(localized: "I can't think yet on this iPhone. QuietGPT needs Apple Intelligence. Turn it on in Settings, then Apple Intelligence & Siri. Your chats still stay on this device.")
-        }
-    }
-
     private static let recallTurns = 8
     private static let retryTurns = 4
     private static let languageTurns = 3
     private static let recallCharacters = 600
     private static let simulatedWordDelay = Duration.milliseconds(45)
 
-    private var sessions: [UUID: LanguageModelSession] = [:]
+    private let engine: any TextEngine
 
     #if DEBUG
     var simulatedReply: String?
     #endif
 
+    init(engine: (any TextEngine)? = nil) {
+        self.engine = engine ?? AppleTextEngine()
+    }
+
     static func message(for error: Error) -> String {
-        switch error as? LanguageModelSession.GenerationError {
-        case .guardrailViolation, .refusal:
+        switch error as? TextEngineError {
+        case .refused:
             String(localized: "I would rather not answer that one. Try asking in another way.")
-        case .unsupportedLanguageOrLocale:
+        case .unsupportedLanguage:
             String(localized: "I can't answer in this language yet.")
-        case .rateLimited, .concurrentRequests:
+        case .busy:
             String(localized: "I need a moment. Please try again.")
-        case .exceededContextWindowSize:
+        case .tooLong:
             String(localized: "This chat is too long for me now. Please start a new chat.")
-        case .assetsUnavailable:
+        case .notReady:
             String(localized: "Apple Intelligence is still getting ready on this iPhone. Try again soon. Your chats stay on this device.")
         default:
             String(localized: "I can't think on this iPhone right now. Check that Apple Intelligence is on and ready in Settings, then try again.")
@@ -60,20 +52,19 @@ final class ReplyEngine {
     }
 
     var isAvailable: Bool {
-        SystemLanguageModel.default.availability == .available
+        engine.isAvailable
     }
 
     func prepare() {
-        guard isAvailable else { return }
-        LanguageModelSession(instructions: Self.instructions).prewarm()
+        engine.prepare(instructions: Self.instructions)
     }
 
     func forget(_ conversationID: UUID) {
-        sessions[conversationID] = nil
+        engine.forget(conversationID)
     }
 
     func forgetAll() {
-        sessions.removeAll()
+        engine.forgetAll()
     }
 
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn]) -> AsyncThrowingStream<String, Error> {
@@ -83,7 +74,7 @@ final class ReplyEngine {
         }
         #endif
         guard isAvailable else {
-            return Self.simulatedStream(Self.unavailableReply)
+            return Self.simulatedStream(engine.unavailableReply)
         }
 
         let expected = Self.language(of: prompt, after: history)
@@ -92,8 +83,8 @@ final class ReplyEngine {
                 do {
                     try await self.answer(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation)
                     continuation.finish()
-                } catch LanguageModelSession.GenerationError.exceededContextWindowSize {
-                    self.sessions[conversationID] = nil
+                } catch TextEngineError.tooLong {
+                    self.engine.forget(conversationID)
                     do {
                         try await self.answer(prompt, expected: expected, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), into: continuation)
                         continuation.finish()
@@ -136,7 +127,7 @@ final class ReplyEngine {
         if try await stream(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation) {
             return
         }
-        sessions[conversationID] = nil
+        engine.forget(conversationID)
         _ = try await stream(Self.firm(prompt, in: expected), expected: nil, conversationID: conversationID, history: history, into: continuation)
     }
 
@@ -147,12 +138,12 @@ final class ReplyEngine {
         history: [ChatTurn],
         into continuation: AsyncThrowingStream<String, Error>.Continuation
     ) async throws -> Bool {
-        let session = session(for: conversationID, history: history)
+        let replies = engine.reply(to: prompt, in: conversationID, instructions: Self.instructions(recalling: history), options: TextOptions())
         var output = ""
         var isSettled = expected == nil
-        for try await snapshot in session.streamResponse(to: prompt) {
+        for try await snapshot in replies {
             try Task.checkCancellation()
-            output = snapshot.content
+            output = snapshot
             if !isSettled, let expected {
                 guard TextLanguage.letters(in: output) >= TextLanguage.settledLetters else { continue }
                 guard !TextLanguage.differs(output, from: expected) else { return false }
@@ -167,15 +158,6 @@ final class ReplyEngine {
             continuation.yield(output)
         }
         return true
-    }
-
-    private func session(for conversationID: UUID, history: [ChatTurn]) -> LanguageModelSession {
-        if let session = sessions[conversationID] {
-            return session
-        }
-        let session = LanguageModelSession(instructions: Self.instructions(recalling: history))
-        sessions[conversationID] = session
-        return session
     }
 
     private static func instructions(recalling history: [ChatTurn]) -> String {

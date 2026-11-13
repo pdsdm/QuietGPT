@@ -49,6 +49,14 @@ struct AppleAgentEngine: AgentEngine {
 
     func next(task: String, page: PageSnapshot, done: [String]) async throws -> AgentDecision {
         do {
+            return try await decide(task: task, page: page, done: done)
+        } catch {
+            throw AppleTextEngine.translate(error)
+        }
+    }
+
+    private func decide(task: String, page: PageSnapshot, done: [String]) async throws -> AgentDecision {
+        do {
             return try await ask(AgentPrompt.text(task: task, page: page, done: done))
         } catch LanguageModelSession.GenerationError.exceededContextWindowSize {
             return try await ask(AgentPrompt.text(task: task, page: page, done: Array(done.suffix(6)), elementLimit: Self.shortElementLimit, includesText: false))

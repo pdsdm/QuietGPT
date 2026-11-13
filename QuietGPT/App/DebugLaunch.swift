@@ -18,6 +18,11 @@ enum DebugLaunch {
         case tab = "QuietGPTTab"
         case simulate = "QuietGPTSimulate"
         case prompt = "QuietGPTPrompt"
+        case engine = "QuietGPTEngine"
+    }
+
+    static var engine: TextEngineKind? {
+        UserDefaults.standard.string(forKey: Key.engine.rawValue).flatMap(TextEngineKind.init(rawValue:))
     }
 
     static var opensMonitor: Bool {

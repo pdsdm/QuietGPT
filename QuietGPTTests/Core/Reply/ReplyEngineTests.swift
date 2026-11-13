@@ -113,3 +113,10 @@ struct ReplyEngineTests {
         #expect(AppleTextEngine.translate(CancellationError()) is CancellationError)
     }
 }
+
+struct TextEngineKindTests {
+    @Test func usesTheAppleEngineByDefault() {
+        #expect(TextEngineKind.selected == .apple)
+        #expect(TextEngineKind.allCases == [.apple])
+    }
+}

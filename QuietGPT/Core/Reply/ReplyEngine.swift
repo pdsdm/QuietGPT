@@ -31,7 +31,7 @@ final class ReplyEngine {
     #endif
 
     init(engine: (any TextEngine)? = nil) {
-        self.engine = engine ?? AppleTextEngine()
+        self.engine = engine ?? TextEngineKind.selected.make()
     }
 
     static func message(for error: Error) -> String {

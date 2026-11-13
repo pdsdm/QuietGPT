@@ -22,3 +22,27 @@ protocol TextEngine: AnyObject {
     func forget(_ conversationID: UUID)
     func forgetAll()
 }
+
+enum TextEngineKind: String, CaseIterable {
+    case apple
+
+    static var selected: TextEngineKind {
+        #if DEBUG
+        if let kind = DebugLaunch.engine {
+            return kind
+        }
+        if let name = UserDefaults.standard.string(forKey: SettingsKey.textEngine), let kind = TextEngineKind(rawValue: name) {
+            return kind
+        }
+        #endif
+        return .apple
+    }
+
+    @MainActor
+    func make() -> any TextEngine {
+        switch self {
+        case .apple:
+            AppleTextEngine()
+        }
+    }
+}

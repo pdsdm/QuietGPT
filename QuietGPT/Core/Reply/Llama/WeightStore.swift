@@ -83,6 +83,10 @@ final class WeightStore {
             verify(fileURL)
             return
         }
+        if let part = finishedPart() {
+            verify(part)
+            return
+        }
         let session = session ?? makeSession()
         if let data = try? Data(contentsOf: resumeURL) {
             try? FileManager.default.removeItem(at: resumeURL)
@@ -169,6 +173,16 @@ final class WeightStore {
     private func fail(_ reason: String) {
         state = .failed(reason)
         Self.logger.error("Weights failed: \(reason, privacy: .public)")
+    }
+
+    private func finishedPart() -> URL? {
+        let files = (try? FileManager.default.contentsOfDirectory(at: Self.folder, includingPropertiesForKeys: nil)) ?? []
+        let parts = files.filter { $0.pathExtension == "part" }
+        let finished = parts.first { fileSize($0) == weights.bytes }
+        for part in parts where part != finished {
+            try? FileManager.default.removeItem(at: part)
+        }
+        return finished
     }
 
     private func fileSize(_ url: URL) -> Int64? {

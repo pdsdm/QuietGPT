@@ -26,8 +26,8 @@ nonisolated enum LFMPrompt {
         options: .caseInsensitive
     )
 
-    static func text(history: [ChatTurn], prompt: String, thinking: Bool) -> String {
-        var text = "<|startoftext|>" + block("system", instructions)
+    static func text(system: String = instructions, history: [ChatTurn], prompt: String, thinking: Bool) -> String {
+        var text = "<|startoftext|>" + block("system", system)
         for turn in history {
             switch turn.role {
             case .user:

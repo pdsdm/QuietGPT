@@ -100,6 +100,26 @@ final class LlamaTextEngine: TextEngine {
         }
     }
 
+    #if DEBUG
+    func complete(system: String, history: [ChatTurn], prompt: String) async throws -> (String, LlamaMetrics) {
+        let core = core ?? LlamaCore(path: store.fileURL.path)
+        self.core = core
+        let full = LFMPrompt.text(system: system, history: history, prompt: prompt, thinking: false)
+        let turns = history.count
+        return try await withCheckedThrowingContinuation { continuation in
+            core.queue.async {
+                do {
+                    var raw = ""
+                    let metrics = try core.generate(conversation: UUID(), turns: turns, full: full, next: "", maxTokens: LFMPrompt.replyTokens, isCancelled: { false }) { raw = $0 }
+                    continuation.resume(returning: (raw, metrics))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    #endif
+
     private func release(because reason: String) {
         running?.withLock { $0 = true }
         guard let core else { return }

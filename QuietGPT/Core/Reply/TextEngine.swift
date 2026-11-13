@@ -39,7 +39,7 @@ enum TextEngineKind: String, CaseIterable {
         return .apple
     }
 
-    private static var weights: Weights {
+    static var weights: Weights {
         #if DEBUG
         if DebugLaunch.weights == "q4" {
             return .q4

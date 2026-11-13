@@ -21,6 +21,7 @@ enum DebugLaunch {
         case engine = "QuietGPTEngine"
         case weights = "QuietGPTWeights"
         case prompts = "QuietGPTPrompts"
+        case eval = "QuietGPTEval"
     }
 
     static var weights: String? {
@@ -49,6 +50,9 @@ enum DebugLaunch {
         }
         if let prompt = defaults.string(forKey: Key.prompt.rawValue), !prompt.isEmpty {
             controller.send(prompt)
+        }
+        if let sets = defaults.string(forKey: Key.eval.rawValue), !sets.isEmpty {
+            Task { await DebugEval.run(sets: sets.components(separatedBy: ",")) }
         }
         if let script = defaults.string(forKey: Key.prompts.rawValue), !script.isEmpty {
             let prompts = script.components(separatedBy: "||")

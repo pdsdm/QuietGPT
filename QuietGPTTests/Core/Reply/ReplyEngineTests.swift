@@ -6,7 +6,7 @@ import Testing
 final class FakeTextEngine: TextEngine {
     var replies: [Result<String, TextEngineError>]
     var prompts: [String] = []
-    var instructions: [String] = []
+    var histories: [[ChatTurn]] = []
     var forgotten: [UUID] = []
     var isAvailable = true
     var unavailableReply = "Not ready."
@@ -15,11 +15,11 @@ final class FakeTextEngine: TextEngine {
         self.replies = replies
     }
 
-    func prepare(instructions: String) {}
+    func prepare() {}
 
-    func reply(to prompt: String, in conversationID: UUID, instructions: String, options: TextOptions) -> AsyncThrowingStream<String, Error> {
+    func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error> {
         prompts.append(prompt)
-        self.instructions.append(instructions)
+        histories.append(history)
         let next = replies.removeFirst()
         return AsyncThrowingStream { continuation in
             switch next {
@@ -62,9 +62,16 @@ struct ReplyEngineTests {
 
         #expect(text == "It will be sunny all week, with a light wind in the afternoon.")
         #expect(engine.forgotten == [chat])
-        #expect(engine.instructions[0].contains("Turn number 3 "))
-        #expect(!engine.instructions[1].contains("Turn number 3 "))
-        #expect(engine.instructions[1].contains("Turn number 10 "))
+        #expect(engine.histories.map(\.count) == [10, 4])
+        #expect(engine.histories[1].last?.text == "Turn number 10 about the weather")
+    }
+
+    @Test func appleEngineRecallsTheLastEightTurns() {
+        let instructions = AppleTextEngine.instructions(recalling: history(10))
+
+        #expect(!instructions.contains("Turn number 2 "))
+        #expect(instructions.contains("User: Turn number 3 "))
+        #expect(instructions.contains("QuietGPT: Turn number 10 "))
     }
 
     @Test func asksAgainInTheLanguageOfThePrompt() async throws {

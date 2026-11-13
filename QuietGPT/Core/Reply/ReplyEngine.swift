@@ -7,21 +7,8 @@ struct ChatTurn {
 
 @MainActor
 final class ReplyEngine {
-    private static let instructions = """
-    You are QuietGPT, a private assistant that lives fully on the user's iPhone. \
-    Nothing the user writes leaves the device. \
-    Be warm and clear, like a knowledgeable friend. \
-    When you explain or compare, say how it works step by step and what it means in practice for the user. \
-    When you write something for the user, write the full text, ready to send. \
-    Do not end with a question. Never invent a number, a date or a name. \
-    Use Markdown lists or code blocks only when they help. \
-    Never describe yourself as a model or an AI model. You are QuietGPT.
-    """
-
-    private static let recallTurns = 8
     private static let retryTurns = 4
     private static let languageTurns = 3
-    private static let recallCharacters = 600
     private static let simulatedWordDelay = Duration.milliseconds(45)
 
     private let engine: any TextEngine
@@ -56,7 +43,7 @@ final class ReplyEngine {
     }
 
     func prepare() {
-        engine.prepare(instructions: Self.instructions)
+        engine.prepare()
     }
 
     func forget(_ conversationID: UUID) {
@@ -138,7 +125,7 @@ final class ReplyEngine {
         history: [ChatTurn],
         into continuation: AsyncThrowingStream<String, Error>.Continuation
     ) async throws -> Bool {
-        let replies = engine.reply(to: prompt, in: conversationID, instructions: Self.instructions(recalling: history), options: TextOptions())
+        let replies = engine.reply(to: prompt, in: conversationID, history: history, options: TextOptions())
         var output = ""
         var isSettled = expected == nil
         for try await snapshot in replies {
@@ -158,15 +145,6 @@ final class ReplyEngine {
             continuation.yield(output)
         }
         return true
-    }
-
-    private static func instructions(recalling history: [ChatTurn]) -> String {
-        let recent = history.suffix(recallTurns)
-        guard !recent.isEmpty else { return instructions }
-        let recap = recent
-            .map { "\($0.role == .user ? "User" : "QuietGPT"): \($0.text.prefix(recallCharacters))" }
-            .joined(separator: "\n")
-        return instructions + "\n\nThe conversation so far:\n" + recap
     }
 
     private static func simulatedStream(_ text: String) -> AsyncThrowingStream<String, Error> {

@@ -1,0 +1,10 @@
+torch==2.7.0
+coremltools==9.0
+transformers==5.23.0
+safetensors
+numpy
+huggingface_hub
+scikit-learn>=1.4,<1.6
+typer
+jinja2
+lone-ane==0.1.1

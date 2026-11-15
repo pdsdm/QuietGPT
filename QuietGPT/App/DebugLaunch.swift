@@ -51,6 +51,10 @@ enum DebugLaunch {
         if let prompt = defaults.string(forKey: Key.prompt.rawValue), !prompt.isEmpty {
             controller.send(prompt)
         }
+        if DebugBattery.isPlanned {
+            tab = .keyboard
+            Task { await DebugBattery.run() }
+        }
         if let sets = defaults.string(forKey: Key.eval.rawValue), !sets.isEmpty {
             Task { await DebugEval.run(sets: sets.components(separatedBy: ",")) }
         }

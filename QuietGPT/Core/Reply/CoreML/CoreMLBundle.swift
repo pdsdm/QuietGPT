@@ -61,6 +61,11 @@ nonisolated struct CoreMLBundle: Decodable, Sendable {
     let chunks: [Chunk]
     let head: Head
     let embedding: Embedding
+    let contexts: [Int]?
+
+    var sizes: [Int] {
+        contexts ?? [shapes.ctx]
+    }
 
     static func load(from folder: URL) throws -> CoreMLBundle {
         let decoder = JSONDecoder()
@@ -77,7 +82,17 @@ nonisolated struct CoreMLBundle: Decodable, Sendable {
     }
 
     func cacheLength(_ kind: String) -> Int {
-        kind == Self.slidingAttention ? min(spec.slidingWindow, shapes.ctx) : shapes.ctx
+        cacheLength(kind, size: shapes.ctx)
+    }
+
+    func cacheLength(_ kind: String, size: Int) -> Int {
+        kind == Self.slidingAttention ? min(spec.slidingWindow, size) : size
+    }
+
+    func graph(_ chunk: Chunk, _ tag: String, size: Int) -> Graph? {
+        guard let graph = chunk.models[tag] else { return nil }
+        guard contexts != nil else { return graph }
+        return Graph(file: graph.file, function: "\(tag)_\(size)")
     }
 
     func attentionLayers(_ chunk: Chunk) -> [Int] {

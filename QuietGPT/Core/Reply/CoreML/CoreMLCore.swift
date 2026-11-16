@@ -32,6 +32,8 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     private static let logger = Logger(subsystem: "QuietGPT", category: "coreml")
 
     let queue = DispatchQueue(label: "QuietGPT.coreml", qos: .userInitiated)
+    private let warmQueue = DispatchQueue(label: "QuietGPT.coreml.warm", qos: .utility)
+    static let reserve = 768
     let folder: URL
     private let compiledFolder: URL
     private let units: MLComputeUnits
@@ -53,6 +55,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     private var row: [Float] = []
 
     private(set) var pos = 0
+    private(set) var size = 0
     private(set) var predictSeconds = 0.0
     private var cached: [Int32] = []
     private var cachedConversation: UUID?
@@ -74,7 +77,11 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     }
 
     var context: Int {
-        bundle?.shapes.ctx ?? 0
+        bundle == nil ? 0 : size
+    }
+
+    var sizes: [Int] {
+        bundle?.sizes ?? []
     }
 
     func unload() {
@@ -92,6 +99,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         bundle = nil
         snapshot = nil
         pos = 0
+        size = 0
         forgetAll()
     }
 
@@ -112,47 +120,14 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let bundle = try CoreMLBundle.load(from: folder)
         precondition(bundle.ring, "Core ML bundle without a ring buffer")
         try FileManager.default.createDirectory(at: compiledFolder, withIntermediateDirectories: true)
-        var parts: [Part] = []
-        for chunk in bundle.chunks {
-            guard let decode = chunk.models["decode"] else { throw TextEngineError.notReady }
-            let decodeModel = try model(decode)
-            if let prefill = chunk.models["prefill"] {
-                try autoreleasepool { _ = try model(prefill) }
-            }
-            parts.append(Part(
-                chunk: chunk,
-                decode: decodeModel,
-                prefill: chunk.models["prefill"],
-                attention: bundle.attentionLayers(chunk),
-                conv: bundle.convLayers(chunk),
-                kinds: bundle.attentionKinds(chunk)
-            ))
-        }
+        size = bundle.sizes[0]
+        try loadParts(bundle, warm: true)
         heads = try bundle.head.chunks.map { (try model(CoreMLBundle.Graph(file: $0.file, function: nil)), $0.start, $0.end) }
-        self.parts = parts
-
         let spec = bundle.spec
-        for layer in 0..<spec.layerTypes.count {
-            if bundle.isAttention(layer) {
-                let length = bundle.cacheLength(bundle.kind(layer))
-                keys[layer] = try Self.surfaceArray(heads: spec.numKvHeads, rows: length, width: spec.headDim)
-                values[layer] = try Self.surfaceArray(heads: spec.numKvHeads, rows: length, width: spec.headDim)
-            } else {
-                convs[layer] = try MLMultiArray(shape: [1, spec.hiddenSize, spec.convKernel - 1].map { NSNumber(value: $0) }, dataType: .float16)
-            }
-        }
         for (kind, rope) in spec.rope {
             inverse[kind] = CoreMLMath.inverseFrequencies(theta: rope.theta, partial: rope.partial, headDim: spec.headDim)
         }
-        for seq in Set([1, bundle.shapes.prefill]) {
-            var set = Inputs(hidden: try Self.array([1, seq, spec.hiddenSize]))
-            for kind in CoreMLBundle.attentionKinds where spec.rope[kind] != nil {
-                set.cos[kind] = try Self.array([1, seq, spec.headDim])
-                set.sin[kind] = try Self.array([1, seq, spec.headDim])
-                set.mask[kind] = try Self.array([1, 1, seq, bundle.cacheLength(kind) + seq])
-            }
-            inputs[seq] = set
-        }
+        try makeCaches(bundle, keeping: 0)
         headInput = try Self.array([1, 1, spec.hiddenSize])
         embedding = try Data(contentsOf: folder.appending(path: bundle.embedding.file), options: .alwaysMapped)
         let scaleData = try Data(contentsOf: folder.appending(path: bundle.embedding.scale))
@@ -172,6 +147,129 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         vocab = llama_model_get_vocab(vocabModel)
         self.bundle = bundle
         try reset()
+    }
+
+    private func loadParts(_ bundle: CoreMLBundle, warm: Bool) throws {
+        var parts: [Part] = []
+        for chunk in bundle.chunks {
+            guard let decode = bundle.graph(chunk, "decode", size: size) else { throw TextEngineError.notReady }
+            let decodeModel = try model(decode)
+            let prefill = bundle.graph(chunk, "prefill", size: size)
+            if warm, let prefill {
+                try autoreleasepool { _ = try model(prefill) }
+            }
+            parts.append(Part(
+                chunk: chunk,
+                decode: decodeModel,
+                prefill: prefill,
+                attention: bundle.attentionLayers(chunk),
+                conv: bundle.convLayers(chunk),
+                kinds: bundle.attentionKinds(chunk)
+            ))
+        }
+        self.parts = parts
+    }
+
+    private func makeCaches(_ bundle: CoreMLBundle, keeping rows: Int) throws {
+        let spec = bundle.spec
+        var newKeys: [Int: MLMultiArray] = [:]
+        var newValues: [Int: MLMultiArray] = [:]
+        for layer in 0..<spec.layerTypes.count {
+            if bundle.isAttention(layer) {
+                let length = bundle.cacheLength(bundle.kind(layer), size: size)
+                let k = try Self.surfaceArray(heads: spec.numKvHeads, rows: length, width: spec.headDim)
+                let v = try Self.surfaceArray(heads: spec.numKvHeads, rows: length, width: spec.headDim)
+                if let oldK = keys[layer], let oldV = values[layer] {
+                    let oldLength = oldK.shape[2].intValue
+                    let count = oldLength == length ? length : min(rows, length, oldLength)
+                    Self.copyRows(oldK, into: k, rows: count)
+                    Self.copyRows(oldV, into: v, rows: count)
+                }
+                newKeys[layer] = k
+                newValues[layer] = v
+            } else if convs[layer] == nil {
+                convs[layer] = try MLMultiArray(shape: [1, spec.hiddenSize, spec.convKernel - 1].map { NSNumber(value: $0) }, dataType: .float16)
+            }
+        }
+        keys = newKeys
+        values = newValues
+        inputs = [:]
+        for seq in Set([1, bundle.shapes.prefill]) {
+            var set = Inputs(hidden: try Self.array([1, seq, spec.hiddenSize]))
+            for kind in CoreMLBundle.attentionKinds where spec.rope[kind] != nil {
+                set.cos[kind] = try Self.array([1, seq, spec.headDim])
+                set.sin[kind] = try Self.array([1, seq, spec.headDim])
+                set.mask[kind] = try Self.array([1, 1, seq, bundle.cacheLength(kind, size: size) + seq])
+            }
+            inputs[seq] = set
+        }
+    }
+
+    func resize(to newSize: Int) throws {
+        guard let bundle, newSize != size, bundle.sizes.contains(newSize), pos <= newSize else { return }
+        let started = Date()
+        let old = size
+        parts = []
+        size = newSize
+        do {
+            try makeCaches(bundle, keeping: pos)
+            try loadParts(bundle, warm: false)
+        } catch {
+            unload()
+            throw error
+        }
+        let seconds = Date().timeIntervalSince(started)
+        Self.logger.notice("Context \(old) to \(newSize) at \(self.pos) tokens in \(seconds, format: .fixed(precision: 2), privacy: .public) s")
+    }
+
+    func target(for need: Int) -> Int? {
+        sizes.first { need <= $0 }
+    }
+
+    func adapt() {
+        guard isLoaded, sizes.count > 1 else { return }
+        let used = cachedConversation == nil ? 0 : pos
+        let need = used + Self.reserve
+        var next = size
+        if need > size {
+            next = target(for: need) ?? sizes[sizes.count - 1]
+        } else if let smaller = sizes.first(where: { need <= $0 - 256 }), smaller < size {
+            next = smaller
+        }
+        guard next != size else { return }
+        if used == 0 {
+            pos = 0
+        }
+        do {
+            try resize(to: next)
+        } catch {
+            Self.logger.error("Context change failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    func prewarm() {
+        guard let bundle, bundle.sizes.count > 1 else { return }
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        let system = ProcessInfo.processInfo.operatingSystemVersionString.filter { $0.isNumber || $0 == "." }
+        let marker = compiledFolder.appending(path: "warm-\(build)-\(system)")
+        guard !FileManager.default.fileExists(atPath: marker.path) else { return }
+        let graphs = bundle.sizes.dropFirst().flatMap { size in
+            bundle.chunks.flatMap { chunk in ["decode", "prefill"].compactMap { bundle.graph(chunk, $0, size: size) } }
+        }
+        warmQueue.async { [self] in
+            let started = Date()
+            for graph in graphs {
+                do {
+                    try autoreleasepool { _ = try model(graph) }
+                } catch {
+                    Self.logger.error("Warm failed for \(graph.function ?? "main", privacy: .public): \(String(describing: error), privacy: .public)")
+                    return
+                }
+            }
+            FileManager.default.createFile(atPath: marker.path, contents: nil)
+            let seconds = Date().timeIntervalSince(started)
+            Self.logger.notice("Larger contexts warmed in \(seconds, format: .fixed(precision: 1), privacy: .public) s")
+        }
     }
 
     func reset() throws {
@@ -317,7 +415,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         guard let bundle else { throw TextEngineError.notReady }
         let block = bundle.shapes.prefill
         guard let set = inputs[block] else { throw TextEngineError.failed }
-        guard pos + ids.count <= bundle.shapes.ctx else { throw TextEngineError.tooLong }
+        guard pos + ids.count <= size else { throw TextEngineError.tooLong }
         let count = ids.count / block
         let hidden = try (0..<count).map { b in
             let array = try Self.array([1, block, bundle.spec.hiddenSize])
@@ -342,8 +440,8 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     }
 
     private func forward(_ id: Int32) throws -> MLMultiArray {
-        guard let bundle, let set = inputs[1] else { throw TextEngineError.failed }
-        guard pos + 1 <= bundle.shapes.ctx else { throw TextEngineError.tooLong }
+        guard bundle != nil, let set = inputs[1] else { throw TextEngineError.failed }
+        guard pos + 1 <= size else { throw TextEngineError.tooLong }
         embed([id], into: set.hidden)
         fill(set, seq: 1, pos: pos)
         var hidden = set.hidden
@@ -363,7 +461,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             Self.write(sines, into: sinArray)
             let mask = CoreMLMath.mask(
                 sliding: kind == CoreMLBundle.slidingAttention,
-                length: bundle.cacheLength(kind),
+                length: bundle.cacheLength(kind, size: size),
                 seq: seq,
                 pos: pos,
                 window: bundle.spec.slidingWindow
@@ -391,7 +489,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let out = try model.prediction(from: MLDictionaryFeatureProvider(dictionary: features))
         predictSeconds += Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
         for layer in part.attention {
-            let length = bundle.cacheLength(bundle.kind(layer))
+            let length = bundle.cacheLength(bundle.kind(layer), size: size)
             try Self.store(out.featureValue(for: "k_\(layer)_out")?.multiArrayValue, into: keys[layer]!, pos: pos, length: length)
             try Self.store(out.featureValue(for: "v_\(layer)_out")?.multiArrayValue, into: values[layer]!, pos: pos, length: length)
         }
@@ -513,7 +611,34 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let attributes = [kCVPixelBufferIOSurfacePropertiesKey: [:] as CFDictionary] as CFDictionary
         let status = CVPixelBufferCreate(nil, width, heads * rows, kCVPixelFormatType_OneComponent16Half, attributes, &buffer)
         guard status == kCVReturnSuccess, let buffer else { throw TextEngineError.failed }
-        return MLMultiArray(pixelBuffer: buffer, shape: [1, heads, rows, width].map { NSNumber(value: $0) })
+        let array = MLMultiArray(pixelBuffer: buffer, shape: [1, heads, rows, width].map { NSNumber(value: $0) })
+        array.withUnsafeMutableBytes { raw, _ in
+            _ = memset(raw.baseAddress!, 0, raw.count)
+        }
+        return array
+    }
+
+    private static func copyRows(_ source: MLMultiArray, into target: MLMultiArray, rows: Int) {
+        let heads = source.shape[1].intValue
+        let width = source.shape[3].intValue
+        guard rows > 0 else { return }
+        source.withUnsafeMutableBufferPointer(ofType: Float16.self) { from, s in
+            target.withUnsafeMutableBufferPointer(ofType: Float16.self) { to, t in
+                for h in 0..<heads {
+                    for r in 0..<rows {
+                        let a = h * s[1] + r * s[2]
+                        let b = h * t[1] + r * t[2]
+                        if s[3] == 1, t[3] == 1 {
+                            (to.baseAddress! + b).update(from: from.baseAddress! + a, count: width)
+                        } else {
+                            for c in 0..<width {
+                                to[b + c * t[3]] = from[a + c * s[3]]
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static func write(_ values: [Float16], into array: MLMultiArray) {
@@ -595,13 +720,17 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             try load()
             metrics.loadSeconds = Date().timeIntervalSince(started)
         }
-        let room = min(maxTokens, context / 4)
+        let room = { (size: Int) in min(maxTokens, size / 4) }
         var reuse = cachedConversation == conversation && cachedTurns == turns && !cached.isEmpty
         var tokens: [Int32] = []
         var fresh: [Int32] = []
         if reuse {
             let added = try tokenize(next)
-            if cached.count + added.count + room <= context {
+            let total = cached.count + added.count
+            if total + room(context) > context, let bigger = sizes.first(where: { total + room($0) <= $0 }) {
+                try resize(to: bigger)
+            }
+            if total + room(context) <= context {
                 fresh = added
                 tokens = cached + added
                 metrics.reusedTokens = cached.count
@@ -611,13 +740,21 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         }
         if !reuse {
             forgetAll()
-            var dropped = 0
             tokens = try tokenize(full(0))
-            while tokens.count + room > context, dropped + 2 <= turns {
+            let count = tokens.count
+            if count + room(context) > context {
+                let bigger = sizes.first(where: { count + room($0) <= $0 }) ?? sizes[sizes.count - 1]
+                if bigger > context {
+                    pos = 0
+                    try resize(to: bigger)
+                }
+            }
+            var dropped = 0
+            while tokens.count + room(context) > context, dropped + 2 <= turns {
                 dropped += 2
                 tokens = try tokenize(full(dropped))
             }
-            guard tokens.count + room <= context else {
+            guard tokens.count + room(context) <= context else {
                 try reset()
                 throw TextEngineError.tooLong
             }
@@ -672,6 +809,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         (metrics.footprintMB, metrics.peakMB) = EngineMetrics.memory()
         metrics.thermal = EngineMetrics.thermal()
         metrics.predictSeconds = predictSeconds
+        metrics.context = context
         return metrics
     }
 }

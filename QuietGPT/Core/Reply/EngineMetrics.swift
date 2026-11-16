@@ -13,6 +13,7 @@ nonisolated struct EngineMetrics: Sendable {
     var thermal = ""
     var predictSeconds: Double?
     var droppedTurns = 0
+    var context = 0
 
     var summary: String {
         let load = loadSeconds.map { String(format: "load %.2f s · ", $0) } ?? ""
@@ -27,6 +28,7 @@ nonisolated struct EngineMetrics: Sendable {
             + "memory \(footprintMB) MB, peak \(peakMB) MB · thermal \(thermal)"
             + (predictSeconds.map { String(format: " · Core ML %.2f s", $0) } ?? "")
             + (droppedTurns > 0 ? " · dropped \(droppedTurns) turns" : "")
+            + (context > 0 ? " · context \(context)" : "")
     }
 
     static func memory() -> (Int, Int) {

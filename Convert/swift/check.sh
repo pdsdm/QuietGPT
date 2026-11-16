@@ -14,4 +14,4 @@ research=../../QuietRESEARCH/phase0
 if [[ ! -f "$work/reference.json" ]]; then
   .venv/bin/python swift_reference.py --bundle "$bundle" --prompts "$research/prompts.jsonl" --system-file "$research/prompts.py" --out "$work/reference.json"
 fi
-"$work/check" "$bundle" "$work/reference.json" "$work/compiled"
+"$work/check" "$bundle" "$work/reference.json" "$work/compiled-$(basename "$bundle")"

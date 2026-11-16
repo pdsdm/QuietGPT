@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-bundle="${1:-bundles/lfm3-lut8-2048-app}"
+bundle="${1:-bundles/lfm3-lut8-dyn-app}"
 work="${TMPDIR:-/tmp}/quietgpt-coreml-check"
 mkdir -p "$work/llama"
 prefix="$(brew --prefix llama.cpp)"

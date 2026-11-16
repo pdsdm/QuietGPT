@@ -9,7 +9,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     private struct Part {
         let chunk: CoreMLBundle.Chunk
         let decode: MLModel
-        let prefill: MLModel?
+        let prefill: CoreMLBundle.Graph?
         let attention: [Int]
         let conv: [Int]
         let kinds: [String]
@@ -108,11 +108,13 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         for chunk in bundle.chunks {
             guard let decode = chunk.models["decode"] else { throw TextEngineError.notReady }
             let decodeModel = try model(decode)
-            let prefillModel = try chunk.models["prefill"].map(model)
+            if let prefill = chunk.models["prefill"] {
+                try autoreleasepool { _ = try model(prefill) }
+            }
             parts.append(Part(
                 chunk: chunk,
                 decode: decodeModel,
-                prefill: prefillModel,
+                prefill: chunk.models["prefill"],
                 attention: bundle.attentionLayers(chunk),
                 conv: bundle.convLayers(chunk),
                 kinds: bundle.attentionKinds(chunk)
@@ -192,25 +194,67 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     func feed(_ ids: [Int32], isCancelled: () -> Bool = { false }) throws -> [Float] {
         guard let bundle else { throw TextEngineError.notReady }
         guard !ids.isEmpty else { throw TextEngineError.failed }
-        var offset = 0
+        let block = bundle.shapes.prefill
+        let canPrefill = block > 1 && parts.allSatisfy { $0.prefill != nil }
+        let blocks = canPrefill ? CoreMLMath.passes(count: ids.count, prefill: block).filter { $0 == block }.count : 0
         var last: MLMultiArray?
-        for seq in CoreMLMath.passes(count: ids.count, prefill: bundle.shapes.prefill) {
+        if blocks > 0 {
+            last = try prefill(Array(ids[0..<blocks * block]), isCancelled: isCancelled)
+        }
+        for id in ids[(blocks * block)...] {
             if isCancelled() { throw CancellationError() }
-            last = try autoreleasepool { try forward(Array(ids[offset..<offset + seq])) }
-            offset += seq
+            last = try autoreleasepool { try forward(id) }
         }
         return try autoreleasepool { try head(last!) }
     }
 
     func step(_ token: Int32) throws -> [Float] {
-        try autoreleasepool { try head(forward([token])) }
+        try autoreleasepool { try head(forward(token)) }
     }
 
-    private func forward(_ ids: [Int32]) throws -> MLMultiArray {
-        guard let bundle, let set = inputs[ids.count] else { throw TextEngineError.failed }
-        let seq = ids.count
-        guard pos + seq <= bundle.shapes.ctx else { throw TextEngineError.tooLong }
-        embed(ids, into: set.hidden)
+    private func prefill(_ ids: [Int32], isCancelled: () -> Bool) throws -> MLMultiArray {
+        guard let bundle else { throw TextEngineError.notReady }
+        let block = bundle.shapes.prefill
+        guard let set = inputs[block] else { throw TextEngineError.failed }
+        guard pos + ids.count <= bundle.shapes.ctx else { throw TextEngineError.tooLong }
+        let count = ids.count / block
+        let hidden = try (0..<count).map { b in
+            let array = try Self.array([1, block, bundle.spec.hiddenSize])
+            embed(Array(ids[b * block..<(b + 1) * block]), into: array)
+            return array
+        }
+        for part in parts {
+            if isCancelled() { throw CancellationError() }
+            guard let graph = part.prefill else { throw TextEngineError.failed }
+            try autoreleasepool {
+                let model = try model(graph)
+                for b in 0..<count {
+                    let start = pos + b * block
+                    fill(set, seq: block, pos: start)
+                    let out = try run(part, model: model, hidden: hidden[b], set: set, seq: block, pos: start)
+                    Self.copy(out, into: hidden[b])
+                }
+            }
+        }
+        pos += ids.count
+        return hidden[count - 1]
+    }
+
+    private func forward(_ id: Int32) throws -> MLMultiArray {
+        guard let bundle, let set = inputs[1] else { throw TextEngineError.failed }
+        guard pos + 1 <= bundle.shapes.ctx else { throw TextEngineError.tooLong }
+        embed([id], into: set.hidden)
+        fill(set, seq: 1, pos: pos)
+        var hidden = set.hidden
+        for part in parts {
+            hidden = try run(part, model: part.decode, hidden: hidden, set: set, seq: 1, pos: pos)
+        }
+        pos += 1
+        return hidden
+    }
+
+    private func fill(_ set: Inputs, seq: Int, pos: Int) {
+        guard let bundle else { return }
         for (kind, inverse) in inverse {
             guard let cosArray = set.cos[kind], let sinArray = set.sin[kind], let maskArray = set.mask[kind] else { continue }
             let (cosines, sines) = CoreMLMath.rope(inverse: inverse, start: pos, count: seq)
@@ -225,39 +269,37 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             )
             Self.write(mask, into: maskArray)
         }
-        var hidden = set.hidden
-        for part in parts {
-            var features: [String: MLFeatureValue] = ["hidden": MLFeatureValue(multiArray: hidden)]
-            for kind in part.kinds {
-                features["cos_\(kind)"] = MLFeatureValue(multiArray: set.cos[kind]!)
-                features["sin_\(kind)"] = MLFeatureValue(multiArray: set.sin[kind]!)
-                features["mask_\(kind)"] = MLFeatureValue(multiArray: set.mask[kind]!)
-            }
-            for layer in part.attention {
-                features["k_\(layer)"] = MLFeatureValue(multiArray: keys[layer]!)
-                features["v_\(layer)"] = MLFeatureValue(multiArray: values[layer]!)
-            }
-            for layer in part.conv {
-                features["conv_\(layer)"] = MLFeatureValue(multiArray: convs[layer]!)
-            }
-            let model = seq == 1 ? part.decode : (part.prefill ?? part.decode)
-            let started = DispatchTime.now().uptimeNanoseconds
-            let out = try model.prediction(from: MLDictionaryFeatureProvider(dictionary: features))
-            predictSeconds += Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
-            for layer in part.attention {
-                let length = bundle.cacheLength(bundle.kind(layer))
-                try Self.store(out.featureValue(for: "k_\(layer)_out")?.multiArrayValue, into: keys[layer]!, pos: pos, length: length)
-                try Self.store(out.featureValue(for: "v_\(layer)_out")?.multiArrayValue, into: values[layer]!, pos: pos, length: length)
-            }
-            for layer in part.conv {
-                guard let state = out.featureValue(for: "conv_\(layer)_out")?.multiArrayValue else { throw TextEngineError.failed }
-                Self.copy(state, into: convs[layer]!)
-            }
-            guard let next = out.featureValue(for: "hidden_out")?.multiArrayValue else { throw TextEngineError.failed }
-            hidden = next
+    }
+
+    private func run(_ part: Part, model: MLModel, hidden: MLMultiArray, set: Inputs, seq: Int, pos: Int) throws -> MLMultiArray {
+        guard let bundle else { throw TextEngineError.notReady }
+        var features: [String: MLFeatureValue] = ["hidden": MLFeatureValue(multiArray: hidden)]
+        for kind in part.kinds {
+            features["cos_\(kind)"] = MLFeatureValue(multiArray: set.cos[kind]!)
+            features["sin_\(kind)"] = MLFeatureValue(multiArray: set.sin[kind]!)
+            features["mask_\(kind)"] = MLFeatureValue(multiArray: set.mask[kind]!)
         }
-        pos += seq
-        return hidden
+        for layer in part.attention {
+            features["k_\(layer)"] = MLFeatureValue(multiArray: keys[layer]!)
+            features["v_\(layer)"] = MLFeatureValue(multiArray: values[layer]!)
+        }
+        for layer in part.conv {
+            features["conv_\(layer)"] = MLFeatureValue(multiArray: convs[layer]!)
+        }
+        let started = DispatchTime.now().uptimeNanoseconds
+        let out = try model.prediction(from: MLDictionaryFeatureProvider(dictionary: features))
+        predictSeconds += Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
+        for layer in part.attention {
+            let length = bundle.cacheLength(bundle.kind(layer))
+            try Self.store(out.featureValue(for: "k_\(layer)_out")?.multiArrayValue, into: keys[layer]!, pos: pos, length: length)
+            try Self.store(out.featureValue(for: "v_\(layer)_out")?.multiArrayValue, into: values[layer]!, pos: pos, length: length)
+        }
+        for layer in part.conv {
+            guard let state = out.featureValue(for: "conv_\(layer)_out")?.multiArrayValue else { throw TextEngineError.failed }
+            Self.copy(state, into: convs[layer]!)
+        }
+        guard let next = out.featureValue(for: "hidden_out")?.multiArrayValue else { throw TextEngineError.failed }
+        return next
     }
 
     private func head(_ hidden: MLMultiArray) throws -> [Float] {

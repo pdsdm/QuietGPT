@@ -15,7 +15,9 @@ final class CoreMLTextEngine: TextEngine {
         WeightStore.folder.appending(path: bundleName + "-compiled", directoryHint: .isDirectory)
     }
 
-    private let core = CoreMLCore(folder: CoreMLTextEngine.folder, compiledFolder: CoreMLTextEngine.compiledFolder)
+    nonisolated private static let shared = CoreMLCore(folder: folder, compiledFolder: compiledFolder)
+
+    private let core = CoreMLTextEngine.shared
     private var running: OSAllocatedUnfairLock<Bool>?
     private var observers: [NSObjectProtocol] = []
 

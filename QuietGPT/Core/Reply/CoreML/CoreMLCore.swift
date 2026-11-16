@@ -211,9 +211,33 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         try reset()
         forgetAll()
         _ = try advance(prefix)
-        snapshot = Snapshot(tokens: prefix, pos: pos, arrays: cacheArrays().mapValues { array in
-            array.withUnsafeMutableBytes { raw, _ in Data(raw) }
-        })
+        snapshot = Snapshot(tokens: prefix, pos: pos, arrays: cacheArrays().mapValues(save))
+    }
+
+    private func usedRows(_ array: MLMultiArray) -> Int? {
+        let shape = array.shape.map(\.intValue)
+        guard shape.count == 4, shape[2] == context, array.strides.last?.intValue == 1 else { return nil }
+        return min(pos, shape[2])
+    }
+
+    private func save(_ array: MLMultiArray) -> Data {
+        guard let rows = usedRows(array) else {
+            return array.withUnsafeMutableBytes { raw, _ in Data(raw) }
+        }
+        let heads = array.shape[1].intValue
+        let width = array.shape[3].intValue
+        var data = Data(count: heads * rows * width * 2)
+        array.withUnsafeMutableBufferPointer(ofType: Float16.self) { source, strides in
+            data.withUnsafeMutableBytes { raw in
+                let target = raw.bindMemory(to: Float16.self).baseAddress!
+                for h in 0..<heads {
+                    for r in 0..<rows {
+                        (target + (h * rows + r) * width).update(from: source.baseAddress! + h * strides[1] + r * strides[2], count: width)
+                    }
+                }
+            }
+        }
+        return data
     }
 
     func begin(prefix text: String, ids: [Int32]) throws -> Int {
@@ -232,15 +256,31 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
 
     private func restore(_ prefix: [Int32]) -> Bool {
         guard let snapshot, snapshot.tokens == prefix else { return false }
+        pos = snapshot.pos
         for (name, array) in cacheArrays() {
             guard let data = snapshot.arrays[name] else { return false }
-            array.withUnsafeMutableBytes { raw, _ in
-                data.withUnsafeBytes { source in
-                    raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: source.prefix(raw.count)))
+            if let rows = usedRows(array) {
+                let heads = array.shape[1].intValue
+                let width = array.shape[3].intValue
+                guard data.count == heads * rows * width * 2 else { return false }
+                array.withUnsafeMutableBufferPointer(ofType: Float16.self) { target, strides in
+                    data.withUnsafeBytes { raw in
+                        let source = raw.bindMemory(to: Float16.self).baseAddress!
+                        for h in 0..<heads {
+                            for r in 0..<rows {
+                                (target.baseAddress! + h * strides[1] + r * strides[2]).update(from: source + (h * rows + r) * width, count: width)
+                            }
+                        }
+                    }
+                }
+            } else {
+                array.withUnsafeMutableBytes { raw, _ in
+                    data.withUnsafeBytes { source in
+                        raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: source.prefix(raw.count)))
+                    }
                 }
             }
         }
-        pos = snapshot.pos
         return true
     }
 
@@ -541,7 +581,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         conversation: UUID,
         turns: Int,
         prefix: String,
-        full: String,
+        full: (Int) -> String,
         next: String,
         maxTokens: Int,
         sampler: inout CoreMLSampler,
@@ -555,27 +595,39 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             try load()
             metrics.loadSeconds = Date().timeIntervalSince(started)
         }
-        let reuse = cachedConversation == conversation && cachedTurns == turns && !cached.isEmpty
-        var tokens: [Int32]
-        let fresh: [Int32]
+        let room = min(maxTokens, context / 4)
+        var reuse = cachedConversation == conversation && cachedTurns == turns && !cached.isEmpty
+        var tokens: [Int32] = []
+        var fresh: [Int32] = []
         if reuse {
-            fresh = try tokenize(next)
-            tokens = cached + fresh
-            metrics.reusedTokens = cached.count
-        } else {
+            let added = try tokenize(next)
+            if cached.count + added.count + room <= context {
+                fresh = added
+                tokens = cached + added
+                metrics.reusedTokens = cached.count
+            } else {
+                reuse = false
+            }
+        }
+        if !reuse {
             forgetAll()
-            tokens = try tokenize(full)
+            var dropped = 0
+            tokens = try tokenize(full(0))
+            while tokens.count + room > context, dropped + 2 <= turns {
+                dropped += 2
+                tokens = try tokenize(full(dropped))
+            }
+            guard tokens.count + room <= context else {
+                try reset()
+                throw TextEngineError.tooLong
+            }
+            metrics.droppedTurns = dropped
             let reused = try begin(prefix: prefix, ids: tokens)
             fresh = Array(tokens[reused...])
             metrics.reusedTokens = reused
         }
         metrics.promptTokens = tokens.count
         cachedConversation = nil
-        guard tokens.count + 64 <= context else {
-            try reset()
-            forgetAll()
-            throw TextEngineError.tooLong
-        }
         let limit = min(maxTokens, context - tokens.count)
         let prefillStart = Date()
         var current: [Float]

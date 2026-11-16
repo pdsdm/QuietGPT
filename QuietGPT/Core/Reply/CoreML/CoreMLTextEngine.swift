@@ -5,7 +5,14 @@ import UIKit
 @MainActor
 final class CoreMLTextEngine: TextEngine {
     nonisolated private static let logger = Logger(subsystem: "QuietGPT", category: "coreml")
-    nonisolated static let bundleName = "lfm3-lut8-2048-app"
+    nonisolated static var bundleName: String {
+        #if DEBUG
+        if let name = UserDefaults.standard.string(forKey: "QuietGPTBundle"), !name.isEmpty {
+            return name
+        }
+        #endif
+        return "lfm3-lut8-2048-app"
+    }
 
     nonisolated static var folder: URL {
         WeightStore.folder.appending(path: bundleName, directoryHint: .isDirectory)
@@ -73,7 +80,7 @@ final class CoreMLTextEngine: TextEngine {
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error> {
         let core = core
         let thinking = options.thinking
-        let full = LFMPrompt.text(history: history, prompt: prompt, thinking: thinking)
+        let full = { (dropped: Int) in LFMPrompt.text(history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: thinking) }
         let next = LFMPrompt.next(prompt: prompt, thinking: thinking)
         let maxTokens = thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens
         let turns = history.count
@@ -136,7 +143,7 @@ final class CoreMLTextEngine: TextEngine {
 
     func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil) async throws -> (String, EngineMetrics) {
         let core = core
-        let full = LFMPrompt.text(system: system, history: history, prompt: prompt, thinking: false)
+        let full = { (dropped: Int) in LFMPrompt.text(system: system, history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: false) }
         let turns = history.count
         return try await withCheckedThrowingContinuation { continuation in
             core.queue.async {

@@ -45,6 +45,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     private var row: [Float] = []
 
     private(set) var pos = 0
+    private(set) var predictSeconds = 0.0
     private var cached: [Int32] = []
     private var cachedConversation: UUID?
     private var cachedTurns = -1
@@ -193,14 +194,14 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         var last: MLMultiArray?
         for seq in CoreMLMath.passes(count: ids.count, prefill: bundle.shapes.prefill) {
             if isCancelled() { throw CancellationError() }
-            last = try forward(Array(ids[offset..<offset + seq]))
+            last = try autoreleasepool { try forward(Array(ids[offset..<offset + seq])) }
             offset += seq
         }
-        return try head(last!)
+        return try autoreleasepool { try head(last!) }
     }
 
     func step(_ token: Int32) throws -> [Float] {
-        try head(forward([token]))
+        try autoreleasepool { try head(forward([token])) }
     }
 
     private func forward(_ ids: [Int32]) throws -> MLMultiArray {
@@ -238,7 +239,9 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
                 features["conv_\(layer)"] = MLFeatureValue(multiArray: convs[layer]!)
             }
             let model = seq == 1 ? part.decode : (part.prefill ?? part.decode)
+            let started = DispatchTime.now().uptimeNanoseconds
             let out = try model.prediction(from: MLDictionaryFeatureProvider(dictionary: features))
+            predictSeconds += Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
             for layer in part.attention {
                 let length = bundle.cacheLength(bundle.kind(layer))
                 try Self.store(out.featureValue(for: "k_\(layer)_out")?.multiArrayValue, into: keys[layer]!, pos: pos, length: length)
@@ -270,7 +273,10 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         }
         let provider = try MLDictionaryFeatureProvider(dictionary: ["hidden": MLFeatureValue(multiArray: headInput)])
         for part in heads {
-            guard let out = try part.model.prediction(from: provider).featureValue(for: "logits")?.multiArrayValue else {
+            let started = DispatchTime.now().uptimeNanoseconds
+            let result = try part.model.prediction(from: provider)
+            predictSeconds += Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
+            guard let out = result.featureValue(for: "logits")?.multiArrayValue else {
                 throw TextEngineError.failed
             }
             let strides = out.strides.map(\.intValue)
@@ -325,7 +331,13 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let configuration = MLModelConfiguration()
         configuration.computeUnits = units
         configuration.functionName = graph.function
-        return try MLModel(contentsOf: compiled, configuration: configuration)
+        do {
+            return try MLModel(contentsOf: compiled, configuration: configuration)
+        } catch {
+            try? FileManager.default.removeItem(at: compiled)
+            try FileManager.default.moveItem(at: try Self.compile(package), to: compiled)
+            return try MLModel(contentsOf: compiled, configuration: configuration)
+        }
     }
 
     private static func compile(_ package: URL) throws -> URL {
@@ -427,6 +439,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         yield: (String) -> Void
     ) throws -> EngineMetrics {
         var metrics = EngineMetrics()
+        predictSeconds = 0
         if !isLoaded {
             let started = Date()
             try load()
@@ -495,6 +508,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         }
         (metrics.footprintMB, metrics.peakMB) = EngineMetrics.memory()
         metrics.thermal = EngineMetrics.thermal()
+        metrics.predictSeconds = predictSeconds
         return metrics
     }
 }

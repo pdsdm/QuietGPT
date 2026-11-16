@@ -54,17 +54,33 @@ enum DebugBattery {
         UIApplication.shared.isIdleTimerDisabled = true
         defer { UIApplication.shared.isIdleTimerDisabled = false }
 
-        let llama = LlamaTextEngine(weights: .q8)
-        llama.prepare()
-        while llama.store.state != .ready {
-            if case .failed(let reason) = llama.store.state {
-                logger.error("Battery test stopped: \(reason, privacy: .public)")
+        let names = Set(plan.phases.map(\.engine))
+        var engines: [String: any TextEngine] = [:]
+        if names.contains("lfm3") {
+            let llama = LlamaTextEngine(weights: .q8)
+            llama.prepare()
+            while llama.store.state != .ready {
+                if case .failed(let reason) = llama.store.state {
+                    logger.error("Battery test stopped: \(reason, privacy: .public)")
+                    return
+                }
+                try? await Task.sleep(for: .seconds(1))
+            }
+            engines["lfm3"] = llama
+        }
+        if names.contains("lfm3-ane") {
+            let ane = CoreMLTextEngine()
+            guard await ane.loaded() else {
+                logger.error("Battery test stopped: Core ML parts did not load")
                 return
             }
-            try? await Task.sleep(for: .seconds(1))
+            engines["lfm3-ane"] = ane
         }
-        let apple = AppleTextEngine()
-        apple.prepare()
+        if names.contains("apple") {
+            let apple = AppleTextEngine()
+            apple.prepare()
+            engines["apple"] = apple
+        }
 
         while device.batteryState == .charging || device.batteryState == .full {
             write(sample(kind: "waiting", phase: "unplug", start: .now), to: output)
@@ -76,11 +92,7 @@ enum DebugBattery {
         for phase in plan.phases where !stopped {
             let end = Date().addingTimeInterval(phase.minutes * 60)
             logger.notice("Battery phase \(phase.engine, privacy: .public) for \(phase.minutes) min")
-            let engine: (any TextEngine)? = switch phase.engine {
-            case "lfm3": llama
-            case "apple": apple
-            default: nil
-            }
+            let engine = engines[phase.engine]
             var conversation = UUID()
             var history: [ChatTurn] = []
             var index = 0

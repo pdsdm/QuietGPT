@@ -119,6 +119,21 @@ final class CoreMLTextEngine: TextEngine {
     }
 
     #if DEBUG
+    func loaded() async -> Bool {
+        guard isAvailable else { return false }
+        let core = core
+        return await withCheckedContinuation { continuation in
+            core.queue.async {
+                do {
+                    try core.warm(prefix: LFMPrompt.prefix())
+                    continuation.resume(returning: true)
+                } catch {
+                    continuation.resume(returning: false)
+                }
+            }
+        }
+    }
+
     func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil) async throws -> (String, EngineMetrics) {
         let core = core
         let full = LFMPrompt.text(system: system, history: history, prompt: prompt, thinking: false)

@@ -3,6 +3,7 @@ import CoreML
 import CoreVideo
 import Foundation
 import llama
+import os
 
 nonisolated final class CoreMLCore: @unchecked Sendable {
     private struct Part {
@@ -22,6 +23,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     }
 
     private static let backend: Void = llama_backend_init()
+    private static let logger = Logger(subsystem: "QuietGPT", category: "coreml")
 
     let queue = DispatchQueue(label: "QuietGPT.coreml", qos: .userInitiated)
     let folder: URL
@@ -331,13 +333,17 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let configuration = MLModelConfiguration()
         configuration.computeUnits = units
         configuration.functionName = graph.function
+        let loaded: MLModel
         do {
-            return try MLModel(contentsOf: compiled, configuration: configuration)
+            loaded = try MLModel(contentsOf: compiled, configuration: configuration)
         } catch {
             try? FileManager.default.removeItem(at: compiled)
             try FileManager.default.moveItem(at: try Self.compile(package), to: compiled)
-            return try MLModel(contentsOf: compiled, configuration: configuration)
+            loaded = try MLModel(contentsOf: compiled, configuration: configuration)
         }
+        let footprint = EngineMetrics.memory().0
+        Self.logger.notice("Loaded \(graph.file, privacy: .public) \(graph.function ?? "main", privacy: .public): footprint \(footprint) MB")
+        return loaded
     }
 
     private static func compile(_ package: URL) throws -> URL {

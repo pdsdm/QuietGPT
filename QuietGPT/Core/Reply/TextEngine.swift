@@ -26,6 +26,7 @@ protocol TextEngine: AnyObject {
 enum TextEngineKind: String, CaseIterable {
     case apple
     case lfm3
+    case lfm3ane = "lfm3-ane"
 
     static var selected: TextEngineKind {
         #if DEBUG
@@ -55,6 +56,8 @@ enum TextEngineKind: String, CaseIterable {
             AppleTextEngine()
         case .lfm3:
             LlamaTextEngine(weights: Self.weights)
+        case .lfm3ane:
+            CoreMLTextEngine()
         }
     }
 }

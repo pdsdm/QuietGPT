@@ -105,7 +105,7 @@ final class LlamaTextEngine: TextEngine {
     }
 
     #if DEBUG
-    func complete(system: String, history: [ChatTurn], prompt: String) async throws -> (String, LlamaMetrics) {
+    func complete(system: String, history: [ChatTurn], prompt: String) async throws -> (String, EngineMetrics) {
         let core = core ?? LlamaCore(path: store.fileURL.path)
         self.core = core
         let full = LFMPrompt.text(system: system, history: history, prompt: prompt, thinking: false)

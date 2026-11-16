@@ -65,7 +65,7 @@ enum DebugEval {
                 let prompt = item.messages.last?.content ?? ""
                 let started = Date()
                 var reply = ""
-                var metrics = LlamaMetrics()
+                var metrics = EngineMetrics()
                 var failure: String?
                 do {
                     (reply, metrics) = try await engine.complete(system: system, history: history, prompt: prompt)

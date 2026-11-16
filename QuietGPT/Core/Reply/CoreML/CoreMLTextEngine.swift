@@ -51,7 +51,7 @@ final class CoreMLTextEngine: TextEngine {
             guard !core.isLoaded else { return }
             let started = Date()
             do {
-                try core.load()
+                try core.warm(prefix: LFMPrompt.prefix())
                 let seconds = Date().timeIntervalSince(started)
                 Self.logger.notice("Core ML parts loaded in \(seconds, format: .fixed(precision: 2), privacy: .public) s")
             } catch {
@@ -88,6 +88,7 @@ final class CoreMLTextEngine: TextEngine {
                     let metrics = try core.generate(
                         conversation: conversationID,
                         turns: turns,
+                        prefix: LFMPrompt.prefix(),
                         full: full,
                         next: next,
                         maxTokens: maxTokens,
@@ -127,7 +128,7 @@ final class CoreMLTextEngine: TextEngine {
                 do {
                     var raw = ""
                     var sampler = seed.map { CoreMLSampler(seed: $0) } ?? CoreMLSampler()
-                    let metrics = try core.generate(conversation: UUID(), turns: turns, full: full, next: "", maxTokens: LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
+                    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
                     continuation.resume(returning: (raw, metrics))
                 } catch {
                     continuation.resume(throwing: error)

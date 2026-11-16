@@ -15,6 +15,12 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let kinds: [String]
     }
 
+    private struct Snapshot {
+        let tokens: [Int32]
+        let pos: Int
+        let arrays: [String: Data]
+    }
+
     private struct Inputs {
         let hidden: MLMultiArray
         var cos: [String: MLMultiArray] = [:]
@@ -51,6 +57,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     private var cached: [Int32] = []
     private var cachedConversation: UUID?
     private var cachedTurns = -1
+    private var snapshot: Snapshot?
 
     init(folder: URL, compiledFolder: URL, units: MLComputeUnits = .cpuAndNeuralEngine) {
         self.folder = folder
@@ -83,6 +90,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         vocabModel = nil
         vocab = nil
         bundle = nil
+        snapshot = nil
         pos = 0
         forgetAll()
     }
@@ -192,8 +200,61 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     }
 
     func feed(_ ids: [Int32], isCancelled: () -> Bool = { false }) throws -> [Float] {
+        guard let last = try advance(ids, isCancelled: isCancelled) else { throw TextEngineError.failed }
+        return try autoreleasepool { try head(last) }
+    }
+
+    func warm(prefix text: String) throws {
+        try load()
+        let prefix = try tokenize(text)
+        guard snapshot?.tokens != prefix, !prefix.isEmpty else { return }
+        try reset()
+        forgetAll()
+        _ = try advance(prefix)
+        snapshot = Snapshot(tokens: prefix, pos: pos, arrays: cacheArrays().mapValues { array in
+            array.withUnsafeMutableBytes { raw, _ in Data(raw) }
+        })
+    }
+
+    func begin(prefix text: String, ids: [Int32]) throws -> Int {
+        try reset()
+        let prefix = try tokenize(text)
+        guard prefix.count < ids.count, ids.starts(with: prefix) else { return 0 }
+        if !restore(prefix) {
+            try warm(prefix: text)
+            guard restore(prefix) else {
+                try reset()
+                return 0
+            }
+        }
+        return prefix.count
+    }
+
+    private func restore(_ prefix: [Int32]) -> Bool {
+        guard let snapshot, snapshot.tokens == prefix else { return false }
+        for (name, array) in cacheArrays() {
+            guard let data = snapshot.arrays[name] else { return false }
+            array.withUnsafeMutableBytes { raw, _ in
+                data.withUnsafeBytes { source in
+                    raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: source.prefix(raw.count)))
+                }
+            }
+        }
+        pos = snapshot.pos
+        return true
+    }
+
+    private func cacheArrays() -> [String: MLMultiArray] {
+        var arrays: [String: MLMultiArray] = [:]
+        for (layer, array) in keys { arrays["k\(layer)"] = array }
+        for (layer, array) in values { arrays["v\(layer)"] = array }
+        for (layer, array) in convs { arrays["c\(layer)"] = array }
+        return arrays
+    }
+
+    private func advance(_ ids: [Int32], isCancelled: () -> Bool = { false }) throws -> MLMultiArray? {
         guard let bundle else { throw TextEngineError.notReady }
-        guard !ids.isEmpty else { throw TextEngineError.failed }
+        guard !ids.isEmpty else { return nil }
         let block = bundle.shapes.prefill
         let canPrefill = block > 1 && parts.allSatisfy { $0.prefill != nil }
         let blocks = canPrefill ? CoreMLMath.passes(count: ids.count, prefill: block).filter { $0 == block }.count : 0
@@ -205,7 +266,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             if isCancelled() { throw CancellationError() }
             last = try autoreleasepool { try forward(id) }
         }
-        return try autoreleasepool { try head(last!) }
+        return last
     }
 
     func step(_ token: Int32) throws -> [Float] {
@@ -479,6 +540,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
     func generate(
         conversation: UUID,
         turns: Int,
+        prefix: String,
         full: String,
         next: String,
         maxTokens: Int,
@@ -501,10 +563,11 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
             tokens = cached + fresh
             metrics.reusedTokens = cached.count
         } else {
-            try reset()
             forgetAll()
-            fresh = try tokenize(full)
-            tokens = fresh
+            tokens = try tokenize(full)
+            let reused = try begin(prefix: prefix, ids: tokens)
+            fresh = Array(tokens[reused...])
+            metrics.reusedTokens = reused
         }
         metrics.promptTokens = tokens.count
         cachedConversation = nil

@@ -21,9 +21,14 @@ for item in cases {
         tokens = try core.tokenize(text) == item.ids ? "same" : "DIFFERENT"
         allMatch = allMatch && tokens == "same"
     }
-    try core.reset()
+    var reused = 0
     let prefillStart = Date()
-    var logits = try core.feed(item.ids)
+    if let text = item.text, let end = text.range(of: "<|im_end|>\n") {
+        reused = try core.begin(prefix: String(text[..<end.upperBound]), ids: item.ids)
+    } else {
+        try core.reset()
+    }
+    var logits = try core.feed(Array(item.ids[reused...]))
     let prefill = Date().timeIntervalSince(prefillStart)
     var output: [Int32] = []
     let decodeStart = Date()
@@ -36,8 +41,8 @@ for item in cases {
     let prefix = zip(output, item.greedy).prefix { $0 == $1 }.count
     let same = zip(output, item.greedy).filter { $0 == $1 }.count
     allMatch = allMatch && prefix == item.greedy.count
-    print(String(format: "%-16@ prompt %4d  tokens %@  first diff at %2d/%d  same %2d  prefill %.2f s  decode %.1f tok/s",
-                 item.id as NSString, item.ids.count, tokens, prefix, item.greedy.count, same, prefill, Double(item.greedy.count) / decode))
+    print(String(format: "%-16@ reused %3d  prompt %4d  tokens %@  first diff at %2d/%d  same %2d  prefill %.2f s  decode %.1f tok/s",
+                 item.id as NSString, reused, item.ids.count, tokens, prefix, item.greedy.count, same, prefill, Double(item.greedy.count) / decode))
 }
 print(allMatch ? "ALL MATCH" : "DIFFERENCES")
 

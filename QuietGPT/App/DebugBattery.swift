@@ -46,7 +46,13 @@ enum DebugBattery {
             logger.error("Battery test plan missing or invalid")
             return
         }
-        try? FileManager.default.moveItem(at: planURL, to: URL.documentsDirectory.appending(path: "battery-test.started.json"))
+        let started = URL.documentsDirectory.appending(path: "battery-test.started.json")
+        try? FileManager.default.removeItem(at: started)
+        try? FileManager.default.moveItem(at: planURL, to: started)
+        guard !plan.phases.isEmpty else {
+            logger.notice("Battery test plan is empty")
+            return
+        }
         let stamp = ISO8601DateFormatter().string(from: .now).replacingOccurrences(of: ":", with: "-")
         let output = URL.documentsDirectory.appending(path: "battery-\(stamp).jsonl")
         let device = UIDevice.current

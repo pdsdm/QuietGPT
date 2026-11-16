@@ -22,6 +22,7 @@ enum DebugLaunch {
         case weights = "QuietGPTWeights"
         case prompts = "QuietGPTPrompts"
         case eval = "QuietGPTEval"
+        case computePlan = "QuietGPTComputePlan"
     }
 
     static var weights: String? {
@@ -54,6 +55,9 @@ enum DebugLaunch {
         if DebugBattery.isPlanned {
             tab = .keyboard
             Task { await DebugBattery.run() }
+        }
+        if defaults.bool(forKey: Key.computePlan.rawValue) {
+            Task.detached { await CoreMLPlanReport.run(compiledFolder: CoreMLTextEngine.compiledFolder) }
         }
         if let sets = defaults.string(forKey: Key.eval.rawValue), !sets.isEmpty {
             Task { await DebugEval.run(sets: sets.components(separatedBy: ",")) }

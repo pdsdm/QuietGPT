@@ -11,7 +11,7 @@ final class CoreMLTextEngine: TextEngine {
             return name
         }
         #endif
-        return "lfm3-lut8-4096-app"
+        return "lfm3-lut8-dyn-app"
     }
 
     nonisolated static var folder: URL {
@@ -59,6 +59,7 @@ final class CoreMLTextEngine: TextEngine {
             let started = Date()
             do {
                 try core.warm(prefix: LFMPrompt.prefix())
+                core.prewarm()
                 let seconds = Date().timeIntervalSince(started)
                 Self.logger.notice("Core ML parts loaded in \(seconds, format: .fixed(precision: 2), privacy: .public) s")
             } catch {
@@ -118,6 +119,7 @@ final class CoreMLTextEngine: TextEngine {
                 } catch {
                     continuation.finish(throwing: error)
                 }
+                core.adapt()
             }
             continuation.onTermination = { _ in
                 cancelled.withLock { $0 = true }
@@ -133,6 +135,7 @@ final class CoreMLTextEngine: TextEngine {
             core.queue.async {
                 do {
                     try core.warm(prefix: LFMPrompt.prefix())
+                    core.prewarm()
                     continuation.resume(returning: true)
                 } catch {
                     continuation.resume(returning: false)
@@ -155,6 +158,7 @@ final class CoreMLTextEngine: TextEngine {
                 } catch {
                     continuation.resume(throwing: error)
                 }
+                core.adapt()
             }
         }
     }

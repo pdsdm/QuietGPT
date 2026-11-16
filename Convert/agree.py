@@ -52,7 +52,10 @@ def reference(args):
 
 
 def bundle(args):
-    from lone.runtime import LoneModel
+    if args.packed:
+        from packed import PackedModel as LoneModel
+    else:
+        from lone.runtime import LoneModel
 
     model = LoneModel(args.bundle, args.compute_units)
     items = json.load(open(args.reference))
@@ -116,6 +119,7 @@ def main():
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--compute-units", default="cpu_and_ne")
     parser.add_argument("--out", default="")
+    parser.add_argument("--packed", action="store_true")
     parser.add_argument("--phase", default="all", choices=["all", "reference", "bundle"])
     args = parser.parse_args()
     if args.phase == "reference" or (args.phase == "all" and not os.path.exists(args.reference)):

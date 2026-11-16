@@ -11,7 +11,7 @@ final class CoreMLTextEngine: TextEngine {
             return name
         }
         #endif
-        return "lfm3-lut8-2048-app"
+        return "lfm3-lut8-4096-app"
     }
 
     nonisolated static var folder: URL {

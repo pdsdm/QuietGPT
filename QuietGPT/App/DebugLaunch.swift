@@ -23,6 +23,7 @@ enum DebugLaunch {
         case prompts = "QuietGPTPrompts"
         case eval = "QuietGPTEval"
         case computePlan = "QuietGPTComputePlan"
+        case longChat = "QuietGPTLongChat"
     }
 
     static var weights: String? {
@@ -58,6 +59,9 @@ enum DebugLaunch {
         }
         if defaults.bool(forKey: Key.computePlan.rawValue) {
             Task.detached { await CoreMLPlanReport.run(compiledFolder: CoreMLTextEngine.compiledFolder) }
+        }
+        if defaults.bool(forKey: Key.longChat.rawValue) {
+            Task { await DebugLongChat.run() }
         }
         if let sets = defaults.string(forKey: Key.eval.rawValue), !sets.isEmpty {
             Task { await DebugEval.run(sets: sets.components(separatedBy: ",")) }

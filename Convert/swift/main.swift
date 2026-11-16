@@ -46,6 +46,23 @@ for item in cases {
 }
 print(allMatch ? "ALL MATCH" : "DIFFERENCES")
 
+if let first = cases.first?.text, let end = first.range(of: "<|im_end|>\n") {
+    let prefix = String(first[..<end.upperBound])
+    let turn = String(repeating: "This is a long earlier message about many things. ", count: 30)
+    let turns = 2 * max(4, core.context / 600)
+    let full = { (dropped: Int) -> String in
+        var text = prefix
+        for index in dropped..<turns {
+            text += index % 2 == 0 ? "<|im_start|>user\n\(turn)<|im_end|>\n" : "<|im_start|>assistant\n<think></think>\(turn)<|im_end|>\n"
+        }
+        return text + "<|im_start|>user\nSay hello.<|im_end|>\n<|im_start|>assistant\n<think></think>"
+    }
+    var sampler = CoreMLSampler(seed: 1)
+    sampler.temperature = 0
+    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: prefix, full: full, next: "", maxTokens: 32, sampler: &sampler, isCancelled: { false }) { _ in }
+    print("trim: context \(core.context), \(turns) turns, prompt \(metrics.promptTokens) tokens, dropped \(metrics.droppedTurns) turns, \(metrics.generatedTokens) tokens written")
+}
+
 enum TextEngineError: Error {
     case notReady
     case tooLong

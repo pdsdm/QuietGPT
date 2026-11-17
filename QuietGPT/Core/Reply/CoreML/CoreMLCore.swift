@@ -251,7 +251,8 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         guard let bundle, bundle.sizes.count > 1 else { return }
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
         let system = ProcessInfo.processInfo.operatingSystemVersionString.filter { $0.isNumber || $0 == "." }
-        let marker = compiledFolder.appending(path: "warm-\(build)-\(system)")
+        let install = Bundle.main.bundleURL.deletingLastPathComponent().lastPathComponent
+        let marker = compiledFolder.appending(path: "warm-\(build)-\(system)-\(install)")
         guard !FileManager.default.fileExists(atPath: marker.path) else { return }
         let graphs = bundle.sizes.dropFirst().flatMap { size in
             bundle.chunks.flatMap { chunk in ["decode", "prefill"].compactMap { bundle.graph(chunk, $0, size: size) } }

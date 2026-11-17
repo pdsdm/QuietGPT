@@ -128,6 +128,10 @@ final class CoreMLTextEngine: TextEngine {
     }
 
     #if DEBUG
+    func evalUnload() {
+        release(because: "eval", cancelling: false)
+    }
+
     func loaded() async -> Bool {
         guard isAvailable else { return false }
         let core = core

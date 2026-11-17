@@ -53,6 +53,10 @@ enum DebugLaunch {
         if let prompt = defaults.string(forKey: Key.prompt.rawValue), !prompt.isEmpty {
             controller.send(prompt)
         }
+        if DebugEval.isPlanned {
+            tab = .keyboard
+            Task { await DebugEval.runPlan() }
+        }
         if DebugBattery.isPlanned {
             tab = .keyboard
             Task { await DebugBattery.run() }

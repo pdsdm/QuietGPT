@@ -105,6 +105,11 @@ final class LlamaTextEngine: TextEngine {
     }
 
     #if DEBUG
+    func evalUnload() {
+        release(because: "eval", cancelling: false)
+        core = nil
+    }
+
     func complete(system: String, history: [ChatTurn], prompt: String) async throws -> (String, EngineMetrics) {
         let core = core ?? LlamaCore(path: store.fileURL.path)
         self.core = core

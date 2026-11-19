@@ -53,6 +53,23 @@ targets:
     sources:
       - path: QuietGPT
       - path: Rewrite
+    postBuildScripts:
+      - name: Embed text engine bundle
+        basedOnDependencyAnalysis: false
+        shell: /bin/sh
+        script: |
+          source="$SRCROOT/Convert/bundles/lfm3-lut8-dyn-app"
+          target="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/lfm3-lut8-dyn-app"
+          if [ "$CONFIGURATION" != "Release" ] && [ "$QUIETGPT_EMBED_BUNDLE" != "YES" ]; then
+            rm -rf "$target"
+            exit 0
+          fi
+          if [ ! -f "$source/manifest.json" ]; then
+            echo "error: missing $source"
+            exit 1
+          fi
+          mkdir -p "$target"
+          rsync -a --delete "$source/" "$target/"
     dependencies:
       - target: QuietGPTKeyboard
       - framework: Vendor/llama.xcframework
@@ -87,6 +104,7 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: 1
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
   QuietGPTKeyboard:
     type: app-extension
     platform: iOS

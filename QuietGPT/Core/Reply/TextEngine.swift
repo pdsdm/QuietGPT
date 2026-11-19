@@ -37,7 +37,7 @@ enum TextEngineKind: String, CaseIterable {
             return kind
         }
         #endif
-        return .apple
+        return CoreMLTextEngine.isInstalled ? .lfm3ane : .apple
     }
 
     static var weights: Weights {

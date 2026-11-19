@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import os
 import UIKit
@@ -15,11 +16,29 @@ final class CoreMLTextEngine: TextEngine {
     }
 
     nonisolated static var folder: URL {
-        WeightStore.folder.appending(path: bundleName, directoryHint: .isDirectory)
+        if let embedded = Bundle.main.url(forResource: bundleName, withExtension: nil) {
+            return embedded
+        }
+        return WeightStore.folder.appending(path: bundleName, directoryHint: .isDirectory)
     }
 
     nonisolated static var compiledFolder: URL {
-        WeightStore.folder.appending(path: bundleName + "-compiled", directoryHint: .isDirectory)
+        let manifest = (try? Data(contentsOf: folder.appending(path: "manifest.json"))) ?? Data()
+        let stamp = SHA256.hash(data: manifest).prefix(6).map { String(format: "%02x", $0) }.joined()
+        return WeightStore.folder.appending(path: "\(bundleName)-compiled-\(stamp)", directoryHint: .isDirectory)
+    }
+
+    nonisolated static func removeOldCompiled() {
+        let current = compiledFolder.lastPathComponent
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: WeightStore.folder.path)) ?? []
+        for name in names where name.hasPrefix(bundleName + "-compiled") && name != current {
+            try? FileManager.default.removeItem(at: WeightStore.folder.appending(path: name, directoryHint: .isDirectory))
+            logger.notice("Removed old compiled parts: \(name, privacy: .public)")
+        }
+    }
+
+    nonisolated static var isInstalled: Bool {
+        FileManager.default.fileExists(atPath: folder.appending(path: "manifest.json").path)
     }
 
     nonisolated private static let shared = CoreMLCore(folder: folder, compiledFolder: compiledFolder)
@@ -44,7 +63,7 @@ final class CoreMLTextEngine: TextEngine {
     }
 
     var isAvailable: Bool {
-        FileManager.default.fileExists(atPath: Self.folder.appending(path: "manifest.json").path)
+        Self.isInstalled
     }
 
     var unavailableReply: String {
@@ -56,6 +75,7 @@ final class CoreMLTextEngine: TextEngine {
         let core = core
         core.queue.async {
             guard !core.isLoaded else { return }
+            Self.removeOldCompiled()
             let started = Date()
             do {
                 try core.warm(prefix: LFMPrompt.prefix())

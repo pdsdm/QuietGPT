@@ -51,6 +51,7 @@ enum DebugEval {
         var temperature: Float?
         var penalty: Float?
         var minP: Float?
+        var thinking: Bool?
     }
 
     static var tuning: Run?
@@ -311,7 +312,7 @@ extension CoreMLTextEngine: EvalEngine {
 
     func complete(system: String, history: [ChatTurn], prompt: String, kind: String) async throws -> (String, EngineMetrics) {
         let tuning = DebugEval.tuning
-        return try await complete(system: system, history: history, prompt: prompt, seed: nil) { sampler in
+        return try await complete(system: system, history: history, prompt: prompt, seed: nil, thinking: tuning?.thinking ?? false) { sampler in
             if let value = tuning?.temperature { sampler.temperature = value }
             if let value = tuning?.penalty { sampler.penalty = value }
             if let value = tuning?.minP { sampler.minP = value }

@@ -168,9 +168,9 @@ final class CoreMLTextEngine: TextEngine {
         }
     }
 
-    func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
+    func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil, thinking: Bool = false, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
         let core = core
-        let full = { (dropped: Int) in LFMPrompt.text(system: system, history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: false) }
+        let full = { (dropped: Int) in LFMPrompt.text(system: system, history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: thinking) }
         let turns = history.count
         return try await withCheckedThrowingContinuation { continuation in
             core.queue.async {
@@ -178,7 +178,7 @@ final class CoreMLTextEngine: TextEngine {
                     var raw = ""
                     var sampler = seed.map { CoreMLSampler(seed: $0) } ?? CoreMLSampler()
                     tune(&sampler)
-                    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
+                    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
                     continuation.resume(returning: (raw, metrics))
                 } catch {
                     continuation.resume(throwing: error)

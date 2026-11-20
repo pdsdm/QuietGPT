@@ -42,6 +42,10 @@ final class ReplyEngine {
         engine.isAvailable
     }
 
+    var supportsThinking: Bool {
+        engine.supportsThinking
+    }
+
     func prepare() {
         engine.prepare()
     }
@@ -54,7 +58,7 @@ final class ReplyEngine {
         engine.forgetAll()
     }
 
-    func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn]) -> AsyncThrowingStream<String, Error> {
+    func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions = TextOptions()) -> AsyncThrowingStream<String, Error> {
         #if DEBUG
         if let simulatedReply {
             return Self.simulatedStream(simulatedReply)
@@ -68,12 +72,12 @@ final class ReplyEngine {
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    try await self.answer(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation)
+                    try await self.answer(prompt, expected: expected, conversationID: conversationID, history: history, options: options, into: continuation)
                     continuation.finish()
                 } catch TextEngineError.tooLong {
                     self.engine.forget(conversationID)
                     do {
-                        try await self.answer(prompt, expected: expected, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), into: continuation)
+                        try await self.answer(prompt, expected: expected, conversationID: conversationID, history: Array(history.suffix(Self.retryTurns)), options: options, into: continuation)
                         continuation.finish()
                     } catch {
                         continuation.finish(throwing: error)
@@ -105,17 +109,18 @@ final class ReplyEngine {
         expected: String?,
         conversationID: UUID,
         history: [ChatTurn],
+        options: TextOptions,
         into continuation: AsyncThrowingStream<String, Error>.Continuation
     ) async throws {
         guard let expected else {
-            _ = try await stream(prompt, expected: nil, conversationID: conversationID, history: history, into: continuation)
+            _ = try await stream(prompt, expected: nil, conversationID: conversationID, history: history, options: options, into: continuation)
             return
         }
-        if try await stream(prompt, expected: expected, conversationID: conversationID, history: history, into: continuation) {
+        if try await stream(prompt, expected: expected, conversationID: conversationID, history: history, options: options, into: continuation) {
             return
         }
         engine.forget(conversationID)
-        _ = try await stream(Self.firm(prompt, in: expected), expected: nil, conversationID: conversationID, history: history, into: continuation)
+        _ = try await stream(Self.firm(prompt, in: expected), expected: nil, conversationID: conversationID, history: history, options: options, into: continuation)
     }
 
     private func stream(
@@ -123,9 +128,10 @@ final class ReplyEngine {
         expected: String?,
         conversationID: UUID,
         history: [ChatTurn],
+        options: TextOptions,
         into continuation: AsyncThrowingStream<String, Error>.Continuation
     ) async throws -> Bool {
-        let replies = engine.reply(to: prompt, in: conversationID, history: history, options: TextOptions())
+        let replies = engine.reply(to: prompt, in: conversationID, history: history, options: options)
         var output = ""
         var isSettled = expected == nil
         for try await snapshot in replies {

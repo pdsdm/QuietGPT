@@ -11,13 +11,15 @@ final class Message {
     var id: UUID
     var roleValue: String
     var text: String
+    var thought: String?
     var createdAt: Date
     var conversation: Conversation?
 
-    init(role: MessageRole, text: String, createdAt: Date = .now) {
+    init(role: MessageRole, text: String, thought: String? = nil, createdAt: Date = .now) {
         self.id = UUID()
         self.roleValue = role.rawValue
         self.text = text
+        self.thought = thought
         self.createdAt = createdAt
     }
 

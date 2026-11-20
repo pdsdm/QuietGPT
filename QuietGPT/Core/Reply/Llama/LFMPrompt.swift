@@ -78,6 +78,11 @@ nonisolated enum LFMPrompt {
         return withoutOffer(result)
     }
 
+    static func thought(_ reply: String) -> String {
+        let head = reply.range(of: "</think>").map { String(reply[..<$0.lowerBound]) } ?? reply
+        return head.replacingOccurrences(of: "<think>", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private static func withoutTics(_ text: String, prompt: String) -> String {
         var result = replace(technology, in: text, with: "")
         let asked = identityQuestion.firstMatch(in: prompt, range: NSRange(prompt.startIndex..., in: prompt)) != nil

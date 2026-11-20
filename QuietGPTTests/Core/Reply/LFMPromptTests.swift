@@ -73,4 +73,9 @@ struct LFMPromptTests {
     @Test func removesADashSignature() {
         #expect(LFMPrompt.clean("Thanks for watering my plants!\n\n— QuietGPT", thinking: false, final: true) == "Thanks for watering my plants!")
     }
+
+    @Test func readsTheThoughtWhileItThinks() {
+        #expect(LFMPrompt.thought("The user asks about Berlin") == "The user asks about Berlin")
+        #expect(LFMPrompt.thought("The wall fell in 1989.</think>It fell in 1989.") == "The wall fell in 1989.")
+    }
 }

@@ -66,6 +66,10 @@ final class CoreMLTextEngine: TextEngine {
         Self.isInstalled
     }
 
+    var supportsThinking: Bool {
+        true
+    }
+
     var unavailableReply: String {
         "QuietGPT is getting ready on this iPhone. Try again soon. Your chats stay on this device."
     }
@@ -101,6 +105,7 @@ final class CoreMLTextEngine: TextEngine {
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error> {
         let core = core
         let thinking = options.thinking
+        let onThought = options.onThought
         let full = { (dropped: Int) in LFMPrompt.text(history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: thinking) }
         let next = LFMPrompt.next(prompt: prompt, thinking: thinking)
         let maxTokens = thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens
@@ -112,6 +117,7 @@ final class CoreMLTextEngine: TextEngine {
                 do {
                     var raw = ""
                     var shown = ""
+                    var shownThought = ""
                     var sampler = CoreMLSampler()
                     let metrics = try core.generate(
                         conversation: conversationID,
@@ -124,6 +130,13 @@ final class CoreMLTextEngine: TextEngine {
                         isCancelled: { cancelled.withLock { $0 } }
                     ) { text in
                         raw = text
+                        if thinking, let onThought {
+                            let thought = LFMPrompt.thought(text)
+                            if thought != shownThought {
+                                shownThought = thought
+                                onThought(thought)
+                            }
+                        }
                         let clean = LFMPrompt.clean(text, thinking: thinking, final: false, prompt: prompt)
                         if !clean.isEmpty, clean != shown {
                             shown = clean

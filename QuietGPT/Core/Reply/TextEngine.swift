@@ -9,18 +9,24 @@ enum TextEngineError: Error, Equatable {
     case failed
 }
 
-struct TextOptions: Equatable {
+struct TextOptions {
     var thinking = false
+    var onThought: (@Sendable (String) -> Void)?
 }
 
 @MainActor
 protocol TextEngine: AnyObject {
     var isAvailable: Bool { get }
     var unavailableReply: String { get }
+    var supportsThinking: Bool { get }
     func prepare()
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error>
     func forget(_ conversationID: UUID)
     func forgetAll()
+}
+
+extension TextEngine {
+    var supportsThinking: Bool { false }
 }
 
 enum TextEngineKind: String, CaseIterable {

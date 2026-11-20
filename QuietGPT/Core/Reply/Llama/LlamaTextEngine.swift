@@ -31,6 +31,10 @@ final class LlamaTextEngine: TextEngine {
         store.state == .ready
     }
 
+    var supportsThinking: Bool {
+        true
+    }
+
     var unavailableReply: String {
         switch store.state {
         case .downloading(let progress):
@@ -62,6 +66,7 @@ final class LlamaTextEngine: TextEngine {
         let core = core ?? LlamaCore(path: store.fileURL.path)
         self.core = core
         let thinking = options.thinking
+        let onThought = options.onThought
         let full = LFMPrompt.text(history: history, prompt: prompt, thinking: thinking)
         let next = LFMPrompt.next(prompt: prompt, thinking: thinking)
         let maxTokens = thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens
@@ -73,6 +78,7 @@ final class LlamaTextEngine: TextEngine {
                 do {
                     var raw = ""
                     var shown = ""
+                    var shownThought = ""
                     let metrics = try core.generate(
                         conversation: conversationID,
                         turns: turns,
@@ -82,6 +88,13 @@ final class LlamaTextEngine: TextEngine {
                         isCancelled: { cancelled.withLock { $0 } }
                     ) { text in
                         raw = text
+                        if thinking, let onThought {
+                            let thought = LFMPrompt.thought(text)
+                            if thought != shownThought {
+                                shownThought = thought
+                                onThought(thought)
+                            }
+                        }
                         let clean = LFMPrompt.clean(text, thinking: thinking, final: false, prompt: prompt)
                         if !clean.isEmpty, clean != shown {
                             shown = clean

@@ -124,13 +124,13 @@ final class CoreMLTextEngine: TextEngine {
                         isCancelled: { cancelled.withLock { $0 } }
                     ) { text in
                         raw = text
-                        let clean = LFMPrompt.clean(text, thinking: thinking, final: false)
+                        let clean = LFMPrompt.clean(text, thinking: thinking, final: false, prompt: prompt)
                         if !clean.isEmpty, clean != shown {
                             shown = clean
                             continuation.yield(clean)
                         }
                     }
-                    let final = LFMPrompt.clean(raw, thinking: thinking, final: true)
+                    let final = LFMPrompt.clean(raw, thinking: thinking, final: true, prompt: prompt)
                     if final != shown {
                         continuation.yield(final)
                     }

@@ -20,6 +20,16 @@ nonisolated enum LFMPrompt {
 
     private static let lineSignature = try! NSRegularExpression(pattern: #"\n[ \t]*QuietGPT( on your iPhone)?[ \t]*\.?[ \t]*(?=\n|$)"#)
     private static let endSignature = try! NSRegularExpression(pattern: #"([,.!])?[ \t]*QuietGPT\s*\.?\s*$"#)
+    private static let dashSignature = try! NSRegularExpression(pattern: #"\n[ \t]*[—–-]{1,2}[ \t]*QuietGPT[^\n]*"#)
+    private static let technology = try! NSRegularExpression(
+        pattern: #"[^.!?\n]*(liquid ai|liquid foundation|\bLFM\d*\b|short convolution|grouped-query attention|model card)[^.!?\n]*[.!?]?[ \t]*"#,
+        options: .caseInsensitive
+    )
+    private static let identity = try! NSRegularExpression(pattern: #"[^.!?\n]*QuietGPT,[^.!?\n]*iPhone[^.!?\n]*[.!?]?[ \t]*"#)
+    private static let identityQuestion = try! NSRegularExpression(
+        pattern: #"(who|what) (are|made|built|trained|created) you|which (ai|model)|what company|are you (chatgpt|llama|gemma|qwen|an? ai)|\bmodel\b|quién (eres|te)|qué eres|eres (chatgpt|llama|gemma|qwen)|modelo|qui ets|qui t'ha|qui es-tu|qui t'a|wer bist|chi sei|chi ti|quem (é|te)|o que você é"#,
+        options: .caseInsensitive
+    )
     private static let sentenceBreak = try! NSRegularExpression(pattern: #"(?<=[.!?])\s+"#)
     private static let offer = try! NSRegularExpression(
         pattern: #"(let me know|anything else|would you like|do you want|want me to|need (any )?(more )?help|how can i help|can i help|shall i|quieres|necesitas|te gustaría|puedo ayudarte|vols|t'ajudo|souhaitez|möchtest|vuoi|quer)"#,
@@ -47,7 +57,7 @@ nonisolated enum LFMPrompt {
         "<|im_end|>\n" + block("user", prompt) + opening(thinking: thinking)
     }
 
-    static func clean(_ reply: String, thinking: Bool, final: Bool) -> String {
+    static func clean(_ reply: String, thinking: Bool, final: Bool, prompt: String = "") -> String {
         let text: String
         if let end = reply.range(of: "</think>", options: .backwards) {
             text = String(reply[end.upperBound...])
@@ -58,12 +68,28 @@ nonisolated enum LFMPrompt {
         }
         var result = text.replacingOccurrences(of: "<think>", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
         result = replace(lineSignature, in: result, with: "")
+        result = replace(dashSignature, in: result, with: "")
+        result = withoutTics(result, prompt: prompt)
         guard final else { return result }
         result = replace(endSignature, in: result, with: "$1")
         while result.last?.isWhitespace == true {
             result.removeLast()
         }
         return withoutOffer(result)
+    }
+
+    private static func withoutTics(_ text: String, prompt: String) -> String {
+        var result = replace(technology, in: text, with: "")
+        let asked = identityQuestion.firstMatch(in: prompt, range: NSRange(prompt.startIndex..., in: prompt)) != nil
+        if !asked {
+            let trimmed = replace(identity, in: result, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                result = trimmed
+            }
+        }
+        result = result.replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+        let cleaned = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? text.trimmingCharacters(in: .whitespacesAndNewlines) : cleaned
     }
 
     private static func opening(thinking: Bool) -> String {

@@ -50,4 +50,27 @@ struct LFMPromptTests {
         #expect(LFMPrompt.clean("Is it today or tomorrow?", thinking: false, final: true) == "Is it today or tomorrow?")
         #expect(LFMPrompt.clean("I'm QuietGPT, a private assistant that runs on your iPhone.", thinking: false, final: true) == "I'm QuietGPT, a private assistant that runs on your iPhone.")
     }
+
+    @Test func removesTheIdentityLineWhenNotAsked() {
+        let reply = "Water boils at 100 °C at sea level.\n\nI'm QuietGPT, a private assistant that runs on your iPhone."
+
+        #expect(LFMPrompt.clean(reply, thinking: false, final: true, prompt: "When does water boil?") == "Water boils at 100 °C at sea level.")
+        #expect(LFMPrompt.clean("Soy QuietGPT, una asistente privada que funciona en tu iPhone. El IVA es del 21 %.", thinking: false, final: true, prompt: "¿Cuál es el IVA?") == "El IVA es del 21 %.")
+    }
+
+    @Test func keepsTheIdentityLineWhenAsked() {
+        let reply = "I'm QuietGPT, a private assistant that runs on your iPhone. I am not ChatGPT."
+
+        #expect(LFMPrompt.clean(reply, thinking: false, final: true, prompt: "Who are you?") == reply)
+    }
+
+    @Test func removesTheTechnology() {
+        let reply = "I'm QuietGPT, a private assistant that runs on your iPhone. I'm an LFM, built by Liquid AI. My design uses gated short convolutions."
+
+        #expect(LFMPrompt.clean(reply, thinking: false, final: true, prompt: "What are you?") == "I'm QuietGPT, a private assistant that runs on your iPhone.")
+    }
+
+    @Test func removesADashSignature() {
+        #expect(LFMPrompt.clean("Thanks for watering my plants!\n\n— QuietGPT", thinking: false, final: true) == "Thanks for watering my plants!")
+    }
 }

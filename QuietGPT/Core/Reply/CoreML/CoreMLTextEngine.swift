@@ -168,7 +168,7 @@ final class CoreMLTextEngine: TextEngine {
         }
     }
 
-    func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil) async throws -> (String, EngineMetrics) {
+    func complete(system: String, history: [ChatTurn], prompt: String, seed: UInt64? = nil, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
         let core = core
         let full = { (dropped: Int) in LFMPrompt.text(system: system, history: Array(history.dropFirst(dropped)), prompt: prompt, thinking: false) }
         let turns = history.count
@@ -177,6 +177,7 @@ final class CoreMLTextEngine: TextEngine {
                 do {
                     var raw = ""
                     var sampler = seed.map { CoreMLSampler(seed: $0) } ?? CoreMLSampler()
+                    tune(&sampler)
                     let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
                     continuation.resume(returning: (raw, metrics))
                 } catch {

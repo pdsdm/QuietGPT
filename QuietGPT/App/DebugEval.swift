@@ -38,10 +38,22 @@ enum DebugEval {
     private static let logger = Logger(subsystem: "QuietGPT", category: "eval")
 
     private struct Plan: Decodable {
-        let engines: [String]
+        let engines: [String]?
+        let runs: [Run]?
         let sets: [String]
         let pauseSeconds: Double?
     }
+
+    struct Run: Decodable {
+        var engine: String
+        var variant: String?
+        var label: String?
+        var temperature: Float?
+        var penalty: Float?
+        var minP: Float?
+    }
+
+    static var tuning: Run?
 
     private struct Stage: Encodable {
         let engine: String
@@ -91,7 +103,9 @@ enum DebugEval {
         let stamp = ISO8601DateFormatter()
         let log = URL.documentsDirectory.appending(path: "eval-plan-log.jsonl")
         var lines = (try? Data(contentsOf: log)) ?? Data()
-        for (index, name) in plan.engines.enumerated() {
+        let runs = plan.runs ?? (plan.engines ?? []).map { Run(engine: $0) }
+        for (index, current) in runs.enumerated() {
+            let name = current.engine
             if index > 0, let pause = plan.pauseSeconds, pause > 0 {
                 logger.notice("Eval plan pause \(pause) s")
                 try? await Task.sleep(for: .seconds(pause))
@@ -106,13 +120,16 @@ enum DebugEval {
                 continue
             }
             guard await engine.waitUntilReady() else { continue }
+            tuning = current
+            defer { tuning = nil }
             let begin = Date()
             let batteryStart = device.batteryLevel
             for set in plan.sets {
-                let variant = name == "apple" ? "apple" : "lfm"
-                await run(engine: engine, set: set, source: "eval-\(variant)-\(set).json")
+                let variant = current.variant ?? (name == "apple" ? "apple" : "lfm")
+                let label = engine.evalLabel + (current.label.map { "-" + $0 } ?? "")
+                await run(engine: engine, set: set, source: "eval-\(variant)-\(set).json", label: label)
             }
-            let stage = Stage(engine: name, started: stamp.string(from: begin), seconds: Date().timeIntervalSince(begin), battery_start: batteryStart, battery_end: device.batteryLevel, thermal_end: EngineMetrics.thermal())
+            let stage = Stage(engine: name + (current.label.map { "-" + $0 } ?? ""), started: stamp.string(from: begin), seconds: Date().timeIntervalSince(begin), battery_start: batteryStart, battery_end: device.batteryLevel, thermal_end: EngineMetrics.thermal())
             if let line = try? JSONEncoder().encode(stage) {
                 lines.append(line)
                 lines.append(Data("\n".utf8))
@@ -125,11 +142,11 @@ enum DebugEval {
         logger.notice("Eval done")
     }
 
-    private static func run(engine: any EvalEngine, set name: String, source: String) async {
+    private static func run(engine: any EvalEngine, set name: String, source: String, label: String? = nil) async {
         let documents = URL.documentsDirectory
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
-        let label = engine.evalLabel
+        let label = label ?? engine.evalLabel
         guard let data = try? Data(contentsOf: documents.appending(path: source)), let items = try? JSONDecoder().decode([Item].self, from: data) else {
             logger.error("Eval set missing: \(source, privacy: .public)")
             return
@@ -293,7 +310,12 @@ extension CoreMLTextEngine: EvalEngine {
     }
 
     func complete(system: String, history: [ChatTurn], prompt: String, kind: String) async throws -> (String, EngineMetrics) {
-        try await complete(system: system, history: history, prompt: prompt, seed: nil)
+        let tuning = DebugEval.tuning
+        return try await complete(system: system, history: history, prompt: prompt, seed: nil) { sampler in
+            if let value = tuning?.temperature { sampler.temperature = value }
+            if let value = tuning?.penalty { sampler.penalty = value }
+            if let value = tuning?.minP { sampler.minP = value }
+        }
     }
 }
 #endif

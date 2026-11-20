@@ -10,7 +10,7 @@ struct MarkdownBlocksTests {
 
     @Test func readsListsAndHeadings() {
         let blocks = MarkdownBlocks.parse("# Title\n- one\n* two\n3. three")
-        #expect(blocks.map(\.kind) == [.heading, .bullet, .bullet, .numbered("3")])
+        #expect(blocks.map(\.kind) == [.heading(1), .bullet, .bullet, .numbered("3")])
         #expect(blocks.map(\.text) == ["Title", "one", "two", "three"])
     }
 
@@ -32,6 +32,14 @@ struct MarkdownBlocksTests {
         #expect(blocks.map(\.start) == [0, 7])
         let item = source.index(source.startIndex, offsetBy: blocks[1].start)
         #expect(source[item...] == "- item")
+    }
+
+    @Test func readsHeadingLevelsRulesQuotesAndTables() {
+        let blocks = MarkdownBlocks.parse("## Plan\n---\n> Note one\n> note two\n| A | B |\n|---|---|\n| 1 | 2 |\n#hashtag")
+        #expect(blocks.map(\.kind) == [.heading(2), .rule, .quote, .table, .paragraph])
+        #expect(blocks[2].text == "Note one\nnote two")
+        #expect(MarkdownBlocks.cells("| 1 | 2 |") == ["1", "2"])
+        #expect(MarkdownBlocks.isDivider("|---|:--:|"))
     }
 
     @Test func ignoresNumbersWithoutSpace() {

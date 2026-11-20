@@ -3,8 +3,11 @@ import Foundation
 struct MarkdownBlock: Identifiable, Equatable {
     enum Kind: Equatable {
         case paragraph
-        case heading
+        case heading(Int)
         case bullet
+        case quote
+        case table
+        case rule
         case numbered(String)
         case code(language: String)
     }
@@ -13,6 +16,13 @@ struct MarkdownBlock: Identifiable, Equatable {
     let kind: Kind
     let text: String
     let start: Int
+
+    var streamsAsText: Bool {
+        switch kind {
+        case .table, .rule: false
+        default: true
+        }
+    }
 }
 
 enum MarkdownBlocks {
@@ -20,6 +30,7 @@ enum MarkdownBlocks {
         var blocks: [MarkdownBlock] = []
         var paragraph: [String] = []
         var paragraphStart = 0
+        var paragraphKind = MarkdownBlock.Kind.paragraph
         var code: [String]?
         var codeLanguage = ""
         var codeStart = 0
@@ -31,8 +42,16 @@ enum MarkdownBlocks {
 
         func flushParagraph() {
             guard !paragraph.isEmpty else { return }
-            emit(.paragraph, paragraph.joined(separator: "\n"), at: paragraphStart)
+            emit(paragraphKind, paragraph.joined(separator: "\n"), at: paragraphStart)
             paragraph.removeAll()
+            paragraphKind = .paragraph
+        }
+
+        func collect(_ kind: MarkdownBlock.Kind, _ text: String, at start: Int) {
+            if paragraphKind != kind { flushParagraph() }
+            if paragraph.isEmpty { paragraphStart = start }
+            paragraphKind = kind
+            paragraph.append(text)
         }
 
         for rawLine in source.split(separator: "\n", omittingEmptySubsequences: false) {
@@ -61,10 +80,16 @@ enum MarkdownBlocks {
 
             if trimmed.isEmpty {
                 flushParagraph()
-            } else if trimmed.hasPrefix("#") {
+            } else if isRule(trimmed) {
                 flushParagraph()
-                let text = trimmed.drop { $0 == "#" }.trimmingCharacters(in: .whitespaces)
-                emit(.heading, text, at: lineStart)
+                emit(.rule, "", at: lineStart)
+            } else if let (level, text) = heading(trimmed) {
+                flushParagraph()
+                emit(.heading(level), text, at: lineStart)
+            } else if trimmed.hasPrefix(">") {
+                collect(.quote, trimmed.dropFirst().trimmingCharacters(in: .whitespaces), at: lineStart)
+            } else if trimmed.hasPrefix("|") {
+                collect(.table, trimmed, at: lineStart)
             } else if let item = bulletItem(trimmed) {
                 flushParagraph()
                 emit(.bullet, item, at: lineStart)
@@ -72,8 +97,7 @@ enum MarkdownBlocks {
                 flushParagraph()
                 emit(.numbered(number), item, at: lineStart)
             } else {
-                if paragraph.isEmpty { paragraphStart = lineStart }
-                paragraph.append(line)
+                collect(.paragraph, line, at: lineStart)
             }
         }
 
@@ -82,6 +106,31 @@ enum MarkdownBlocks {
         }
         flushParagraph()
         return blocks
+    }
+
+    static func cells(_ row: String) -> [String] {
+        var line = row.trimmingCharacters(in: .whitespaces)
+        if line.hasPrefix("|") { line.removeFirst() }
+        if line.hasSuffix("|") { line.removeLast() }
+        return line.split(separator: "|", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespaces) }
+    }
+
+    static func isDivider(_ row: String) -> Bool {
+        let cells = cells(row)
+        return !cells.isEmpty && cells.allSatisfy { cell in !cell.isEmpty && cell.allSatisfy { $0 == "-" || $0 == ":" } }
+    }
+
+    private static func isRule(_ line: String) -> Bool {
+        guard line.count >= 3, let first = line.first, "-*_".contains(first) else { return false }
+        return line.allSatisfy { $0 == first || $0 == " " }
+    }
+
+    private static func heading(_ line: String) -> (Int, String)? {
+        let level = line.prefix { $0 == "#" }.count
+        guard (1...6).contains(level) else { return nil }
+        let rest = line.dropFirst(level)
+        guard rest.isEmpty || rest.hasPrefix(" ") else { return nil }
+        return (level, rest.trimmingCharacters(in: .whitespaces))
     }
 
     private static func bulletItem(_ line: String) -> String? {

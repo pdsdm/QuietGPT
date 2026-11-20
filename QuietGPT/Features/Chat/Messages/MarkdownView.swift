@@ -39,18 +39,24 @@ struct StreamingMessage: View {
         }
     }
 
+    private static func font(for block: MarkdownBlock) -> Font {
+        if block.isCode { return QuietGPTFont.mono }
+        if case .heading(let level) = block.kind { return MarkdownBlockView.headingFont(level) }
+        return QuietGPTFont.body
+    }
+
     @ViewBuilder
     private var content: some View {
         let blocks = MarkdownBlocks.parse(text)
         VStack(alignment: .leading, spacing: 10) {
             ForEach(blocks) { block in
-                if block.id == blocks.last?.id {
+                if block.id == blocks.last?.id, block.streamsAsText {
                     HStack(alignment: .lastTextBaseline, spacing: 3) {
                         StreamingText(
                             text: block.text,
                             arrivals: arrivals,
                             offset: block.start,
-                            font: block.isCode ? QuietGPTFont.mono : QuietGPTFont.body,
+                            font: Self.font(for: block),
                             color: palette.text
                         )
                         StreamCursor()
@@ -88,15 +94,31 @@ struct MarkdownBlockView: View {
         switch block.kind {
         case .code(let language):
             CodeBlock(code: block.text, language: language)
-        case .heading:
+        case .heading(let level):
             styled(block.text)
-                .font(QuietGPTFont.title)
+                .font(Self.headingFont(level))
                 .foregroundStyle(palette.text)
-        case .bullet, .numbered, .paragraph:
+                .padding(.top, level <= 2 ? 4 : 0)
+        case .rule:
+            Rectangle()
+                .fill(palette.line)
+                .frame(height: 1)
+                .padding(.vertical, 4)
+        case .table:
+            MarkdownTable(text: block.text, cell: styled)
+        case .bullet, .numbered, .paragraph, .quote:
             styled(block.text)
                 .font(QuietGPTFont.body)
                 .foregroundStyle(palette.text)
                 .modifier(BlockChrome(kind: block.kind))
+        }
+    }
+
+    static func headingFont(_ level: Int) -> Font {
+        switch level {
+        case 1: QuietGPTFont.title
+        case 2: QuietGPTFont.lead
+        default: QuietGPTFont.headline
         }
     }
 
@@ -109,7 +131,7 @@ struct MarkdownBlockView: View {
                 piece = piece.font(.system(.callout, design: .monospaced)).foregroundStyle(palette.accentText)
             } else {
                 if intent.contains(.stronglyEmphasized) {
-                    piece = piece.fontWeight(.medium)
+                    piece = piece.fontWeight(.semibold)
                 }
                 if intent.contains(.emphasized) {
                     piece = piece.italic()
@@ -148,7 +170,17 @@ private struct BlockChrome: ViewModifier {
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(palette.background, in: .rect(cornerRadius: Radius.medium, style: .continuous))
-        case .paragraph, .heading:
+        case .quote:
+            HStack(spacing: 10) {
+                Capsule()
+                    .fill(palette.accent.opacity(0.6))
+                    .frame(width: 3)
+                content
+                    .foregroundStyle(palette.text2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        case .paragraph, .heading, .table, .rule:
             content
         }
     }
@@ -158,5 +190,42 @@ private extension MarkdownBlock {
     var isCode: Bool {
         if case .code = kind { return true }
         return false
+    }
+}
+
+private struct MarkdownTable: View {
+    let text: String
+    let cell: (String) -> Text
+
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        let rows = text.split(separator: "\n").map(String.init).filter { !MarkdownBlocks.isDivider($0) }.map(MarkdownBlocks.cells)
+        let width = rows.map(\.count).max() ?? 0
+        ScrollView(.horizontal) {
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    GridRow {
+                        ForEach(0..<width, id: \.self) { column in
+                            cell(column < row.count ? row[column] : "")
+                                .font(QuietGPTFont.callout)
+                                .fontWeight(index == 0 ? .semibold : .regular)
+                                .foregroundStyle(index == 0 ? palette.text : palette.text2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: 220, alignment: .leading)
+                        }
+                    }
+                    if index == 0 {
+                        Rectangle()
+                            .fill(palette.line)
+                            .frame(height: 1)
+                            .gridCellUnsizedAxes(.horizontal)
+                    }
+                }
+            }
+            .padding(12)
+        }
+        .scrollIndicators(.hidden)
+        .background(palette.background, in: .rect(cornerRadius: Radius.medium, style: .continuous))
     }
 }

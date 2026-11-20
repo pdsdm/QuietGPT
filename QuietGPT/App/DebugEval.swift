@@ -42,6 +42,7 @@ enum DebugEval {
         let runs: [Run]?
         let sets: [String]
         let pauseSeconds: Double?
+        let cable: Bool?
     }
 
     struct Run: Decodable {
@@ -97,7 +98,7 @@ enum DebugEval {
         device.isBatteryMonitoringEnabled = true
         UIApplication.shared.isIdleTimerDisabled = true
         defer { UIApplication.shared.isIdleTimerDisabled = false }
-        while device.batteryState == .charging || device.batteryState == .full {
+        while plan.cable != true, device.batteryState == .charging || device.batteryState == .full {
             logger.notice("Eval plan waits for the cable to be removed")
             try? await Task.sleep(for: .seconds(10))
         }

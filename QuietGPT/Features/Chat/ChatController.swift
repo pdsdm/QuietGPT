@@ -15,11 +15,16 @@ final class ChatController {
     private(set) var conversation: Conversation?
     private(set) var phase: Phase = .idle
     private(set) var streamingText = ""
+    private(set) var streamingThought = ""
+    var thinks = UserDefaults.standard.bool(forKey: ChatController.thinksKey) {
+        didSet { UserDefaults.standard.set(thinks, forKey: Self.thinksKey) }
+    }
     private(set) var completedReplies = 0
     private(set) var liveMetrics: ReplyMetrics?
     private(set) var lastMetrics: ReplyMetrics?
     var draft = ""
 
+    private static let thinksKey = "chat.thinks"
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "quietgpt", category: "chat")
 
     private let engine: ReplyEngine
@@ -32,6 +37,8 @@ final class ChatController {
     }
 
     var isResponding: Bool { phase != .idle }
+
+    var canThink: Bool { engine.supportsThinking }
 
     var hasConversation: Bool {
         guard let conversation else { return false }
@@ -68,12 +75,22 @@ final class ChatController {
         append(Message(role: .user, text: prompt), to: conversation)
         draft = ""
         streamingText = ""
+        streamingThought = ""
         phase = .thinking
         liveMetrics = ReplyMetrics()
 
         let token = UUID()
         reply = (token, conversation.id)
-        let stream = engine.reply(to: prompt, in: conversation.id, history: history)
+        var options = TextOptions(thinking: thinks && canThink)
+        if options.thinking {
+            options.onThought = { [weak self] thought in
+                Task { @MainActor in
+                    guard let self, self.reply?.token == token else { return }
+                    self.streamingThought = thought
+                }
+            }
+        }
+        let stream = engine.reply(to: prompt, in: conversation.id, history: history, options: options)
         task = Task { [weak self] in
             do {
                 for try await text in stream {
@@ -149,6 +166,7 @@ final class ChatController {
         reply = nil
         liveMetrics = nil
         streamingText = ""
+        streamingThought = ""
         phase = .idle
     }
 
@@ -173,8 +191,9 @@ final class ChatController {
         NetworkWatch.shared.scan()
         let text = streamingText.trimmingCharacters(in: .whitespacesAndNewlines)
         let final = text.isEmpty ? (fallback ?? "") : text
+        let thought = streamingThought.trimmingCharacters(in: .whitespacesAndNewlines)
         if !final.isEmpty {
-            append(Message(role: .assistant, text: final), to: conversation)
+            append(Message(role: .assistant, text: final, thought: thought.isEmpty ? nil : thought), to: conversation)
         }
         if var metrics = liveMetrics {
             metrics.finish()
@@ -183,6 +202,7 @@ final class ChatController {
         }
         liveMetrics = nil
         streamingText = ""
+        streamingThought = ""
         phase = .idle
         task = nil
         completedReplies += 1

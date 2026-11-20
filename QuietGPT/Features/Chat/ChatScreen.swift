@@ -50,7 +50,6 @@ struct ChatScreen: View {
         }
         #endif
         .toolbarVisibility(controller.hasConversation ? .hidden : .visible, for: .tabBar)
-        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: controller.completedReplies)
     }
 
     @ViewBuilder
@@ -161,20 +160,24 @@ struct ChatScreen: View {
                             case .assistant:
                                 AssistantMessage(
                                     text: message.text,
+                                    thought: message.thought,
                                     isLatest: message.id == lastAssistant && !controller.isResponding,
                                     onRegenerate: controller.regenerate
                                 )
                             }
                         }
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: message.role == .user ? .bottomTrailing : .bottomLeading)),
+                        .transition(message.role == .user ? .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: .bottomTrailing)),
                             removal: .opacity
-                        ))
+                        ) : .identity)
                     }
                 }
                 if controller.isResponding {
-                    StreamingMessage(text: controller.streamingText, isThinking: controller.phase == .thinking)
-                        .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: .bottomLeading)))
+                    StreamingMessage(text: controller.streamingText, thought: controller.streamingThought, isThinking: controller.phase == .thinking)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: .bottomLeading)),
+                            removal: .identity
+                        ))
                 }
             }
             .padding(.horizontal, 16)
@@ -207,6 +210,7 @@ struct ChatScreen: View {
                 placeholder: controller.hasConversation ? String(localized: "Reply") : String(localized: "Ask anything. It stays here."),
                 isResponding: controller.isResponding,
                 canSend: controller.canSend,
+                thinks: controller.canThink ? $controller.thinks : nil,
                 onSend: { controller.send() },
                 onStop: controller.stop,
                 onSecretHold: { monitorShown.toggle() }

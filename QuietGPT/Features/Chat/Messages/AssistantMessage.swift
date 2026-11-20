@@ -24,6 +24,7 @@ struct AssistantBox<Content: View>: View {
 
 struct AssistantMessage: View {
     let text: String
+    var thought: String?
     var isLatest = false
     var onRegenerate: (() -> Void)?
 
@@ -33,7 +34,12 @@ struct AssistantMessage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             AssistantBox {
-                MarkdownView(text: text)
+                VStack(alignment: .leading, spacing: 10) {
+                    if let thought, !thought.isEmpty {
+                        ThoughtBox(text: thought, isLive: false)
+                    }
+                    MarkdownView(text: text)
+                }
             }
             HStack(spacing: 4) {
                 Button {

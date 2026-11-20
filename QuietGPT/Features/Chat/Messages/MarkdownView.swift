@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StreamingMessage: View {
     let text: String
+    var thought = ""
     let isThinking: Bool
 
     @Environment(\.palette) private var palette
@@ -10,12 +11,19 @@ struct StreamingMessage: View {
 
     var body: some View {
         AssistantBox {
-            if isThinking && text.isEmpty {
-                ThinkingGlyphs()
-                    .transition(.blurReplace)
-            } else {
-                content
-                    .transition(.blurReplace)
+            VStack(alignment: .leading, spacing: 10) {
+                if !thought.isEmpty {
+                    ThoughtBox(text: thought, isLive: text.isEmpty)
+                }
+                if isThinking && text.isEmpty {
+                    if thought.isEmpty {
+                        ThinkingGlyphs()
+                            .transition(.blurReplace)
+                    }
+                } else {
+                    content
+                        .transition(.blurReplace)
+                }
             }
         }
         .animation(Motion.spring, value: isThinking && text.isEmpty)

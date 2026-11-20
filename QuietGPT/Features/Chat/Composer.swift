@@ -5,6 +5,7 @@ struct Composer: View {
     let placeholder: String
     let isResponding: Bool
     let canSend: Bool
+    var thinks: Binding<Bool>?
     let onSend: () -> Void
     let onStop: () -> Void
     var onSecretHold: () -> Void = {}
@@ -16,7 +17,25 @@ struct Composer: View {
     @State private var skipsNextSend = false
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .bottom, spacing: 0) {
+            if let thinks {
+                Button {
+                    thinks.wrappedValue.toggle()
+                } label: {
+                    Image(systemName: "brain")
+                        .font(.system(size: 17, weight: .medium))
+                        .symbolEffect(.bounce, value: thinks.wrappedValue)
+                        .foregroundStyle(thinks.wrappedValue ? palette.onAccent : palette.text3)
+                        .frame(width: 44, height: 44)
+                        .background(thinks.wrappedValue ? palette.accent : .clear, in: .circle)
+                }
+                .buttonStyle(PressableStyle(scale: 0.86))
+                .padding(4)
+                .accessibilityLabel("Think first")
+                .accessibilityValue(thinks.wrappedValue ? "On" : "Off")
+                .sensoryFeedback(.selection, trigger: thinks.wrappedValue)
+                .animation(Motion.spring, value: thinks.wrappedValue)
+            }
             TextField(placeholder, text: $text, axis: .vertical)
                 .font(QuietGPTFont.body)
                 .foregroundStyle(palette.text)
@@ -24,7 +43,8 @@ struct Composer: View {
                 .lineLimit(1...6)
                 .focused($focused)
                 .padding(.vertical, 12)
-                .padding(.leading, 18)
+                .padding(.leading, thinks == nil ? 18 : 4)
+                .padding(.trailing, 8)
                 .frame(minHeight: 52)
                 .submitLabel(.send)
                 .onSubmit(send)

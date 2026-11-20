@@ -126,6 +126,7 @@ final class CoreMLTextEngine: TextEngine {
                         full: full,
                         next: next,
                         maxTokens: maxTokens,
+                        thinkBudget: thinking ? LFMPrompt.thinkBudget : 0,
                         sampler: &sampler,
                         isCancelled: { cancelled.withLock { $0 } }
                     ) { text in
@@ -191,7 +192,7 @@ final class CoreMLTextEngine: TextEngine {
                     var raw = ""
                     var sampler = seed.map { CoreMLSampler(seed: $0) } ?? CoreMLSampler()
                     tune(&sampler)
-                    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, sampler: &sampler, isCancelled: { false }) { raw = $0 }
+                    let metrics = try core.generate(conversation: UUID(), turns: turns, prefix: LFMPrompt.prefix(system: system), full: full, next: "", maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, thinkBudget: thinking ? LFMPrompt.thinkBudget : 0, sampler: &sampler, isCancelled: { false }) { raw = $0 }
                     continuation.resume(returning: (raw, metrics))
                 } catch {
                     continuation.resume(throwing: error)

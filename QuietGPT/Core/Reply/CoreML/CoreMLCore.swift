@@ -710,6 +710,7 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         full: (Int) -> String,
         next: String,
         maxTokens: Int,
+        thinkBudget: Int = 0,
         sampler: inout CoreMLSampler,
         isCancelled: () -> Bool,
         yield: (String) -> Void
@@ -779,11 +780,25 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
 
         var generated: [Int32] = []
         var bytes: [UInt8] = []
+        var thinkOpen = thinkBudget > 0
+        var forced: [Int32] = []
         let decodeStart = Date()
         while generated.count < limit, !isCancelled() {
-            let token = current.withUnsafeMutableBufferPointer { sampler.sample($0, recent: generated[...]) }
-            if isEnd(token) { break }
+            let token: Int32
+            if !forced.isEmpty {
+                token = forced.removeFirst()
+            } else if thinkOpen, generated.count >= thinkBudget, let first = try tokenize("</think>").first {
+                forced = Array(try tokenize("</think>").dropFirst())
+                thinkOpen = false
+                token = first
+            } else {
+                token = current.withUnsafeMutableBufferPointer { sampler.sample($0, recent: generated[...]) }
+                if isEnd(token) { break }
+            }
             bytes += piece(token)
+            if thinkOpen, String(decoding: bytes.suffix(24), as: UTF8.self).contains("</think>") {
+                thinkOpen = false
+            }
             tokens.append(token)
             generated.append(token)
             metrics.generatedTokens += 1

@@ -6,7 +6,7 @@ nonisolated enum LFMPrompt {
 
     Rules:
     1. Reply in the language of the user's last message.
-    2. Start with the answer. No intro such as "Here is" or "Sure".
+    2. Start with the answer. No intro such as "Here is" or "Sure". For a longer answer, use Markdown: "- " lists, **bold** key words, and "## " headings for parts.
     3. Follow format requests exactly. "Yes or no" means one word. "One sentence" means one sentence.
     4. When you write a message, email or letter for the user, write it as the user, ready to send. Never use brackets or placeholders such as [Name]. If you do not know a name, leave it out. Do not sign it, and never sign as QuietGPT.
     5. End when the answer ends. No question at the end, and no offer such as "Let me know".
@@ -16,7 +16,8 @@ nonisolated enum LFMPrompt {
     """
 
     static let replyTokens = 700
-    static let thinkingTokens = 2000
+    static let thinkBudget = 256
+    static let thinkingTokens = replyTokens + thinkBudget
 
     private static let lineSignature = try! NSRegularExpression(pattern: #"\n[ \t]*QuietGPT( on your iPhone)?[ \t]*\.?[ \t]*(?=\n|$)"#)
     private static let endSignature = try! NSRegularExpression(pattern: #"([,.!])?[ \t]*QuietGPT\s*\.?\s*$"#)
@@ -70,6 +71,7 @@ nonisolated enum LFMPrompt {
         result = replace(lineSignature, in: result, with: "")
         result = replace(dashSignature, in: result, with: "")
         result = withoutTics(result, prompt: prompt)
+        result = withoutPlaceholders(result)
         guard final else { return result }
         result = replace(endSignature, in: result, with: "$1")
         while result.last?.isWhitespace == true {
@@ -81,6 +83,14 @@ nonisolated enum LFMPrompt {
     static func thought(_ reply: String) -> String {
         let head = reply.range(of: "</think>").map { String(reply[..<$0.lowerBound]) } ?? reply
         return head.replacingOccurrences(of: "<think>", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func withoutPlaceholders(_ text: String) -> String {
+        var result = text.replacingOccurrences(of: #"(?m)^[ \t]*\[[^\]\n]{1,40}\][ \t]*\n?"#, with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"[ \t]+\[[^\]\n]{1,40}\](?=[,!.:])"#, with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+        let cleaned = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? text : cleaned
     }
 
     private static func withoutTics(_ text: String, prompt: String) -> String {

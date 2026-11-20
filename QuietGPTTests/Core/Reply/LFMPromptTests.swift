@@ -78,4 +78,10 @@ struct LFMPromptTests {
         #expect(LFMPrompt.thought("The user asks about Berlin") == "The user asks about Berlin")
         #expect(LFMPrompt.thought("The wall fell in 1989.</think>It fell in 1989.") == "The wall fell in 1989.")
     }
+
+    @Test func removesPlaceholders() {
+        let reply = "Dear [Teacher's Name],\n\nMy son will miss school on Monday.\n\nBest regards,\n[Your Name]"
+
+        #expect(LFMPrompt.clean(reply, thinking: false, final: true) == "Dear,\n\nMy son will miss school on Monday.\n\nBest regards,")
+    }
 }

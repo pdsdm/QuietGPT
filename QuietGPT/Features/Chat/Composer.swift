@@ -18,24 +18,6 @@ struct Composer: View {
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
-            if let thinks {
-                Button {
-                    thinks.wrappedValue.toggle()
-                } label: {
-                    Image(systemName: "brain")
-                        .font(.system(size: 17, weight: .medium))
-                        .symbolEffect(.bounce, value: thinks.wrappedValue)
-                        .foregroundStyle(thinks.wrappedValue ? palette.onAccent : palette.text3)
-                        .frame(width: 44, height: 44)
-                        .background(thinks.wrappedValue ? palette.accent : .clear, in: .circle)
-                }
-                .buttonStyle(PressableStyle(scale: 0.86))
-                .padding(4)
-                .accessibilityLabel("Think first")
-                .accessibilityValue(thinks.wrappedValue ? "On" : "Off")
-                .sensoryFeedback(.selection, trigger: thinks.wrappedValue)
-                .animation(Motion.spring, value: thinks.wrappedValue)
-            }
             TextField(placeholder, text: $text, axis: .vertical)
                 .font(QuietGPTFont.body)
                 .foregroundStyle(palette.text)
@@ -43,7 +25,7 @@ struct Composer: View {
                 .lineLimit(1...6)
                 .focused($focused)
                 .padding(.vertical, 12)
-                .padding(.leading, thinks == nil ? 18 : 4)
+                .padding(.leading, 18)
                 .padding(.trailing, 8)
                 .frame(minHeight: 52)
                 .submitLabel(.send)
@@ -52,6 +34,25 @@ struct Composer: View {
                 .onAppear { focused = DebugLaunch.focusesComposer }
                 #endif
 
+            if let thinks {
+                Button {
+                    thinks.wrappedValue.toggle()
+                } label: {
+                    Image(systemName: thinks.wrappedValue ? "brain.fill" : "brain")
+                        .font(.system(size: 18, weight: .medium))
+                        .contentTransition(.symbolEffect(.replace))
+                        .foregroundStyle(thinks.wrappedValue ? palette.accent : palette.text3)
+                        .shadow(color: thinks.wrappedValue ? palette.accent.opacity(0.55) : .clear, radius: 6)
+                        .frame(width: 40, height: 44)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(PressableStyle(scale: 0.86))
+                .padding(.vertical, 4)
+                .accessibilityLabel("Think first")
+                .accessibilityValue(thinks.wrappedValue ? "On" : "Off")
+                .sensoryFeedback(.selection, trigger: thinks.wrappedValue)
+                .animation(Motion.spring, value: thinks.wrappedValue)
+            }
             Button(action: isResponding ? onStop : send) {
                 Image(systemName: isResponding ? "stop.fill" : "arrow.up")
                     .font(.system(size: isResponding ? 14 : 18, weight: .medium))

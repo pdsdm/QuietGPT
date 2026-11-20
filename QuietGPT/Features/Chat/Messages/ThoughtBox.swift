@@ -28,12 +28,26 @@ struct ThoughtBox: View {
             .disabled(isLive)
             .accessibilityLabel(isLive ? "Thinking" : expanded ? "Hide thought" : "Show thought")
 
-            if isLive || expanded {
+            if isLive {
+                ScrollView {
+                    Text(text)
+                        .font(QuietGPTFont.footnote)
+                        .foregroundStyle(palette.text3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: 84)
+                .scrollDisabled(true)
+                .scrollIndicators(.hidden)
+                .defaultScrollAnchor(.bottom)
+                .defaultScrollAnchor(.bottom, for: .sizeChanges)
+                .mask {
+                    LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.35)], startPoint: .top, endPoint: .bottom)
+                }
+                .transition(.opacity)
+            } else if expanded {
                 Text(text)
-                    .font(QuietGPTFont.caption)
+                    .font(QuietGPTFont.footnote)
                     .foregroundStyle(palette.text3)
-                    .lineLimit(isLive ? 5 : nil)
-                    .truncationMode(.head)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
                     .transition(.opacity)

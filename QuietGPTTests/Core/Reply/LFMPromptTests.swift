@@ -84,4 +84,15 @@ struct LFMPromptTests {
 
         #expect(LFMPrompt.clean(reply, thinking: false, final: true) == "Dear,\n\nMy son will miss school on Monday.\n\nBest regards,")
     }
+
+    @Test func removesLoneTopHeading() {
+        #expect(LFMPrompt.clean("## Muro de Berlín\n\nCayó en **1989**.", thinking: false, final: true) == "Cayó en **1989**.")
+        #expect(LFMPrompt.clean("## Mu", thinking: false, final: false) == "")
+        let parts = "## Batería\n- 8 horas\n\n## Memoria\n- 16 GB"
+        #expect(LFMPrompt.clean(parts, thinking: false, final: true) == parts)
+        let later = "Intro.\n\n## Detalle\nTexto."
+        #expect(LFMPrompt.clean(later, thinking: false, final: true) == later)
+        let code = "## Script\n```\n# run\n```"
+        #expect(LFMPrompt.clean(code, thinking: false, final: true) == "```\n# run\n```")
+    }
 }

@@ -6,9 +6,9 @@ nonisolated enum LFMPrompt {
 
     Rules:
     1. Reply in the language of the user's last message.
-    2. Start with the answer. No intro such as "Here is" or "Sure". For a longer answer, use Markdown: "- " lists, **bold** key words, and "## " headings for parts.
+    2. Start with the answer. No intro such as "Here is" or "Sure". Write a short answer as plain sentences. When the answer has steps or several items, use "- " lists and **bold** key words. Use "## " headings only when the answer has three or more parts.
     3. Follow format requests exactly. "Yes or no" means one word. "One sentence" means one sentence.
-    4. When you write a message, email or letter for the user, write it as the user, ready to send. Never use brackets or placeholders such as [Name]. If you do not know a name, leave it out. Do not sign it, and never sign as QuietGPT.
+    4. When you write a message, email or letter for the user, write it as the user, ready to send, as plain text with no Markdown. Never use brackets or placeholders such as [Name]. If you do not know a name, leave it out. Do not sign it, and never sign as QuietGPT.
     5. End when the answer ends. No question at the end, and no offer such as "Let me know".
     6. If you are not sure of a fact, a number, a law or a date, say that you are not sure. Never invent one.
     7. For medicines, health and law, give the standard safe answer, then say to check with a doctor, a pharmacist or a lawyer.
@@ -72,6 +72,7 @@ nonisolated enum LFMPrompt {
         result = replace(dashSignature, in: result, with: "")
         result = withoutTics(result, prompt: prompt)
         result = withoutPlaceholders(result)
+        result = withoutLoneHeading(result)
         guard final else { return result }
         result = replace(endSignature, in: result, with: "$1")
         while result.last?.isWhitespace == true {
@@ -83,6 +84,25 @@ nonisolated enum LFMPrompt {
     static func thought(_ reply: String) -> String {
         let head = reply.range(of: "</think>").map { String(reply[..<$0.lowerBound]) } ?? reply
         return head.replacingOccurrences(of: "<think>", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func withoutLoneHeading(_ text: String) -> String {
+        var lines = text.components(separatedBy: "\n")
+        var inCode = false
+        var headings: [Int] = []
+        for (index, line) in lines.enumerated() {
+            if line.hasPrefix("```") {
+                inCode.toggle()
+            } else if !inCode, line.range(of: #"^#{1,6} "#, options: .regularExpression) != nil {
+                headings.append(index)
+            }
+        }
+        guard headings.count == 1, let first = lines.firstIndex(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }), headings[0] == first else { return text }
+        lines.removeSubrange(0...first)
+        while let top = lines.first, top.trimmingCharacters(in: .whitespaces).isEmpty {
+            lines.removeFirst()
+        }
+        return lines.joined(separator: "\n")
     }
 
     private static func withoutPlaceholders(_ text: String) -> String {

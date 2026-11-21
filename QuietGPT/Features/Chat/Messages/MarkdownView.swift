@@ -4,6 +4,7 @@ struct StreamingMessage: View {
     let text: String
     var thought = ""
     let isThinking: Bool
+    @Binding var thoughtOpen: Bool
 
     @Environment(\.palette) private var palette
     @State private var arrivals: [StreamArrival] = []
@@ -13,7 +14,7 @@ struct StreamingMessage: View {
         AssistantBox {
             VStack(alignment: .leading, spacing: 10) {
                 if !thought.isEmpty {
-                    ThoughtBox(text: thought, isLive: text.isEmpty)
+                    ThoughtBox(text: thought, isLive: text.isEmpty, expanded: $thoughtOpen)
                 }
                 if isThinking && text.isEmpty {
                     if thought.isEmpty {

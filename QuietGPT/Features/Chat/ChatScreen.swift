@@ -161,6 +161,7 @@ struct ChatScreen: View {
                                 AssistantMessage(
                                     text: message.text,
                                     thought: message.thought,
+                                    thoughtOpen: controller.openThoughts.contains(message.id),
                                     isLatest: message.id == lastAssistant && !controller.isResponding,
                                     onRegenerate: controller.regenerate
                                 )
@@ -173,7 +174,7 @@ struct ChatScreen: View {
                     }
                 }
                 if controller.isResponding {
-                    StreamingMessage(text: controller.streamingText, thought: controller.streamingThought, isThinking: controller.phase == .thinking)
+                    StreamingMessage(text: controller.streamingText, thought: controller.streamingThought, isThinking: controller.phase == .thinking, thoughtOpen: $controller.thoughtOpen)
                         .transition(.asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: .bottomLeading)),
                             removal: .identity

@@ -25,18 +25,20 @@ struct AssistantBox<Content: View>: View {
 struct AssistantMessage: View {
     let text: String
     var thought: String?
+    var thoughtOpen = false
     var isLatest = false
     var onRegenerate: (() -> Void)?
 
     @Environment(\.palette) private var palette
     @State private var copied = false
+    @State private var expanded: Bool?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             AssistantBox {
                 VStack(alignment: .leading, spacing: 10) {
                     if let thought, !thought.isEmpty {
-                        ThoughtBox(text: thought, isLive: false)
+                        ThoughtBox(text: thought, isLive: false, expanded: Binding(get: { expanded ?? thoughtOpen }, set: { expanded = $0 }))
                     }
                     MarkdownView(text: text)
                 }

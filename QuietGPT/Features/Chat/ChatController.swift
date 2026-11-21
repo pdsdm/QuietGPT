@@ -16,7 +16,9 @@ final class ChatController {
     private(set) var phase: Phase = .idle
     private(set) var streamingText = ""
     private(set) var streamingThought = ""
-    var thinks = UserDefaults.standard.bool(forKey: ChatController.thinksKey) {
+    var thoughtOpen = false
+    private(set) var openThoughts: Set<UUID> = []
+    var thinks = UserDefaults.standard.object(forKey: ChatController.thinksKey) as? Bool ?? true {
         didSet { UserDefaults.standard.set(thinks, forKey: Self.thinksKey) }
     }
     private(set) var completedReplies = 0
@@ -76,6 +78,7 @@ final class ChatController {
         draft = ""
         streamingText = ""
         streamingThought = ""
+        thoughtOpen = false
         phase = .thinking
         liveMetrics = ReplyMetrics()
 
@@ -193,7 +196,11 @@ final class ChatController {
         let final = text.isEmpty ? (fallback ?? "") : text
         let thought = streamingThought.trimmingCharacters(in: .whitespacesAndNewlines)
         if !final.isEmpty {
-            append(Message(role: .assistant, text: final, thought: thought.isEmpty ? nil : thought), to: conversation)
+            let message = Message(role: .assistant, text: final, thought: thought.isEmpty ? nil : thought)
+            if thoughtOpen, message.thought != nil {
+                openThoughts.insert(message.id)
+            }
+            append(message, to: conversation)
         }
         if var metrics = liveMetrics {
             metrics.finish()

@@ -58,6 +58,9 @@ targets:
         basedOnDependencyAnalysis: false
         shell: /bin/sh
         script: |
+          licenses="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Licenses"
+          mkdir -p "$licenses"
+          cp "$SRCROOT/docs/licenses/LFM-Open-License-v1.0.txt" "$SRCROOT/docs/licenses/NOTICE-LFM3.txt" "$SRCROOT/docs/licenses/llama.cpp-LICENSE.txt" "$licenses/"
           source="$SRCROOT/Convert/bundles/lfm3-lut8-dyn-app"
           target="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/lfm3-lut8-dyn-app"
           if [ "$CONFIGURATION" != "Release" ] && [ "$QUIETGPT_EMBED_BUNDLE" != "YES" ]; then

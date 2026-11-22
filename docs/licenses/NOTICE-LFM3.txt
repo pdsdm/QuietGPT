@@ -1,0 +1,5 @@
+QuietGPT includes the LFM3-1.7B weights by Liquid AI, Inc., under the LFM Open License v1.0 (LFM-Open-License-v1.0.txt).
+
+Source: https://huggingface.co/LiquidAI/LFM3-1.7B
+
+Changes: pdsdm converted the weights to Core ML for the Apple Neural Engine. The converted files use 8-bit palettized (LUT8) weights, are split into layer chunks, and have a separate 8-bit embedding table. These files are modified files and are not the original files from Liquid AI.

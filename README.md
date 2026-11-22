@@ -322,7 +322,9 @@ The code is available under the MIT License. The QuietGPT name and icon are not.
 
 - [Geist](https://github.com/vercel/geist-font), the brand font, under the [SIL Open Font License](Rewrite/Fonts/Geist-OFL.txt).
 - [Unicode emoji data](https://www.unicode.org/Public/emoji/), the source of the emoji list in the keyboard, under the [Unicode License](docs/licenses/Unicode-LICENSE.txt).
-- [Apple Foundation Models](https://developer.apple.com/foundation-models-framework/), which does the work on the iPhone.
+- [LFM3-1.7B](https://huggingface.co/LiquidAI/LFM3-1.7B) by Liquid AI, which answers in the chat on the Apple Neural Engine, under the [LFM Open License v1.0](docs/licenses/LFM-Open-License-v1.0.txt). QuietGPT ships converted files. See the [notice](docs/licenses/NOTICE-LFM3.txt).
+- [llama.cpp](https://github.com/ggml-org/llama.cpp), which reads the tokenizer, under the [MIT License](docs/licenses/llama.cpp-LICENSE.txt).
+- [Apple Foundation Models](https://developer.apple.com/foundation-models-framework/), which rewrites text in the keyboard and answers in the chat when the Neural Engine is not ready.
 
 <br>
 

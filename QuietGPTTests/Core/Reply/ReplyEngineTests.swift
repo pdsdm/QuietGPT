@@ -10,12 +10,17 @@ final class FakeTextEngine: TextEngine {
     var forgotten: [UUID] = []
     var isAvailable = true
     var unavailableReply = "Not ready."
+    var readiness = TextReadiness.ready
+    var supportsThinking = false
+    var prepared = 0
 
     init(_ replies: [Result<String, TextEngineError>]) {
         self.replies = replies
     }
 
-    func prepare() {}
+    func prepare() {
+        prepared += 1
+    }
 
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error> {
         prompts.append(prompt)

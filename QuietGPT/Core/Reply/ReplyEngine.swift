@@ -46,6 +46,10 @@ final class ReplyEngine {
         engine.supportsThinking
     }
 
+    var readiness: TextReadiness {
+        engine.readiness
+    }
+
     func prepare() {
         engine.prepare()
     }

@@ -46,6 +46,18 @@ final class CoreMLTextEngine: TextEngine {
     }
 
     nonisolated private static let shared = CoreMLCore(folder: folder, compiledFolder: compiledFolder)
+    nonisolated private static let loaded = OSAllocatedUnfairLock(initialState: false)
+
+    nonisolated private static var setupMarker: URL {
+        compiledFolder.appending(path: "ready")
+    }
+
+    nonisolated private static func markLoaded() {
+        loaded.withLock { $0 = true }
+        if !FileManager.default.fileExists(atPath: setupMarker.path) {
+            FileManager.default.createFile(atPath: setupMarker.path, contents: Data())
+        }
+    }
 
     private let core = CoreMLTextEngine.shared
     private var running: OSAllocatedUnfairLock<Bool>?
@@ -53,6 +65,9 @@ final class CoreMLTextEngine: TextEngine {
 
     init() {
         let center = NotificationCenter.default
+        observers.append(center.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.prepare() }
+        })
         for name in [UIApplication.didReceiveMemoryWarningNotification, UIApplication.didEnterBackgroundNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
@@ -74,6 +89,11 @@ final class CoreMLTextEngine: TextEngine {
         true
     }
 
+    var readiness: TextReadiness {
+        if Self.loaded.withLock({ $0 }) { return .ready }
+        return FileManager.default.fileExists(atPath: Self.setupMarker.path) ? .loading : .setup
+    }
+
     var unavailableReply: String {
         "QuietGPT is getting ready on this iPhone. Try again soon. Your chats stay on this device."
     }
@@ -88,6 +108,7 @@ final class CoreMLTextEngine: TextEngine {
             do {
                 try core.warm(prefix: LFMPrompt.prefix())
                 core.prewarm()
+                Self.markLoaded()
                 let seconds = Date().timeIntervalSince(started)
                 Self.logger.notice("Core ML parts loaded in \(seconds, format: .fixed(precision: 2), privacy: .public) s")
             } catch {
@@ -148,6 +169,7 @@ final class CoreMLTextEngine: TextEngine {
                             continuation.yield(clean)
                         }
                     }
+                    Self.markLoaded()
                     let final = LFMPrompt.clean(raw, thinking: thinking, final: true, prompt: prompt)
                     if final != shown {
                         continuation.yield(final)
@@ -215,6 +237,7 @@ final class CoreMLTextEngine: TextEngine {
         core.queue.async {
             guard core.isLoaded else { return }
             core.unload()
+            Self.loaded.withLock { $0 = false }
             Self.logger.notice("Core ML parts unloaded: \(reason, privacy: .public)")
         }
     }

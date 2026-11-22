@@ -16,6 +16,7 @@ final class ChatController {
     private(set) var phase: Phase = .idle
     private(set) var streamingText = ""
     private(set) var streamingThought = ""
+    private(set) var readiness: TextReadiness = .ready
     var thoughtOpen = false
     private(set) var openThoughts: Set<UUID> = []
     var thinks = UserDefaults.standard.object(forKey: ChatController.thinksKey) as? Bool ?? true {
@@ -80,6 +81,7 @@ final class ChatController {
         streamingThought = ""
         thoughtOpen = false
         phase = .thinking
+        readiness = engine.readiness
         liveMetrics = ReplyMetrics()
 
         let token = UUID()
@@ -89,6 +91,7 @@ final class ChatController {
             options.onThought = { [weak self] thought in
                 Task { @MainActor in
                     guard let self, self.reply?.token == token else { return }
+                    self.readiness = .ready
                     self.streamingThought = thought
                 }
             }
@@ -100,6 +103,7 @@ final class ChatController {
                     guard let self, self.reply?.token == token else { return }
                     self.liveMetrics?.received(text)
                     if self.phase == .thinking { self.phase = .streaming }
+                    self.readiness = .ready
                     self.streamingText = text
                 }
                 self?.finishReply(token, in: conversation)

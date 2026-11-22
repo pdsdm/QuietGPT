@@ -174,7 +174,7 @@ struct ChatScreen: View {
                     }
                 }
                 if controller.isResponding {
-                    StreamingMessage(text: controller.streamingText, thought: controller.streamingThought, isThinking: controller.phase == .thinking, thoughtOpen: $controller.thoughtOpen)
+                    StreamingMessage(text: controller.streamingText, thought: controller.streamingThought, isThinking: controller.phase == .thinking, readiness: controller.readiness, thoughtOpen: $controller.thoughtOpen)
                         .transition(.asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.96, anchor: .bottomLeading)),
                             removal: .identity

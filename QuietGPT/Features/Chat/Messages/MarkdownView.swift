@@ -4,6 +4,7 @@ struct StreamingMessage: View {
     let text: String
     var thought = ""
     let isThinking: Bool
+    var readiness = TextReadiness.ready
     @Binding var thoughtOpen: Bool
 
     @Environment(\.palette) private var palette
@@ -18,8 +19,16 @@ struct StreamingMessage: View {
                 }
                 if isThinking && text.isEmpty {
                     if thought.isEmpty {
-                        ThinkingGlyphs()
-                            .transition(.blurReplace)
+                        VStack(alignment: .leading, spacing: 6) {
+                            ThinkingGlyphs()
+                            if let note {
+                                Text(note)
+                                    .font(QuietGPTFont.footnote)
+                                    .foregroundStyle(palette.text3)
+                                    .transition(.opacity)
+                            }
+                        }
+                        .transition(.blurReplace)
                     }
                 } else {
                     content
@@ -37,6 +46,14 @@ struct StreamingMessage: View {
                 arrivals.removeAll { Date.now.timeIntervalSinceReferenceDate - $0.time > 2 }
             }
             seen = newValue.count
+        }
+    }
+
+    private var note: String? {
+        switch readiness {
+        case .ready: nil
+        case .loading: String(localized: "Getting ready on this iPhone. This takes a few seconds.")
+        case .setup: String(localized: "Setting up on this iPhone. The first reply takes about a minute.")
         }
     }
 

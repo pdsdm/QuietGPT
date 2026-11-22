@@ -9,6 +9,12 @@ enum TextEngineError: Error, Equatable {
     case failed
 }
 
+enum TextReadiness: Equatable {
+    case ready
+    case loading
+    case setup
+}
+
 struct TextOptions {
     var thinking = false
     var onThought: (@Sendable (String) -> Void)?
@@ -19,6 +25,7 @@ protocol TextEngine: AnyObject {
     var isAvailable: Bool { get }
     var unavailableReply: String { get }
     var supportsThinking: Bool { get }
+    var readiness: TextReadiness { get }
     func prepare()
     func reply(to prompt: String, in conversationID: UUID, history: [ChatTurn], options: TextOptions) -> AsyncThrowingStream<String, Error>
     func forget(_ conversationID: UUID)
@@ -27,6 +34,7 @@ protocol TextEngine: AnyObject {
 
 extension TextEngine {
     var supportsThinking: Bool { false }
+    var readiness: TextReadiness { .ready }
 }
 
 enum TextEngineKind: String, CaseIterable {
@@ -64,7 +72,7 @@ enum TextEngineKind: String, CaseIterable {
             LlamaTextEngine(weights: Self.weights)
         #endif
         case .lfm3ane:
-            CoreMLTextEngine()
+            FallbackTextEngine(main: CoreMLTextEngine(), fallback: AppleTextEngine())
         }
     }
 }

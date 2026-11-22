@@ -1,6 +1,28 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Getting ready on this iPhone. This takes a few seconds." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparándose en este iPhone. Tarda unos segundos."
+          }
+        }
+      }
+    },
+    "Setting up on this iPhone. The first reply takes about a minute." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurándose en este iPhone. La primera respuesta tarda un minuto más o menos."
+          }
+        }
+      }
+    },
     "%@ will not be added, because the limit is %lld rules." : {
       "extractionState" : "manual",
       "localizations" : {

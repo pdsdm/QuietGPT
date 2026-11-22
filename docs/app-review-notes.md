@@ -3,16 +3,17 @@
 Paste the text below into App Store Connect > App Review Information > Notes.
 
 ```
-QuietGPT is a private AI chat that runs on the iPhone. It answers with the on-device Apple Foundation Models framework and it works in Airplane Mode. In our recorded tests on iPhone 16 Pro Max, chat replies ran on the Apple Neural Engine. iOS selects the hardware. The app also has a keyboard that uses the same on-device AI to rewrite text in other apps. It has no account, no server, no ads, no in-app purchases and no third-party packages. No demo account is necessary.
+QuietGPT is a private AI chat that runs on the iPhone and works in Airplane Mode. The chat answers with a language engine that is inside the app: the LFM3-1.7B weights by Liquid AI (LFM Open License v1.0), converted to Core ML and run on the Apple Neural Engine. The app download includes these files (about 1.9 GB), so the app downloads nothing after install. The app also has a keyboard that rewrites text in other apps with the on-device Apple Foundation Models framework. It has no account, no server, no ads and no in-app purchases. No demo account is necessary.
 
 DEVICE REQUIREMENT
-Please test on an iPhone with Apple Intelligence: iPhone 15 Pro, iPhone 15 Pro Max, iPhone Air, iPhone 16 or later, with iOS 26 or later. Turn on Apple Intelligence in Settings > Apple Intelligence & Siri and wait for its download to finish. The device and Siri must use the same supported language.
+The app needs iPhone 15 Pro or later with iOS 26 or later (UIRequiredDeviceCapabilities: iphone-performance-gaming-tier), because the chat engine needs the memory of these iPhones. The chat does not need Apple Intelligence. The keyboard rewrites need Apple Intelligence: turn it on in Settings > Apple Intelligence & Siri and wait for its download to finish. Without Apple Intelligence, the keyboard shows a message that explains this, and typing still works.
 
-On an iPhone without Apple Intelligence, the app shows a message that explains this. This is expected behavior, not a crash. Typing with the keyboard still works.
+FIRST LAUNCH
+The first time the chat starts, iOS prepares the engine files for the Neural Engine. This takes up to about 1 minute. During this time, the chat answers with Apple Foundation Models if Apple Intelligence is on. Otherwise the reply shows "Setting up on this iPhone" and comes when the setup finishes. Later launches take a few seconds.
 
 HOW TO TEST THE CHAT
 1. Open QuietGPT and complete the first launch screens.
-2. Open the Chat tab and send a message. The reply streams on the iPhone.
+2. Open the Chat tab and send a message. The reply streams on the iPhone. The brain button next to the send button turns the thought step on or off. When it is on, a box shows the thought while it is written. Tap the box to see all of it.
 3. Turn on Airplane Mode and send another message. The reply still comes.
 
 HOW TO TEST THE KEYBOARD

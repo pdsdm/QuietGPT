@@ -8,6 +8,11 @@
 	<string>https://github.com/pdsdm/QuietGPT/blob/main/PRIVACY.md</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+		<string>iphone-performance-gaming-tier</string>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

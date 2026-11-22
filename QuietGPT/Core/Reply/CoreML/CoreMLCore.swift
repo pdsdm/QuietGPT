@@ -120,6 +120,10 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
         let bundle = try CoreMLBundle.load(from: folder)
         precondition(bundle.ring, "Core ML bundle without a ring buffer")
         try FileManager.default.createDirectory(at: compiledFolder, withIntermediateDirectories: true)
+        var store = compiledFolder.deletingLastPathComponent()
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? store.setResourceValues(values)
         size = bundle.sizes[0]
         try loadParts(bundle, warm: true)
         heads = try bundle.head.chunks.map { (try model(CoreMLBundle.Graph(file: $0.file, function: nil)), $0.start, $0.end) }

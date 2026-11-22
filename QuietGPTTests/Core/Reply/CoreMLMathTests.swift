@@ -3,6 +3,25 @@ import Testing
 @testable import QuietGPT
 
 struct CoreMLMathTests {
+    @Test func keepsTheWholeChatWhenItFits() {
+        #expect(CoreMLMath.droppedTurns(turns: 6) { _ in true } == 0)
+    }
+
+    @Test func dropsTheOldestTurnsInPairs() {
+        var asked: [Int] = []
+        let dropped = CoreMLMath.droppedTurns(turns: 6) { dropped in
+            asked.append(dropped)
+            return dropped >= 4
+        }
+        #expect(dropped == 4)
+        #expect(asked == [0, 2, 4])
+    }
+
+    @Test func givesUpWhenEvenTheLastTurnIsTooLong() {
+        #expect(CoreMLMath.droppedTurns(turns: 5) { _ in false } == nil)
+        #expect(CoreMLMath.droppedTurns(turns: 0) { _ in false } == nil)
+    }
+
     @Test func promptsOfWholeBlocksUseOnlyPrefillPasses() {
         #expect(CoreMLMath.passes(count: 64, prefill: 64) == [64])
         #expect(CoreMLMath.passes(count: 128, prefill: 64) == [64, 64])

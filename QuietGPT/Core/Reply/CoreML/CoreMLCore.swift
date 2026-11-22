@@ -751,12 +751,13 @@ nonisolated final class CoreMLCore: @unchecked Sendable {
                     try resize(to: bigger)
                 }
             }
-            var dropped = 0
-            while tokens.count + room(context) > context, dropped + 2 <= turns {
-                dropped += 2
-                tokens = try tokenize(full(dropped))
+            let dropped = try CoreMLMath.droppedTurns(turns: turns) { dropped in
+                if dropped > 0 {
+                    tokens = try tokenize(full(dropped))
+                }
+                return tokens.count + room(context) <= context
             }
-            guard tokens.count + room(context) <= context else {
+            guard let dropped else {
                 try reset()
                 throw TextEngineError.tooLong
             }

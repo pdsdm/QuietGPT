@@ -3,6 +3,15 @@ import Foundation
 nonisolated enum CoreMLMath {
     static let maskedValue = Float16(-65504)
 
+    static func droppedTurns(turns: Int, fits: (Int) throws -> Bool) rethrows -> Int? {
+        var dropped = 0
+        while try !fits(dropped) {
+            guard dropped + 2 <= turns else { return nil }
+            dropped += 2
+        }
+        return dropped
+    }
+
     static func passes(count: Int, prefill: Int) -> [Int] {
         guard prefill > 1 else { return Array(repeating: 1, count: count) }
         return Array(repeating: prefill, count: count / prefill) + Array(repeating: 1, count: count % prefill)

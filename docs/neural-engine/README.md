@@ -1,32 +1,41 @@
 # QuietGPT on the Apple Neural Engine
 
-QuietGPT replies come from the Apple Neural Engine (ANE), not from the GPU. We measured this on iPhone hardware. This document gives the method, the data, the benefits, the tradeoffs and the limits of the evidence.
+QuietGPT chat replies come from the Apple Neural Engine (ANE), not from the GPU. The chat engine is inside the app, and QuietGPT selects the ANE in its Core ML setup. We measured speed, quality, memory and heat on iPhone hardware. This document gives the method, the data, the benefits, the tradeoffs and the limits of the evidence.
+
+The keyboard uses Apple Foundation Models. The sections about Apple Foundation Models describe that engine and the earlier chat engine.
 
 ## Contents
 
 - [Summary](#summary)
 - [What the ANE is](#what-the-ane-is)
-- [How QuietGPT uses the ANE](#how-quietgpt-uses-the-ane)
-- [Evidence from the iPhone](#evidence-from-the-iphone)
-- [Why the ANE is better for QuietGPT](#why-the-ane-is-better-for-quietgpt)
-- [Tradeoffs](#tradeoffs)
-- [What this data does not prove](#what-this-data-does-not-prove)
+- [The chat engine](#the-chat-engine)
+- [Chat engine data](#chat-engine-data)
+- [Chat engine limits](#chat-engine-limits)
+- [Apple Foundation Models: keyboard and fallback](#apple-foundation-models-keyboard-and-fallback)
+  - [How QuietGPT uses the ANE](#how-quietgpt-uses-the-ane)
+  - [Evidence from the iPhone](#evidence-from-the-iphone)
+  - [Why the ANE is better for QuietGPT](#why-the-ane-is-better-for-quietgpt)
+  - [Tradeoffs](#tradeoffs)
+  - [What this data does not prove](#what-this-data-does-not-prove)
 - [Repeat the tests](#repeat-the-tests)
 - [Data files](#data-files)
 - [Sources](#sources)
 
 ## Summary
 
-All tests ran on an iPhone 16 Pro Max.
+All tests ran on an iPhone 16 Pro Max (A18 Pro, iOS 27).
 
 | Question | Result |
 |---|---|
-| Does the ANE work during a reply? | Yes. It is busy 84–87% of the time while text streams, and 0% just before the reply |
-| Did all test replies use the ANE? | Yes. All 14 replies with ANE data have ANE events |
-| Does the AI work appear on the GPU? | No separate AI process appears on the GPU |
-| How fast is a long reply? | About 21 and about 48 tokens/s in two tests |
-| How much power does it use? | No watt or battery number yet. Instruments gives only impact scores |
-| Is the GPU free when the app is idle? | Not on most tabs. The tabs with the animated background use 39–92% of GPU time, with no reply running. With the background off, the idle Chat tab uses 0% |
+| What answers in the chat? | [LFM3-1.7B](https://huggingface.co/LiquidAI/LFM3-1.7B) by Liquid AI, converted to Core ML with 8-bit palettized weights (LUT8). The app download includes it (1.9 GB) |
+| Does it run on the ANE? | Yes. The Core ML compute plan puts all 3,766 operations of the 6 layer chunks and the 2 output parts on the ANE. The compute units are `cpuAndNeuralEngine`, so the GPU is not used |
+| How fast is it? | 25.5 tokens/s median write speed. First text after 0.97 s (median of 98 prompts) |
+| Is it faster than the GPU? | Yes. The same weights on the GPU (llama.cpp, Q8) write 16.8 tokens/s. The ANE is 52 % faster |
+| How good are the replies? | 90 of 98 test prompts pass with the thought step on, 82 of 98 without it |
+| How much memory? | 2,232 MB at peak |
+| Does the phone get hot? | Less than with the GPU in the same test (see [heat](#heat)). Long runs can still reach the serious state |
+| How much power does it use? | Not measured. Three Instruments methods failed on this iPhone |
+| What does the keyboard use? | Apple Foundation Models, as before. The chat also uses it during the first setup |
 
 ## What the ANE is
 
@@ -34,9 +43,86 @@ The ANE is a separate part of Apple chips. It does the math of neural networks. 
 
 Most apps that run a language system on an iPhone use the GPU. These tools include llama.cpp and MLX. Apple's research team reports that the ANE can run such work at low power. Their 2022 study measured a small text network on iPhone 13: 3.47 ms at 0.454 W. That study does not measure QuietGPT.
 
-## How QuietGPT uses the ANE
+## The chat engine
 
-**QuietGPT does not program the ANE directly.** It calls Apple Foundation Models, and iOS selects the hardware. The API that QuietGPT calls has no setting for CPU, GPU or ANE. We know the result because we measured it, not because we set it.
+```mermaid
+flowchart TD
+    A[Chat] --> B[ReplyEngine]
+    B --> C[FallbackTextEngine]
+    C -->|ready or loading| D[CoreMLTextEngine]
+    C -->|first setup| E[AppleTextEngine]
+    D --> F[Core ML, cpuAndNeuralEngine]
+    F --> G[Apple Neural Engine]
+```
+
+| Part | What it does |
+|---|---|
+| `Convert/` | Converts LFM3-1.7B to Core ML: 6 chunks of 4 layers, 2 output parts, an 8-bit embedding table and the tokenizer. Weights are 8-bit palettized (LUT8). 4-bit and 6-bit lose quality |
+| `CoreMLCore` | Loads the parts with `MLComputeUnits.cpuAndNeuralEngine`, keeps the attention cache as a ring buffer, and resizes the context to 2,048, 4,096 or 8,192 tokens |
+| Prefill and decode | Prompts go in blocks of 64 tokens, the reply goes one token at a time. A cached system text and a cached chat let the next turn start without the full prompt again |
+| Thought step | Up to 256 tokens of thought before the reply. The engine then closes the thought and writes the reply |
+| `LFMPrompt` | The system text and the cleanup of the reply: no thought leak, no signature, no closing offer, no placeholder, no single top heading |
+| `FallbackTextEngine` | Uses Apple Foundation Models while iOS prepares the ANE files for the first time, or if the ANE files cannot load |
+
+**First launch.** Core ML compiles the files for this iPhone the first time. This took 37–75 s in our tests. Later loads take about 7 s. The app unloads the engine in the background and loads it again when it comes back to the screen. While it loads, the reply shows a short note.
+
+## Chat engine data
+
+**Test setup:** iPhone 16 Pro Max, iOS 27.0.1, Debug build with `-O`, 17 November 2026 (speed and heat) and 22 November 2026 (quality). 98 prompts in three sets (30, 46 and 22), each prompt in a new chat. Airplane mode on and cable out for the speed and heat runs.
+
+### Speed and memory
+
+| Measure | Apple Foundation Models | LFM3 on the GPU | LFM3 on the ANE |
+|---|---|---|---|
+| First text, median | 1.30 s | 1.15 s | **0.97 s** |
+| First text, 90th percentile | 1.43 s | 1.42 s | 1.83 s |
+| Write speed, median | not measured | 16.8 tokens/s | **25.5 tokens/s** |
+| Reply time, median | 1.8 s | 3.8 s | 3.6 s |
+| Peak memory | 97 MB | 346 MB | 2,232 MB |
+| Errors | 1 refusal | 0 | 0 |
+
+Apple Foundation Models runs outside the app, so its memory is not in the app number.
+
+### Quality
+
+`phase0/check.py` checks each reply against rules for its prompt: language, format, facts, identity, no question at the end, no placeholder.
+
+| Engine | Passed |
+|---|---|
+| Apple Foundation Models | 71 / 98 |
+| LFM3 on the GPU | 77 / 98 |
+| LFM3 on the ANE, first system text | 78 / 98 |
+| LFM3 on the ANE, shipped system text | 82 / 98 |
+| LFM3 on the ANE, shipped system text and thought step | **90 / 98** |
+
+The thought step adds about 15 s to the median reply time. Turn it off with the brain button next to the send button.
+
+### Heat
+
+Two runs of the same 68 prompts, ANE first, 1 minute of rest, then the GPU:
+
+| Measure | Run 1 ANE | Run 1 GPU | Run 2 ANE | Run 2 GPU |
+|---|---|---|---|---|
+| Thermal state during the prompts | fair 50, nominal 18 | **serious 53**, nominal 11, fair 4 | **nominal 68** | fair 54, nominal 14 |
+| Thermal state at the end | fair | serious | nominal | fair |
+
+In an earlier run, the ANE ran last, after 15 minutes of other work, and reached the serious state for 28 prompts.
+
+## Chat engine limits
+
+- **App size.** The download is about 1.9 GB larger.
+- **Devices.** The app needs iPhone 15 Pro or later (`iphone-performance-gaming-tier`), because of the memory. We tested only an iPhone 16 Pro Max. We did not test an iPhone with less memory than 8 GB.
+- **Power.** No watt or battery number. Instruments failed on this iPhone with three methods. Battery levels in 5 % steps are too coarse.
+- **Quality.** It is a small engine. Facts can be wrong, and long letters in some languages, for example Catalan, are weak.
+- **First launch.** Up to about 1 minute of setup.
+
+## Apple Foundation Models: keyboard and fallback
+
+The sections below describe the Apple Foundation Models engine. The keyboard uses it. The first chat version used it too, and these tests come from that version.
+
+### How QuietGPT uses the ANE
+
+**With Apple Foundation Models, QuietGPT does not program the ANE directly.** It calls Apple Foundation Models, and iOS selects the hardware. The API that QuietGPT calls has no setting for CPU, GPU or ANE. We know the result because we measured it, not because we set it.
 
 ```mermaid
 flowchart TD
@@ -67,13 +153,13 @@ QuietGPT does this work around that call:
 | Recover from a full context | `exceededContextWindowSize`, then `retryTurns` is 4 | The chat continues with less history |
 | Allow text rewrites | `guardrails: .permissiveContentTransformations` in `Rewriter` | Fewer rewrites are refused |
 
-The app contains no AI weights. iOS installs them with Apple Intelligence. The debug build for the simulator is 12 MB.
+Apple Foundation Models uses no weights from the app. iOS installs them with Apple Intelligence.
 
-## Evidence from the iPhone
+### Evidence from the iPhone
 
 **Test setup:** iPhone 16 Pro Max (A18 Pro), iOS 27.0.1, 30 October 2026. We recorded the full iPhone with Instruments, with the Core ML template and the GPU instrument. The recording reads hardware tables. It does not use a label in the app.
 
-### One long reply
+#### One long reply
 
 The reply had 1,297 characters, about 324 tokens. The first text came after 4.00 s. The total time was 19.26 s, about 21 tokens each second.
 
@@ -93,7 +179,7 @@ The table of hardware events shows 546 `Neural Engine Prediction` events and 6 `
 
 The GPU time of QuietGPT goes up during the reply. We think that this is the text animation, because the app draws more in that time. The trace cannot confirm the cause.
 
-### Twelve replies in one session
+#### Twelve replies in one session
 
 Each reply window comes from the time in the QuietGPT log.
 
@@ -117,7 +203,7 @@ Each reply window comes from the time in the QuietGPT log.
 - **84% of all ANE time is inside these windows** (15.39 s of 18.37 s). The app also loads at launch. The source of the other ANE work is not known. iOS can use the ANE for other features.
 - **GPU use in the full recording:** the system compositor 58.62 s, QuietGPT 17.25 s, all others less than 0.25 s. No separate AI process appears.
 
-### Second test, 4 November
+#### Second test, 4 November
 
 **Test setup:** the same iPhone and iOS version, on the cable and charging. The build is a debug build. We did not record which commit it contains.
 
@@ -135,7 +221,7 @@ The recording has 742 prediction events and 10 load events. Two of these events 
 
 **The ANE also works without a QuietGPT reply.** Second 35–42 in this table has no message. A recording of idle tabs with no message also has an ANE burst, with an average of 47% over 5 seconds. That recording also has an event named `sbert_quantized_mlprogram_main__Op1_AneInference`. The source of this work is not known. It can be iOS. For this reason, ANE activity alone does not prove a reply. The match in time does.
 
-### GPU use when the app is idle
+#### GPU use when the app is idle
 
 We opened one tab at a time, and we sent no message. The table gives QuietGPT GPU time. We ignored the first 10 seconds of each tab.
 
@@ -161,7 +247,7 @@ To confirm the cause, we made a test build from one commit with a launch option 
 
 The GPU use can jump with no change on the screen. In this test, it went up about 20 seconds after each launch with the field on, to about 885 ms each second. The app sends 120 GPU intervals each second, and each interval takes about 7.4 ms after the jump. The thermal state was `Nominal` when each jump came, so a thermal limit does not explain it. The cause of the jump is not known.
 
-### Power impact
+#### Power impact
 
 A `Power Profiler` recording gives these results for one reply on the same iPhone:
 
@@ -174,7 +260,7 @@ A `Power Profiler` recording gives these results for one reply on the same iPhon
 
 Impact scores have no unit in Instruments. They are not watts. These scores do not show ANE power, so this test does not compare the ANE with the GPU.
 
-## Why the ANE is better for QuietGPT
+### Why the ANE is better for QuietGPT
 
 | Benefit | Status | Evidence |
 |---|---|---|
@@ -184,7 +270,7 @@ Impact scores have no unit in Instruments. They are not watts. These scores do n
 | Low power | **Reported by Apple, not measured in QuietGPT** | Apple's 2022 study measured 3.47 ms at 0.454 W on the iPhone 13 ANE, with a small text network |
 | Less heat and more battery life | **Expected, not measured** | Low power suggests this, but we have no battery test. The animated background can also use more power than the ANE saves. We did not measure this |
 
-## Tradeoffs
+### Tradeoffs
 
 | Tradeoff | Effect | Data or source |
 |---|---|---|
@@ -197,7 +283,7 @@ Impact scores have no unit in Instruments. They are not watts. These scores do n
 | **Fewer devices** | It needs Apple Intelligence, so iPhone 15 Pro or later, and up to 8–14 GB of storage on iOS 27 | [Apple Support](https://support.apple.com/en-us/121115) |
 | **Fewer languages** | Only the languages that Apple Intelligence supports | [Apple Support](https://support.apple.com/en-us/121115) |
 
-## What this data does not prove
+### What this data does not prove
 
 - **The events have no process name.** The ANE table does not name a process. We connect events to replies by their time.
 - **We recorded chat replies only.** Keyboard rewrites use the same system framework, but we did not record them.

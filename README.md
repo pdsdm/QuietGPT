@@ -30,7 +30,7 @@ A chat and a keyboard that run on the Apple Neural Engine. Rewrite any message w
 
 Most AI apps send your words to a server. QuietGPT does not. The AI runs on your iPhone, so your chats and your messages do not leave it.
 
-- **Private by default.** Apple Foundation Models does the work on your iPhone. QuietGPT has no server.
+- **Private by default.** The AI runs inside the app, on your iPhone. QuietGPT has no server.
 - **Runs on the Neural Engine.** Replies come from the part of the chip made for AI work, not from the GPU. [We measured it](#runs-on-the-apple-neural-engine).
 - **Your rules, each time.** You write the rules once. QuietGPT follows them in each rewrite.
 - **In all apps.** Use the keyboard. You do not copy and paste between apps.
@@ -39,30 +39,34 @@ Most AI apps send your words to a server. QuietGPT does not. The AI runs on your
 
 ## Runs on the Apple Neural Engine
 
-Most apps that run AI on an iPhone use the GPU. QuietGPT replies come from the Apple Neural Engine (ANE). A hardware recording on an iPhone 16 Pro Max confirms this.
+Most apps that run AI on an iPhone use the GPU. QuietGPT chat replies come from the Apple Neural Engine (ANE). The chat engine is inside the app: [LFM3-1.7B](https://huggingface.co/LiquidAI/LFM3-1.7B) by Liquid AI, converted to Core ML with 8-bit weights.
+
+**How we do it.** QuietGPT loads the engine with Core ML and the compute units `cpuAndNeuralEngine`, so the GPU is not used. The Core ML compute plan puts all 3,766 operations on the ANE.
+
+All tests ran on an iPhone 16 Pro Max, with 98 test prompts.
+
+| What we measured | ANE | Same weights on the GPU |
+|---|---|---|
+| Write speed, median | **25.5 tokens/s** | 16.8 tokens/s |
+| First text, median | **0.97 s** | 1.15 s |
+| Test prompts passed | 90 of 98 with the thought step, 82 without | 77 of 98 without |
+| Thermal state, same 68 prompts on a cool phone | **nominal for all** | fair after the same work |
+| Peak memory | 2,232 MB | 346 MB |
+
+Apple Foundation Models, the engine of the first version, passed 71 of 98.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/neural-engine/charts/iphone-busy-dark.png">
-  <img src="docs/neural-engine/charts/iphone-busy-light.png" alt="Neural Engine busy percent for each second of one reply. It is zero before the reply, between 76 and 93 percent while the text streams, and zero after the reply.">
+  <img src="docs/neural-engine/charts/iphone-busy-light.png" alt="Neural Engine busy percent for each second of one reply with the first chat engine. It is zero before the reply, between 76 and 93 percent while the text streams, and zero after the reply.">
 </picture>
 
-**How we do it.** QuietGPT calls Apple Foundation Models with `LanguageModelSession`, and iOS selects the hardware. QuietGPT does not program the ANE directly, and it has no setting to select it. So we measure the result.
+This recording comes from the first chat engine, Apple Foundation Models, which the keyboard still uses.
 
-All tests ran on an iPhone 16 Pro Max.
+**Why it is better.** The ANE writes 52 % faster than the GPU and heats the phone less in our test. The AI work does not take GPU time, so the interface stays smooth.
 
-| What we measured | Result |
-|---|---|
-| ANE busy while text streams | 84–87% on average in two tests, and 0% just before the reply |
-| Test replies with ANE events | 14 of 14 |
-| Separate AI process on the GPU | None |
-| Speed of a long reply | About 21 and about 48 tokens/s in two tests |
-| QuietGPT GPU time when idle | 39–92% on tabs with the animated background, 0% on the Keyboard tab |
+**Tradeoffs.** The app download is about 1.9 GB larger. The first launch needs up to about 1 minute of setup. The app needs iPhone 15 Pro or later for the memory.
 
-**Why it is better.** The AI work does not take GPU time. The app loads no AI weights, so the same system works in the keyboard. Apple reports that the ANE works at low power. We expect less heat and more battery life, but we did not measure them.
-
-**Tradeoffs.** Reply speed changes between tests. QuietGPT cannot select the hardware or the AI system. Apple's safety filters and context limit apply. It also needs an iPhone with Apple Intelligence.
-
-**Limits of this data.** We have no watt or battery data and no direct comparison with the GPU. We tested one iPhone with a small sample. We recorded chat replies, not keyboard rewrites. iOS can also use the ANE when no reply runs.
+**Limits of this data.** We have no watt or battery data. We tested one iPhone. The quality score comes from our own test prompts.
 
 **Read the full report:** [method, data, tradeoffs, limits and steps to repeat the tests](docs/neural-engine/README.md).
 
@@ -139,7 +143,7 @@ QuietGPT runs only on iPhone. It does not have an iPad version.
 | Apple account | Necessary to run on an iPhone. Not necessary for the simulator |
 | Packages | No Swift packages. [llama.cpp](https://github.com/ggml-org/llama.cpp) is built from source with `scripts/build-llama.sh` (needs CMake) |
 
-Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-QuietGPTSimulate YES`](#debug-launch-options) to get a sample reply.
+Real replies need iPhone 15 Pro or later. Keyboard rewrites also need Apple Intelligence. Release builds include the chat files from `Convert/bundles/lfm3-lut8-dyn-app`. Debug builds include them only with `QUIETGPT_EMBED_BUNDLE=YES`. In the simulator, use [`-QuietGPTSimulate YES`](#debug-launch-options) to get a sample reply.
 
 ## Quick start
 
@@ -153,12 +157,13 @@ Real replies need an iPhone with Apple Intelligence. In the simulator, use [`-Qu
 
 | Data | Where it stays |
 |---|---|
+| Chat messages | The chat engine inside the app reads them on the iPhone. During the first setup, Apple Foundation Models on the iPhone answers |
 | Text that you rewrite | It goes to Apple Foundation Models on the iPhone |
 | Chats | SwiftData in a private app folder, with `NSFileProtectionComplete`. iCloud Backup and computer backups do not include this folder, so chats do not move to a new iPhone |
 | Rules, styles and people | The app group on the iPhone, shared with the keyboard. Backups do not include this settings folder |
 | Style packs | On the iPhone, until you send the file. A pack does not include your people |
 
-QuietGPT has no account, no analytics, no ads and no third-party packages. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles. Read the [privacy policy](PRIVACY.md).
+QuietGPT has no account, no analytics and no ads. Its only third-party parts are the LFM3 files and llama.cpp, and they do not use the network. The keyboard does not ask for full access. **Delete all data** in the Privacy tab removes chats, rules, people and styles. Read the [privacy policy](PRIVACY.md).
 
 ### What the Privacy tab measures
 
@@ -190,8 +195,9 @@ The Monitor panel also shows live network use for the full iPhone.
 | **Keyboard** | `QuietGPTKeyboard` reads the text in the field. |
 | **Rewrite** | `Rewriter` adds your style, rules and base instructions to the text. It streams the result. All targets use this shared code. |
 | **Chat** | `ReplyEngine` streams each reply to the chat screen. SwiftData keeps the chat. |
-| **Apple Foundation Models** | The system framework. It runs on the iPhone, and iOS manages the download. |
-| **Apple Neural Engine** | The hardware that does the AI work. iOS selects it. See the [report](docs/neural-engine/README.md). |
+| **Chat engine** | `CoreMLTextEngine` runs LFM3-1.7B with Core ML on the ANE. `FallbackTextEngine` uses Apple Foundation Models during the first setup. |
+| **Apple Foundation Models** | The system framework for the keyboard. It runs on the iPhone, and iOS manages the download. |
+| **Apple Neural Engine** | The hardware that does the AI work. See the [report](docs/neural-engine/README.md). |
 
 ## Troubleshooting
 

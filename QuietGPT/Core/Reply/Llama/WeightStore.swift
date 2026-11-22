@@ -1,3 +1,4 @@
+#if DEBUG
 import CryptoKit
 import Foundation
 import os
@@ -232,3 +233,4 @@ private nonisolated final class DownloadRelay: NSObject, URLSessionDownloadDeleg
         }
     }
 }
+#endif

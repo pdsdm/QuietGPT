@@ -31,7 +31,9 @@ extension TextEngine {
 
 enum TextEngineKind: String, CaseIterable {
     case apple
+    #if DEBUG
     case lfm3
+    #endif
     case lfm3ane = "lfm3-ane"
 
     static var selected: TextEngineKind {
@@ -46,22 +48,21 @@ enum TextEngineKind: String, CaseIterable {
         return CoreMLTextEngine.isInstalled ? .lfm3ane : .apple
     }
 
+    #if DEBUG
     static var weights: Weights {
-        #if DEBUG
-        if DebugLaunch.weights == "q4" {
-            return .q4
-        }
-        #endif
-        return .q8
+        DebugLaunch.weights == "q4" ? .q4 : .q8
     }
+    #endif
 
     @MainActor
     func make() -> any TextEngine {
         switch self {
         case .apple:
             AppleTextEngine()
+        #if DEBUG
         case .lfm3:
             LlamaTextEngine(weights: Self.weights)
+        #endif
         case .lfm3ane:
             CoreMLTextEngine()
         }

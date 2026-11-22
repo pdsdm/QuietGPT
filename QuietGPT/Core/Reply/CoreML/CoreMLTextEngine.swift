@@ -15,24 +15,28 @@ final class CoreMLTextEngine: TextEngine {
         return "lfm3-lut8-dyn-app"
     }
 
+    nonisolated static var storeFolder: URL {
+        URL.applicationSupportDirectory.appending(path: "Weights", directoryHint: .isDirectory)
+    }
+
     nonisolated static var folder: URL {
         if let embedded = Bundle.main.url(forResource: bundleName, withExtension: nil) {
             return embedded
         }
-        return WeightStore.folder.appending(path: bundleName, directoryHint: .isDirectory)
+        return storeFolder.appending(path: bundleName, directoryHint: .isDirectory)
     }
 
     nonisolated static var compiledFolder: URL {
         let manifest = (try? Data(contentsOf: folder.appending(path: "manifest.json"))) ?? Data()
         let stamp = SHA256.hash(data: manifest).prefix(6).map { String(format: "%02x", $0) }.joined()
-        return WeightStore.folder.appending(path: "\(bundleName)-compiled-\(stamp)", directoryHint: .isDirectory)
+        return storeFolder.appending(path: "\(bundleName)-compiled-\(stamp)", directoryHint: .isDirectory)
     }
 
     nonisolated static func removeOldCompiled() {
         let current = compiledFolder.lastPathComponent
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: WeightStore.folder.path)) ?? []
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: storeFolder.path)) ?? []
         for name in names where name.hasPrefix(bundleName + "-compiled") && name != current {
-            try? FileManager.default.removeItem(at: WeightStore.folder.appending(path: name, directoryHint: .isDirectory))
+            try? FileManager.default.removeItem(at: storeFolder.appending(path: name, directoryHint: .isDirectory))
             logger.notice("Removed old compiled parts: \(name, privacy: .public)")
         }
     }

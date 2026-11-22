@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import os
 import UIKit
@@ -153,3 +154,4 @@ final class LlamaTextEngine: TextEngine {
         }
     }
 }
+#endif

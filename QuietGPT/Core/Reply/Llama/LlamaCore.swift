@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import llama
 
@@ -160,3 +161,4 @@ nonisolated final class LlamaCore: @unchecked Sendable {
         return chain
     }
 }
+#endif

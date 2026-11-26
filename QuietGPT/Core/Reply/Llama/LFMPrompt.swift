@@ -168,3 +168,46 @@ nonisolated enum LFMPrompt {
         return parts
     }
 }
+
+nonisolated struct LFMToolCall: Equatable, Sendable {
+    let name: String
+    let arguments: [String: String]
+}
+
+nonisolated extension LFMPrompt {
+    private static let toolCall = try! NSRegularExpression(pattern: #"<tool_call>\s*<function=([\w.-]+)>(.*?)</function>\s*</tool_call>"#, options: .dotMatchesLineSeparators)
+    private static let toolParameter = try! NSRegularExpression(pattern: #"<parameter=([\w.-]+)>\n?(.*?)\n?</parameter>"#, options: .dotMatchesLineSeparators)
+
+    static func system(_ text: String, tools: [String]) -> String {
+        guard !tools.isEmpty else { return text }
+        return text + "\n\n<tools>\n" + tools.joined(separator: "\n") + "\n</tools>"
+    }
+
+    static func answer(_ reply: String) -> String {
+        let text = reply.range(of: "</think>", options: .backwards).map { String(reply[$0.upperBound...]) } ?? reply
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func toolCalls(in reply: String) -> [LFMToolCall] {
+        let text = answer(reply)
+        return toolCall.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match in
+            guard let name = Range(match.range(at: 1), in: text), let body = Range(match.range(at: 2), in: text) else { return nil }
+            let inner = String(text[body])
+            var arguments: [String: String] = [:]
+            for found in toolParameter.matches(in: inner, range: NSRange(inner.startIndex..., in: inner)) {
+                guard let key = Range(found.range(at: 1), in: inner), let value = Range(found.range(at: 2), in: inner) else { continue }
+                arguments[String(inner[key])] = inner[value].trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return LFMToolCall(name: String(text[name]), arguments: arguments)
+        }
+    }
+
+    static func withoutToolCalls(_ reply: String) -> String {
+        let text = answer(reply)
+        return replace(toolCall, in: text, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func toolResults(_ results: [String], thinking: Bool) -> String {
+        "<|im_end|>\n" + results.map { block("tool", "<tool_response>\n\($0)\n</tool_response>") }.joined() + opening(thinking: thinking)
+    }
+}

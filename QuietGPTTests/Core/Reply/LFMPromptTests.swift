@@ -95,4 +95,23 @@ struct LFMPromptTests {
         let code = "## Script\n```\n# run\n```"
         #expect(LFMPrompt.clean(code, thinking: false, final: true) == "```\n# run\n```")
     }
+
+    @Test func addsTheToolListToTheSystemText() {
+        #expect(LFMPrompt.system("Rules.", tools: []) == "Rules.")
+        #expect(LFMPrompt.system("Rules.", tools: ["{\"name\": \"a\"}", "{\"name\": \"b\"}"]) == "Rules.\n\n<tools>\n{\"name\": \"a\"}\n{\"name\": \"b\"}\n</tools>")
+    }
+
+    @Test func readsToolCallsAfterTheThought() {
+        let reply = "Check <tool_call>\n<function=no>\n</function>\n</tool_call></think>Let me look.<tool_call>\n<function=calendar_list_events>\n<parameter=date>\n2026-11-16\n</parameter>\n</function>\n</tool_call>\n\n<tool_call>\n<function=get_current_datetime>\n</function>\n</tool_call>"
+        let calls = LFMPrompt.toolCalls(in: reply)
+
+        #expect(calls == [LFMToolCall(name: "calendar_list_events", arguments: ["date": "2026-11-16"]), LFMToolCall(name: "get_current_datetime", arguments: [:])])
+        #expect(LFMPrompt.withoutToolCalls(reply) == "Let me look.")
+    }
+
+    @Test func toolResultsContinueTheTemplate() {
+        let next = LFMPrompt.toolResults(["Monday 2026-11-16", "No event matches."], thinking: true)
+
+        #expect(next == "<|im_end|>\n<|im_start|>tool\n<tool_response>\nMonday 2026-11-16\n</tool_response><|im_end|>\n<|im_start|>tool\n<tool_response>\nNo event matches.\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>")
+    }
 }

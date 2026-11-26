@@ -228,6 +228,16 @@ final class CoreMLTextEngine: TextEngine {
         }
     }
 
+    func warmAll() async -> Bool {
+        guard await loaded() else { return false }
+        for _ in 0..<900 {
+            let names = (try? FileManager.default.contentsOfDirectory(atPath: Self.compiledFolder.path)) ?? []
+            if names.contains(where: { $0.hasPrefix("warm-") }) { return true }
+            try? await Task.sleep(for: .seconds(1))
+        }
+        return false
+    }
+
     func toolRound(conversation: UUID, round: Int, system: String, full: String, next: String, thinking: Bool, deadline: Date, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
         let core = core
         return try await withCheckedThrowingContinuation { continuation in

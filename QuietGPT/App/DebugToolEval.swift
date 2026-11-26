@@ -335,6 +335,9 @@ enum DebugToolEval {
         let tools = MockTools(data: spec.data)
         let progress = URL.documentsDirectory.appending(path: "tool-eval-progress.log")
         var lines = Data()
+        let warming = Date()
+        let warm = await engine.warmAll()
+        note("\(Date().formatted(date: .omitted, time: .standard)) larger contexts ready: \(warm) after \(Int(Date().timeIntervalSince(warming))) s", to: progress)
         for (index, task) in spec.tasks.enumerated() {
             let conversation = UUID()
             var full = LFMPrompt.text(system: spec.system, history: [], prompt: task.text, thinking: thinking)

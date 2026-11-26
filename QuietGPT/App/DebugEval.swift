@@ -149,6 +149,19 @@ enum DebugEval {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
         let label = label ?? engine.evalLabel
+        if name.hasPrefix("tools-") {
+            guard let engine = engine as? CoreMLTextEngine, let data = try? Data(contentsOf: documents.appending(path: source)), let spec = try? JSONDecoder().decode(DebugToolEval.Spec.self, from: data) else {
+                logger.error("Tool eval set missing: \(source, privacy: .public)")
+                return
+            }
+            let tuning = tuning
+            await DebugToolEval.run(engine: engine, spec: spec, thinking: tuning?.thinking ?? false, output: documents.appending(path: "lfm-iphone-\(label)-\(name).jsonl")) { sampler in
+                if let value = tuning?.temperature { sampler.temperature = value }
+                if let value = tuning?.penalty { sampler.penalty = value }
+                if let value = tuning?.minP { sampler.minP = value }
+            }
+            return
+        }
         guard let data = try? Data(contentsOf: documents.appending(path: source)), let items = try? JSONDecoder().decode([Item].self, from: data) else {
             logger.error("Eval set missing: \(source, privacy: .public)")
             return

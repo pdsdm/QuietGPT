@@ -227,6 +227,24 @@ final class CoreMLTextEngine: TextEngine {
             }
         }
     }
+
+    func toolRound(conversation: UUID, round: Int, system: String, full: String, next: String, thinking: Bool, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
+        let core = core
+        return try await withCheckedThrowingContinuation { continuation in
+            core.queue.async {
+                do {
+                    var raw = ""
+                    var sampler = CoreMLSampler()
+                    tune(&sampler)
+                    let metrics = try core.generate(conversation: conversation, turns: round * 2, prefix: LFMPrompt.prefix(system: system), full: { _ in full }, next: next, maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, thinkBudget: thinking ? LFMPrompt.thinkBudget : 0, sampler: &sampler, isCancelled: { false }) { raw = $0 }
+                    continuation.resume(returning: (raw, metrics))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+                core.adapt()
+            }
+        }
+    }
     #endif
 
     private func release(because reason: String, cancelling: Bool) {

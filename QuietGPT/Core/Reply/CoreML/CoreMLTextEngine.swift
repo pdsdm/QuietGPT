@@ -228,7 +228,7 @@ final class CoreMLTextEngine: TextEngine {
         }
     }
 
-    func toolRound(conversation: UUID, round: Int, system: String, full: String, next: String, thinking: Bool, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
+    func toolRound(conversation: UUID, round: Int, system: String, full: String, next: String, thinking: Bool, deadline: Date, tune: @escaping (inout CoreMLSampler) -> Void = { _ in }) async throws -> (String, EngineMetrics) {
         let core = core
         return try await withCheckedThrowingContinuation { continuation in
             core.queue.async {
@@ -236,7 +236,7 @@ final class CoreMLTextEngine: TextEngine {
                     var raw = ""
                     var sampler = CoreMLSampler()
                     tune(&sampler)
-                    let metrics = try core.generate(conversation: conversation, turns: round * 2, prefix: LFMPrompt.prefix(system: system), full: { _ in full }, next: next, maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, thinkBudget: thinking ? LFMPrompt.thinkBudget : 0, sampler: &sampler, isCancelled: { false }) { raw = $0 }
+                    let metrics = try core.generate(conversation: conversation, turns: round * 2, prefix: LFMPrompt.prefix(system: system), full: { _ in full }, next: next, maxTokens: thinking ? LFMPrompt.thinkingTokens : LFMPrompt.replyTokens, thinkBudget: thinking ? LFMPrompt.thinkBudget : 0, sampler: &sampler, isCancelled: { Date() > deadline }) { raw = $0 }
                     continuation.resume(returning: (raw, metrics))
                 } catch {
                     continuation.resume(throwing: error)

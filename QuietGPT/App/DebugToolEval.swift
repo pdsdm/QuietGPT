@@ -289,6 +289,7 @@ enum DebugToolEval {
         let data: MockToolData
         let maxRounds: Int
         let callLimit: Int
+        let taskSeconds: Double?
         let tasks: [Task]
     }
 
@@ -314,6 +315,17 @@ enum DebugToolEval {
     }
 
     private static let logger = Logger(subsystem: "QuietGPT", category: "eval")
+    private static func note(_ line: String, to url: URL) {
+        let data = Data((line + "\n").utf8)
+        if let handle = try? FileHandle(forWritingTo: url) {
+            _ = try? handle.seekToEnd()
+            try? handle.write(contentsOf: data)
+            try? handle.close()
+        } else {
+            try? data.write(to: url)
+        }
+    }
+
     private static let limitText = "{\"error\":\"Tool limit reached. Do not call more tools. Reply to the user now.\"}"
 
     @MainActor
@@ -321,6 +333,7 @@ enum DebugToolEval {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
         let tools = MockTools(data: spec.data)
+        let progress = URL.documentsDirectory.appending(path: "tool-eval-progress.log")
         var lines = Data()
         for (index, task) in spec.tasks.enumerated() {
             let conversation = UUID()
@@ -337,9 +350,17 @@ enum DebugToolEval {
             var thermal = ""
             var failure: String?
             let started = Date()
+            let deadline = started.addingTimeInterval(spec.taskSeconds ?? 300)
             do {
                 for round in 0..<spec.maxRounds {
-                    let (raw, metrics) = try await engine.toolRound(conversation: conversation, round: round, system: spec.system, full: full, next: next, thinking: thinking, tune: tune)
+                    note("\(Date().formatted(date: .omitted, time: .standard)) \(task.id) round \(round + 1) start", to: progress)
+                    let (raw, metrics) = try await engine.toolRound(conversation: conversation, round: round, system: spec.system, full: full, next: next, thinking: thinking, deadline: deadline, tune: tune)
+                    note("\(Date().formatted(date: .omitted, time: .standard)) \(task.id) round \(round + 1) prompt \(metrics.promptTokens) generated \(metrics.generatedTokens) context \(metrics.context) prefill \(String(format: "%.1f", metrics.prefillSeconds)) s thermal \(metrics.thermal)", to: progress)
+                    if Date() > deadline {
+                        failure = "time limit"
+                        reply = LFMPrompt.answer(raw)
+                        break
+                    }
                     rounds = round + 1
                     prefill += metrics.prefillSeconds
                     promptTokens = metrics.promptTokens

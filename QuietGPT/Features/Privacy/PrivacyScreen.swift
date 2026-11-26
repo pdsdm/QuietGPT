@@ -9,6 +9,7 @@ struct PrivacyScreen: View {
     @AppStorage(SettingsKey.lockEnabled) private var lockEnabled = true
     @ScaledMetric(relativeTo: .largeTitle) private var counterSize: CGFloat = 72
     @State private var confirmingDelete = false
+    @State private var showingAgent = false
     @State private var appeared = false
 
     private var network: NetworkWatch { .shared }
@@ -87,6 +88,33 @@ struct PrivacyScreen: View {
                     }
                     .padding(.top, 12)
 
+                    card {
+                        Button {
+                            showingAgent = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Web agent")
+                                        .font(QuietGPTFont.callout)
+                                        .foregroundStyle(palette.text)
+                                    Text("Works on a web page for you. Uses the internet only when you turn it on.")
+                                        .font(QuietGPTFont.footnote)
+                                        .foregroundStyle(palette.text2)
+                                }
+                                Spacer(minLength: 0)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(palette.text3)
+                                    .accessibilityHidden(true)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 13)
+                            .contentShape(.rect)
+                        }
+                        .buttonStyle(PressableStyle(scale: 0.98))
+                    }
+                    .padding(.top, 12)
+
                     Text("Test it: turn on airplane mode and keep chatting.")
                         .font(QuietGPTFont.footnote)
                         .foregroundStyle(palette.text2)
@@ -125,6 +153,10 @@ struct PrivacyScreen: View {
             Button("Delete all data", role: .destructive, action: deleteAll)
         } message: {
             Text("This removes every chat, rule, person and style from this iPhone. It cannot be undone.")
+        }
+        .sheet(isPresented: $showingAgent) {
+            AgentScreen()
+                .presentationDragIndicator(.visible)
         }
         .sensoryFeedback(.warning, trigger: confirmingDelete) { _, new in new }
         .onAppear { appeared = true }

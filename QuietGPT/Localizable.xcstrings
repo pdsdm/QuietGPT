@@ -1,6 +1,325 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Calendar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendario"
+          }
+        }
+      }
+    },
+    "Your day, on this iPhone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu día, en este iPhone"
+          }
+        }
+      }
+    },
+    "QuietGPT reads your calendar on this iPhone to show your events and your free time. Your events never leave the device." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT lee tu calendario en este iPhone para mostrar tus eventos y tu tiempo libre. Tus eventos nunca salen del dispositivo."
+          }
+        }
+      }
+    },
+    "Allow calendar access" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir acceso al calendario"
+          }
+        }
+      }
+    },
+    "QuietGPT can't read your calendar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT no puede leer tu calendario"
+          }
+        }
+      }
+    },
+    "QuietGPT can add events, but it can't read them. In Settings, choose Full Access to see your day here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuietGPT puede añadir eventos, pero no puede leerlos. En Ajustes, elige Acceso total para ver tu día aquí."
+          }
+        }
+      }
+    },
+    "Calendar access is off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso al calendario está desactivado"
+          }
+        }
+      }
+    },
+    "Turn on Full Access in Settings to see your events here. QuietGPT reads them only on this iPhone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Acceso total en Ajustes para ver tus eventos aquí. QuietGPT solo los lee en este iPhone."
+          }
+        }
+      }
+    },
+    "This event is no longer in your calendar." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este evento ya no está en tu calendario."
+          }
+        }
+      }
+    },
+    "New event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevo evento"
+          }
+        }
+      }
+    },
+    "nothing planned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nada previsto"
+          }
+        }
+      }
+    },
+    "%@ planned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en total"
+          }
+        }
+      }
+    },
+    "all-day event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "evento de todo el día"
+          }
+        }
+      }
+    },
+    "Today, %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Free from 08:00 to 22:00." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Libre de 08:00 a 22:00."
+          }
+        }
+      }
+    },
+    "Longest free time: %@ to %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo libre más largo: de %1$@ a %2$@."
+          }
+        }
+      }
+    },
+    "No free time from 08:00 to 22:00." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin tiempo libre de 08:00 a 22:00."
+          }
+        }
+      }
+    },
+    "Nothing planned." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada previsto."
+          }
+        }
+      }
+    },
+    "1 event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 evento"
+          }
+        }
+      }
+    },
+    "%lld events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld eventos"
+          }
+        }
+      }
+    },
+    "%@ planned." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en total."
+          }
+        }
+      }
+    },
+    "No title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin título"
+          }
+        }
+      }
+    },
+    "All day: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo el día: %@"
+          }
+        }
+      }
+    },
+    "Loading your events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando tus eventos"
+          }
+        }
+      }
+    },
+    "Free %@ to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Libre de %1$@ a %2$@"
+          }
+        }
+      }
+    },
+    "%@ to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ a %2$@"
+          }
+        }
+      }
+    },
+    "Now, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora, %@"
+          }
+        }
+      }
+    },
+    "Web agent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agente web"
+          }
+        }
+      }
+    },
+    "Works on a web page for you. Uses the internet only when you turn it on." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trabaja en una página web por ti. Solo usa internet cuando lo activas."
+          }
+        }
+      }
+    },
     "Getting ready on this iPhone. This takes a few seconds." : {
       "extractionState" : "manual",
       "localizations" : {
